@@ -1,7 +1,7 @@
 # SimpleQtBBox
 This is a very simple tool to verify/edit your object detection image data set. It only depends on Qt SDK 5.12.*, so it is very easy to compile.
 
-SimpleQtBBox support **XML VOC format** and its navite format. In folder samples there are some useful samples.
+SimpleQtBBox support **XML VOC format** and its navite format. In the folder ***data** there are some useful samples.
 
 
 ###  How to use?
