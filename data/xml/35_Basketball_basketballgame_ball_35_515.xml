@@ -1,0 +1,34 @@
+
+<annotation>
+    <folder>Mixed_Cleaned</folder>
+    <filename>35_Basketball_basketballgame_ball_35_515</filename>
+    <source>
+        <database></database>
+        <annotation>Mixed Cleaned</annotation>
+        <image>Mixed Cleaned</image>
+    </source>
+    <size>
+        <width>1024</width>
+        <height>1273</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>face</name>
+        <bndbox>
+            <xmin>167</xmin>
+            <ymin>373</ymin>
+            <xmax>696</xmax>
+            <ymax>1059</ymax>
+        </bndbox>
+    </object>
+    <object>
+        <name>person</name>
+        <bndbox>
+            <xmin>16</xmin>
+            <ymin>71</ymin>
+            <xmax>931</xmax>
+            <ymax>1266</ymax>
+        </bndbox>
+    </object>
+</annotation>
