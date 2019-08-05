@@ -22,5 +22,8 @@ SimpleQtBBox support **XML VOC format** and its navite format. In the folder *da
 Open ***SimpleQtBBox.pro*** with QtCreator program and build the project!!!!!
 
 
+if you don't want to build the program, you can just uncompress *SimpleQtBBox.tar.gz* and type:
+    
+    ~$ ./SimpleQtBBox/AppRun 
 
 
