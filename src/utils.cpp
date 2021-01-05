@@ -48,27 +48,18 @@ QMap<QString, QList<QRectF>> Helper::ReadXMLingleFile(const QString &path)
     QDomElement root = xmlBOM.documentElement();
     QDomNodeList bboxes = root.elementsByTagName("object");
     for (int i=0; i<bboxes.size(); ++i){
-
         auto element = bboxes.item(i).toElement();
-
         auto name = element.elementsByTagName("name").item(0).toElement();
         QString label = name.text();
-
         auto bndbox = element.elementsByTagName("bndbox").item(0).toElement();
-
         auto e = bndbox.elementsByTagName("xmin").item(0).toElement();
         const double xmin = e.text().toDouble();
-
         e = bndbox.elementsByTagName("ymin").item(0).toElement();
         const double ymin = e.text().toDouble();
-
-
         e = bndbox.elementsByTagName("xmax").item(0).toElement();
         const double xmax = e.text().toDouble();
-
         e = bndbox.elementsByTagName("ymax").item(0).toElement();
         const double ymax = e.text().toDouble();
-
         ann[label] << QRectF(QPointF(xmin,ymin), QPointF(xmax,ymax));
     }
     return ann;

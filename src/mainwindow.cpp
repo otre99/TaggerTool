@@ -4,6 +4,7 @@
 #include "utils.h"
 #include <QDebug>
 #include "annotationfilter.h"
+#include <QWheelEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
@@ -78,6 +79,14 @@ void MainWindow::DisplayImageInfo()
 {
 
 }
+
+//void MainWindow::wheelEvent(QWheelEvent *event)
+//{
+//    const QPoint numDegrees = event->angleDelta();
+
+//    ui->zoom_spin_box_->setValue(ui->zoom_spin_box_->value() + numDegrees.y()/8.0);
+//   //event->accept();
+//}
 
 void MainWindow::DisplayBBoxInfo(QGraphicsItem *newFocusItem, int reason)
 {

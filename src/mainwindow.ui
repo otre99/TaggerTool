@@ -31,7 +31,7 @@
      <number>2</number>
     </property>
     <item row="1" column="2">
-     <widget class="QGraphicsView" name="bbox_editor_">
+     <widget class="GraphicsView" name="bbox_editor_">
       <property name="tabletTracking">
        <bool>true</bool>
       </property>
@@ -71,7 +71,7 @@
      <x>0</x>
      <y>0</y>
      <width>854</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
@@ -521,7 +521,7 @@
   </widget>
   <action name="save_local_changes_">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/document-save.png</normaloff>
      <normalon>:/icons/icons/document-save.png</normalon>:/icons/icons/document-save.png</iconset>
    </property>
@@ -534,7 +534,7 @@
   </action>
   <action name="add_new_bbox_">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/document-new.svg</normaloff>:/icons/icons/document-new.svg</iconset>
    </property>
    <property name="text">
@@ -546,7 +546,7 @@
   </action>
   <action name="remove_bbox_">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/edit-delete.svg</normaloff>:/icons/icons/edit-delete.svg</iconset>
    </property>
    <property name="text">
@@ -558,7 +558,7 @@
   </action>
   <action name="action_show_bboxes_">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/im-invisible-user.svg</normaloff>:/icons/icons/im-invisible-user.svg</iconset>
    </property>
    <property name="text">
@@ -570,8 +570,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <customwidgets>
+  <customwidget>
+   <class>GraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>graphicsview.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
  <connections/>
 </ui>

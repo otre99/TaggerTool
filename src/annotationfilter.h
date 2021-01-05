@@ -2,6 +2,9 @@
 #define ANNOTATIONFILTER_H
 #include <QList>
 #include <QString>
+#include <QRectF>
+#include <QMap>
+
 
 class AnnotationFilter
 {

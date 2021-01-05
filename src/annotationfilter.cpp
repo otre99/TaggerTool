@@ -1,5 +1,6 @@
 #include "annotationfilter.h"
 
+
 using Anntation = QMap<QString, QList<QRectF>>;
 
 AnnotationFilter::AnnotationFilter() = default;

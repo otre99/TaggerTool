@@ -38,6 +38,8 @@ private slots:
     void on_save_local_changes__triggered();
     void on_remove_bbox__triggered();
     void on_action_show_bboxes__triggered();
+//protected:
+//    void wheelEvent(QWheelEvent *event);
 
 private:
     void SetUp();
