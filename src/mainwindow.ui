@@ -30,29 +30,21 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="1" column="2">
+    <item row="0" column="1">
      <widget class="GraphicsView" name="bbox_editor_">
       <property name="tabletTracking">
        <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="0" column="2">
-     <widget class="QSpinBox" name="zoom_spin_box_">
-      <property name="suffix">
-       <string> %</string>
+    <item row="0" column="0">
+     <widget class="QToolButton" name="toolButtonZoom100_">
+      <property name="text">
+       <string>100%</string>
       </property>
-      <property name="prefix">
-       <string>Zoom: </string>
-      </property>
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>2000</number>
-      </property>
-      <property name="value">
-       <number>100</number>
+      <property name="icon">
+       <iconset>
+        <normaloff>:/icons/icons/zoom-fit-best.svg</normaloff>:/icons/icons/zoom-fit-best.svg</iconset>
       </property>
      </widget>
     </item>

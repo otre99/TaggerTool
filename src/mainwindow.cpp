@@ -27,7 +27,7 @@ void MainWindow::SetUp()
             this, SLOT(DisplayBBoxInfo(QGraphicsItem *, int)));
 
 
-    ui->mainToolBar->addWidget(ui->zoom_spin_box_);
+    ui->mainToolBar->addWidget(ui->toolButtonZoom100_);
 
     connect(&image_canvas_, &ImageCanvas::selectionChanged, this, &MainWindow::SelectionChangedOnImageCanvas);
     connect(this, &MainWindow::export_annotations, &worker_, &ExpensiveRoutines::export_annotations);
@@ -66,6 +66,8 @@ void MainWindow::on_list_view_img_names__activated(const QModelIndex &index)
     for (const auto &key : keys){
         image_canvas_.AddBoundingBoxes(ann[key], QStringList() << key);
     }
+    ui->bbox_editor_->resetTransform();
+    ui->bbox_editor_->scale(1.0, 1.0);
     DisplayImageInfo();
 }
 
@@ -80,13 +82,6 @@ void MainWindow::DisplayImageInfo()
 
 }
 
-//void MainWindow::wheelEvent(QWheelEvent *event)
-//{
-//    const QPoint numDegrees = event->angleDelta();
-
-//    ui->zoom_spin_box_->setValue(ui->zoom_spin_box_->value() + numDegrees.y()/8.0);
-//   //event->accept();
-//}
 
 void MainWindow::DisplayBBoxInfo(QGraphicsItem *newFocusItem, int reason)
 {
@@ -129,11 +124,11 @@ void MainWindow::SelectionChangedOnImageCanvas()
     DisplayBBoxInfo(current_bbox_item_, 0);
 }
 
-void MainWindow::on_zoom_spin_box__valueChanged(int arg1)
-{
-    ui->bbox_editor_->resetTransform();
-    ui->bbox_editor_->scale(arg1/100.0, arg1/100.0);
-}
+//void MainWindow::on_zoom_spin_box__valueChanged(int arg1)
+//{
+//    ui->bbox_editor_->resetTransform();
+//    ui->bbox_editor_->scale(arg1/100.0, arg1/100.0);
+//}
 
 void MainWindow::on_add_new_bbox__triggered()
 {
@@ -250,4 +245,10 @@ void MainWindow::on_action_show_bboxes__triggered()
         image_canvas_.HideBoundingBoxes();
     vis=!vis;
 
+}
+
+void MainWindow::on_toolButtonZoom100__clicked()
+{
+    ui->bbox_editor_->resetTransform();
+    ui->bbox_editor_->scale(1.0, 1.0);
 }

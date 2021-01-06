@@ -26,7 +26,7 @@ private slots:
     void DisplayBBoxInfo(QGraphicsItem *newFocusItem, int reason);
     void SelectionChangedOnImageCanvas();
 
-    void on_zoom_spin_box__valueChanged(int arg1);
+//    void on_zoom_spin_box__valueChanged(int arg1);
     void on_add_new_bbox__triggered();
     void on_push_button_change_bbox__clicked();
     void on_add_cls_to_filter_list__clicked();
@@ -38,8 +38,8 @@ private slots:
     void on_save_local_changes__triggered();
     void on_remove_bbox__triggered();
     void on_action_show_bboxes__triggered();
-//protected:
-//    void wheelEvent(QWheelEvent *event);
+
+    void on_toolButtonZoom100__clicked();
 
 private:
     void SetUp();

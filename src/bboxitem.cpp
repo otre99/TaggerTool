@@ -22,8 +22,6 @@ BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,  QGr
     move_enable_(ready)
 {    
     setFlags(QGraphicsItem::ItemIsFocusable|QGraphicsItem::ItemSendsGeometryChanges);
-
-
     setPos(rectf.topLeft());
     setRect(QRectF(0,0,rectf.width(), rectf.height()));
 
@@ -32,6 +30,7 @@ BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,  QGr
         setSelected(ready);
     }
     SetLabel(label);
+    setAcceptHoverEvents(true);
 }
 
 QRectF BoundingBoxItem::BoundingBoxCoordinates()
@@ -114,7 +113,6 @@ void BoundingBoxItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
 
 void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    //qDebug() << "Item mouseMoveEvent()\n";
     if (current_corner_ == kCenter || !move_enable_)
         QGraphicsRectItem::mouseMoveEvent(event);
     else {
@@ -199,7 +197,6 @@ QRectF BoundingBoxItem::BuildRectFromTwoPoints(const QPointF &p1, const QPointF 
 
 void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "Item mousePressEvent()\n";
     if (event->modifiers() == (Qt::ShiftModifier|Qt::ControlModifier) )    {
         QPointF pt = mapToScene(event->pos());
         const auto l = scene()->items(pt);
@@ -208,15 +205,11 @@ void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             auto* bbox = dynamic_cast<BoundingBoxItem*>( l[1] );
             if (bbox){
                 bbox->SetLocked(false);
-                //bbox->setSelected(true);
-                //emit static_cast<ImageCanvas*>( scene() )->BBoxItemToEditor(this, 0);
                 this->SetLocked(true);
-                //this->setCursor(Qt::ArrowCursor);
             }
         }
     } else if (event->modifiers() ==  Qt::ShiftModifier){
         SetLocked( move_enable_ );
-        //if (!move_enable_) setCursor(Qt::ArrowCursor);
     } else {
         current_corner_ = PositionInsideBBox(event->pos());
         if ( current_corner_ == kCenter || !move_enable_){
@@ -226,9 +219,6 @@ void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             last_point_ = mapToScene(event->pos());
         }
     }
-
-
-
 }
 
 void BoundingBoxItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
@@ -282,7 +272,6 @@ BoundingBoxItem::CORNER BoundingBoxItem::PositionInsideBBox(const QPointF &pos)
 
 void BoundingBoxItem::keyPressEvent(QKeyEvent *event)
 {
-    // qDebug() << "Item keyPressEvent()\n";
     if ( move_enable_ && ( event->key() == Qt::Key_Left || event->key()==Qt::Key_Right
                            || event->key()==Qt::Key_Up || event->key()==Qt::Key_Down)){
         QRectF newrect(this->pos(), this->rect().size());
@@ -321,6 +310,7 @@ void BoundingBoxItem::keyPressEvent(QKeyEvent *event)
         //setCursor(Qt::ArrowCursor);
     } else
         QGraphicsItem::keyPressEvent(event);
+    if ( isSelected() ) emit dynamic_cast<ImageCanvas*>( scene() )->BBoxItemToEditor(this, 0);
 }
 
 void BoundingBoxItem::SetLocked(bool what)
@@ -342,6 +332,7 @@ void BoundingBoxItem::SetLabel(const QString &lb)
 {
     info_ = lb;
     setPen( Helper::ColorFromLabel(lb) );
+    setToolTip(info_);
 }
 
 void BoundingBoxItem::SetCoordinates(const QRectF &coords)
