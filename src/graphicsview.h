@@ -4,11 +4,10 @@
 #include <QGraphicsView>
 #include <QObject>
 #include <QWidget>
-class GraphicsView : public QGraphicsView
-{
-    Q_OBJECT
+class GraphicsView : public QGraphicsView {
+  Q_OBJECT
 public:
-    GraphicsView(QWidget *parent=nullptr);
+  GraphicsView(QWidget *parent = nullptr);
 
 protected:
   void wheelEvent(QWheelEvent *event);

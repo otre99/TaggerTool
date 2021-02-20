@@ -3,29 +3,28 @@
 #include <QDir>
 #include <QImageReader>
 
-class AnnImgManager
-{
-    QDir images_dir_;
-    QDir annotations_dir_;
-    QStringList image_ids_list_;
-    QString ann_format_;
-
+class AnnImgManager {
+  QDir m_imagesDir;
+  QDir m_annotationsDir_;
+  QStringList m_imageIdsList;
+  QString m_annFormat;
 
 public:
-    AnnImgManager();
-    void Reset(const QString &images_folder_path,
-               const QString &annotations_folder_path,
-               const QString &ann_format=".csv",
-               const QStringList& image_ids=QStringList());
+  AnnImgManager();
+  void reset(const QString &images_folder_path,
+             const QString &annotations_folder_path,
+             const QString &ann_format = ".csv",
+             const QStringList &image_ids = QStringList());
 
-
-    void SaveAnnotations(const QString &image_id, const QMap<QString, QList<QRectF> > &ann, const QSize &img_size=QSize());
-    QMap<QString, QList<QRectF> > GetAnnotations(const QString &image_id);
-    QSize GetImageSizeFromImage(const QString &image_id);
-    QImage GetImage(const QString &image_id) ;
-    QString GetAnnFilePath(const QString &img_id) ;
-    QString GetImgFilePath(const QString &img_id) ;
-    QStringList GetListOfImageIds() const {return  image_ids_list_; }
+  void saveAnnotations(const QString &image_id,
+                       const QMap<QString, QList<QRectF>> &ann,
+                       const QSize &img_size = QSize());
+  QMap<QString, QList<QRectF>> annotations(const QString &image_id);
+  QSize imageSize(const QString &image_id);
+  QImage image(const QString &image_id);
+  QString annFilePath(const QString &img_id);
+  QString imgFilePath(const QString &img_id);
+  QStringList imageIds() const { return m_imageIdsList; }
 };
 
 #endif // ANNIMGMANAGER_H

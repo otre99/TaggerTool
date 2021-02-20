@@ -10,13 +10,13 @@
 
 ImageCanvas::ImageCanvas(QObject *parent)
     : QGraphicsScene(parent),
-      default_bbox_size_(20, 20),
-      waiting_for_new_bbox_(false),
-      draw_box_started_(false) {
-  addItem(&display_text_);
+      m_defaultBboxSize(20, 20),
+      m_waitingForNewBbox(false),
+      m_drawBboxStarted(false) {
+    //  addItem(&display_text_);
 }
 
-void ImageCanvas::HideBoundingBoxes() {
+void ImageCanvas::hideBoundingBoxes() {
   for (auto item : items()) {
     if (!item->isSelected()) {
       item->setVisible(false);
@@ -24,40 +24,40 @@ void ImageCanvas::HideBoundingBoxes() {
   }
 }
 
-void ImageCanvas::ShowNiceText(const QString &txt) {
-  QGraphicsView *view = views().first();
-  QPointF pos = view->mapToScene(QPoint(10, 10));
-  display_text_.setPos(pos);
-  display_text_.setPlainText(txt);
-  display_text_.display();
+void ImageCanvas::showNiceText(const QString &txt) {
+//  QGraphicsView *view = views().first();
+//  QPointF pos = view->mapToScene(QPoint(10, 10));
+//  display_text_.setPos(pos);
+//  display_text_.setPlainText(txt);
+//  display_text_.display();
 }
 
-void ImageCanvas::PrepareForNewBBox(QString label, QSizeF bboxSize, bool what) {
-  waiting_for_new_bbox_ = what;
-  if (label != QString()) bbox_label_ = label;
-  if (bboxSize != QSizeF()) default_bbox_size_ = bboxSize;
+void ImageCanvas::prepareForNewBBox(QString label, QSizeF bboxSize, bool what) {
+  m_waitingForNewBbox = what;
+  if (label != QString()) m_bboxLabel = label;
+  if (bboxSize != QSizeF()) m_defaultBboxSize = bboxSize;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
 }
 
-void ImageCanvas::ShowBoundingBoxes() {
+void ImageCanvas::showBoundingBoxes() {
   for (auto item : items()) {
     item->setVisible(true);
   }
 }
 
 void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
-  if (!current_image_.isNull()) painter->drawPixmap(0, 0, current_image_);
+  if (!m_currentImage.isNull()) painter->drawPixmap(0, 0, m_currentImage);
 }
 
-void ImageCanvas::Reset(const QImage &img, const QString &img_id) {
-  current_image_ = QPixmap::fromImage(img);
-  setSceneRect(0, 0, current_image_.width(), current_image_.height());
-  Clear();
-  image_id_ = img_id;
+void ImageCanvas::reset(const QImage &img, const QString &img_id) {
+  m_currentImage = QPixmap::fromImage(img);
+  setSceneRect(0, 0, m_currentImage.width(), m_currentImage.height());
+  clear();
+  m_imageId = img_id;
   update();
 }
 
-void ImageCanvas::AddBoundingBoxes(const QList<QRectF> &bboxes,
+void ImageCanvas::addBoundingBoxes(const QList<QRectF> &bboxes,
                                    const QStringList &labels) {
   if (labels.isEmpty()) {
     for (const auto &rect : bboxes) {
@@ -80,14 +80,14 @@ void ImageCanvas::AddBoundingBoxes(const QList<QRectF> &bboxes,
   }
 }
 
-void ImageCanvas::RemoveSelectedBoundingBoxes() {
+void ImageCanvas::removeSelectedBoundingBoxes() {
   for (auto *item : selectedItems()) {
     removeItem(item);
     delete item;
   }
 }
 
-void ImageCanvas::Clear() {
+void ImageCanvas::clear() {
   for (auto *item : items()) {
     auto *to_del = dynamic_cast<BoundingBoxItem *>(item);
     if (to_del) {
@@ -97,44 +97,44 @@ void ImageCanvas::Clear() {
   }
 }
 
-QMap<QString, QList<QRectF>> ImageCanvas::GetBoundingBoxes() {
+QMap<QString, QList<QRectF>> ImageCanvas::boundingBoxes() {
   QMap<QString, QList<QRectF>> result;
   for (const auto &item : items()) {
     auto *bbox = dynamic_cast<BoundingBoxItem *>(item);
     if (bbox) {
-      result[bbox->info_].append(bbox->BoundingBoxCoordinates());
+      result[bbox->m_info].append(bbox->boundingBoxCoordinates());
     }
   }
   return result;
 }
 
-QSize ImageCanvas::GetImageSize() { return current_image_.size(); }
-QString ImageCanvas::GetImageId() { return image_id_; }
+QSize ImageCanvas::imageSize() { return m_currentImage.size(); }
+QString ImageCanvas::imageId() { return m_imageId; }
 
 void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
-  if (waiting_for_new_bbox_) {
-    end_pt_ = beg_pt_ = mouseEvent->scenePos();
-    draw_box_started_ = true;
-    waiting_for_new_bbox_ = false;
+  if (m_waitingForNewBbox) {
+    m_endPt = m_begPt = mouseEvent->scenePos();
+    m_drawBboxStarted = true;
+    m_waitingForNewBbox = false;
   }
   QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
 void ImageCanvas::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) {
-  if (draw_box_started_) {
-    end_pt_ = mouseEvent->scenePos();
+  if (m_drawBboxStarted) {
+    m_endPt = mouseEvent->scenePos();
     update();
   }
   QGraphicsScene::mouseMoveEvent(mouseEvent);
 }
 void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
-  if (draw_box_started_) {
-    draw_box_started_ = false;
+  if (m_drawBboxStarted) {
+    m_drawBboxStarted = false;
     views().first()->viewport()->setCursor(Qt::ArrowCursor);
-    if (beg_pt_ == end_pt_) return;
+    if (m_begPt == m_endPt) return;
 
-    auto bbox = Helper::BuildRectFromTwoPoints(beg_pt_, end_pt_);
-    auto *item = new BoundingBoxItem(bbox, bbox_label_, nullptr, true);
+    auto bbox = Helper::buildRectFromTwoPoints(m_begPt, m_endPt);
+    auto *item = new BoundingBoxItem(bbox, m_bboxLabel, nullptr, true);
     addItem(item);
     // undoStack_.push(new AddBBoxCommand(this, item) );
 
@@ -145,6 +145,6 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 
 void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
   QGraphicsScene::drawForeground(painter, rect);
-  if (draw_box_started_)
-    painter->drawRect(Helper::BuildRectFromTwoPoints(beg_pt_, end_pt_));
+  if (m_drawBboxStarted)
+    painter->drawRect(Helper::buildRectFromTwoPoints(m_begPt, m_endPt));
 }

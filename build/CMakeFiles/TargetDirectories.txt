@@ -1,4 +1,0 @@
-/home/rbt_adm/ROBERTO/REPOS/SimpleQtBBox/build/CMakeFiles/rebuild_cache.dir
-/home/rbt_adm/ROBERTO/REPOS/SimpleQtBBox/build/CMakeFiles/edit_cache.dir
-/home/rbt_adm/ROBERTO/REPOS/SimpleQtBBox/build/CMakeFiles/src.dir
-/home/rbt_adm/ROBERTO/REPOS/SimpleQtBBox/build/CMakeFiles/src_autogen.dir
