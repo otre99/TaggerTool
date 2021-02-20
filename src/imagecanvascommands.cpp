@@ -1,23 +1,18 @@
 #include "imagecanvascommands.h"
 
-AddBBoxCommand::AddBBoxCommand(ImageCanvas *image_canvas, BoundingBoxItem *new_bbox_item, QUndoCommand *parent) :
-    QUndoCommand(parent), image_canvas_(image_canvas), bbox_item_(new_bbox_item)
-{
-    label_ = bbox_item_->GetLabel();
-    bbox_  = bbox_item_->BoundingBoxCoordinates();
+AddBBoxCommand::AddBBoxCommand(ImageCanvas *image_canvas,
+                               BoundingBoxItem *new_bbox_item,
+                               QUndoCommand *parent)
+    : QUndoCommand(parent), m_imageCanvas(image_canvas),
+      m_bboxItem(new_bbox_item) {
+  m_label = m_bboxItem->label();
+  m_bbox = m_bboxItem->boundingBoxCoordinates();
 }
 
+void AddBBoxCommand::undo() { m_imageCanvas->removeItem(m_bboxItem); }
 
-void AddBBoxCommand::undo()
-{
-    image_canvas_->removeItem(bbox_item_);
+void AddBBoxCommand::redo() {
+  m_bboxItem->setPos(m_bbox.topLeft());
+  m_bboxItem->setRect(0, 0, m_bbox.width(), m_bbox.height());
+  m_imageCanvas->addItem(m_bboxItem);
 }
-
-void AddBBoxCommand::redo()
-{
-    bbox_item_->setPos(bbox_.topLeft());
-    bbox_item_->setRect(0,0,bbox_.width(), bbox_.height());
-    image_canvas_->addItem(bbox_item_);
-}
-
-

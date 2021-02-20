@@ -3,40 +3,52 @@
 #include <QGraphicsRectItem>
 
 class ImageCanvas;
-class BoundingBoxItem : public QGraphicsRectItem
-{
-    friend class ImageCanvas;
-    enum CORNER {kCenter=-1, kTopLeft=0, kTopRight=1, kBottomRight=2, kBottomLeft=3, kTopCenter, kRightCenter, kBottomCenter, kLeftCenter} current_corner_;
+class BoundingBoxItem : public QGraphicsRectItem {
+  friend class ImageCanvas;
+  enum CORNER {
+    kCenter = -1,
+    kTopLeft = 0,
+    kTopRight = 1,
+    kBottomRight = 2,
+    kBottomLeft = 3,
+    kTopCenter,
+    kRightCenter,
+    kBottomCenter,
+    kLeftCenter
+  } m_currentCorner;
 
 public:
-    BoundingBoxItem(const QRectF &rectf, const QString &label=QString(), QGraphicsItem *parent=nullptr, bool ready=false);
-    QRectF BoundingBoxCoordinates();
-    QString GetLabel() {return info_;}
-    void SetLocked(bool what);
+  BoundingBoxItem(const QRectF &rectf, const QString &label = QString(),
+                  QGraphicsItem *parent = nullptr, bool ready = false);
+  QRectF boundingBoxCoordinates();
+  QString label() { return m_info; }
+  void setLocked(bool what);
 
-    void SetLabel(const QString &lb);
-    void SetCoordinates(const QRectF &coords);
+  void setLabel(const QString &lb);
+  void setCoordinates(const QRectF &coords);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    QRectF boundingRect() const override;
-    QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+             QWidget *widget) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
+  QRectF boundingRect() const override;
+  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
+                      const QVariant &value) override;
 
 private:
-    CORNER PositionInsideBBox(const QPointF &pos);
-    QRectF BuildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw, bool &sh);
+  CORNER positionInsideBBox(const QPointF &pos);
+  QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw,
+                                bool &sh);
 
-    QString info_;
-    QPointF last_point_;
-    bool show_corners_;
-    bool move_enable_;
-    double margin_w_;
-    double margin_h_;
-
+  QString m_info;
+  QPointF m_lastPt;
+  bool m_showCorners;
+  bool m_moveEnable;
+  double m_marginW;
+  double m_marginH;
 };
 
 #endif // BBOX_H

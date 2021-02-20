@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>854</width>
-    <height>700</height>
+    <height>755</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,36 +30,28 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="1" column="2">
-     <widget class="QGraphicsView" name="bbox_editor_">
-      <property name="tabletTracking">
-       <bool>true</bool>
+    <item row="0" column="0">
+     <widget class="QToolButton" name="toolButtonZoom100">
+      <property name="text">
+       <string>100%</string>
       </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QSpinBox" name="zoom_spin_box_">
-      <property name="suffix">
-       <string> %</string>
-      </property>
-      <property name="prefix">
-       <string>Zoom: </string>
-      </property>
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>2000</number>
-      </property>
-      <property name="value">
-       <number>100</number>
+      <property name="icon">
+       <iconset>
+        <normaloff>:/icons/icons/zoom-fit-best.svg</normaloff>:/icons/icons/zoom-fit-best.svg</iconset>
       </property>
      </widget>
     </item>
     <item row="1" column="0">
-     <widget class="QProgressBar" name="progress_bar_">
+     <widget class="QProgressBar" name="progressBar">
       <property name="value">
        <number>0</number>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="GraphicsView" name="bboxEditor">
+      <property name="tabletTracking">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -71,7 +63,7 @@
      <x>0</x>
      <y>0</y>
      <width>854</width>
-     <height>20</height>
+     <height>27</height>
     </rect>
    </property>
   </widget>
@@ -91,11 +83,11 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="save_local_changes_"/>
+   <addaction name="saveLocalChanges"/>
    <addaction name="separator"/>
-   <addaction name="add_new_bbox_"/>
-   <addaction name="remove_bbox_"/>
-   <addaction name="action_show_bboxes_"/>
+   <addaction name="addNewBbox"/>
+   <addaction name="removeBbox"/>
+   <addaction name="actionShowBboxes"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="tool_panel1_">
@@ -165,14 +157,14 @@
         <item row="1" column="0" colspan="3">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <widget class="QLineEdit" name="le_input_image_folder_">
+           <widget class="QLineEdit" name="leInputImageFolder">
             <property name="readOnly">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="tb_load_image_folder_">
+           <widget class="QToolButton" name="tbLoadImageFolder">
             <property name="text">
              <string>...</string>
             </property>
@@ -193,14 +185,14 @@
            <number>2</number>
           </property>
           <item>
-           <widget class="QLineEdit" name="le_input_ann_folder_">
+           <widget class="QLineEdit" name="leInputAnnFolder">
             <property name="readOnly">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="tb_load_ann_folder_">
+           <widget class="QToolButton" name="tbLoadAnnFolder">
             <property name="text">
              <string>...</string>
             </property>
@@ -216,7 +208,7 @@
          </widget>
         </item>
         <item row="4" column="1">
-         <widget class="QComboBox" name="cbbox_ann_format_">
+         <widget class="QComboBox" name="cbboxAnnFormat">
           <property name="editable">
            <bool>true</bool>
           </property>
@@ -233,7 +225,7 @@
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QPushButton" name="pb_load_img_ann_">
+         <widget class="QPushButton" name="pbLoadImgAnn">
           <property name="text">
            <string>load</string>
           </property>
@@ -243,10 +235,10 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="line_edit_img_filter_"/>
+      <widget class="QLineEdit" name="lineEditImgFilter"/>
      </item>
      <item>
-      <widget class="QListView" name="list_view_img_names_">
+      <widget class="QListView" name="listViewImgNames">
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
        </property>
@@ -285,20 +277,43 @@
         <property name="spacing">
          <number>2</number>
         </property>
-        <item row="2" column="4">
-         <widget class="QLineEdit" name="line_edit_bbox_w_"/>
+        <item row="3" column="1" colspan="2">
+         <widget class="QLineEdit" name="lineEditBboxX"/>
         </item>
-        <item row="2" column="3">
+        <item row="4" column="1" colspan="2">
+         <widget class="QLineEdit" name="lineEditBboxY"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>x:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>y:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="4">
+         <widget class="QLineEdit" name="lineEditBboxW"/>
+        </item>
+        <item row="4" column="4">
+         <widget class="QLineEdit" name="lineEditBboxH"/>
+        </item>
+        <item row="3" column="3">
          <widget class="QLabel" name="label_4">
           <property name="text">
            <string>w:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1" colspan="2">
-         <widget class="QLineEdit" name="line_edit_bbox_y_"/>
+        <item row="0" column="2" colspan="3">
+         <widget class="QLineEdit" name="lineEditBboxLabel"/>
         </item>
-        <item row="3" column="3">
+        <item row="4" column="3">
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>h:</string>
@@ -312,77 +327,13 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>x:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1" colspan="2">
-         <widget class="QLineEdit" name="line_edit_bbox_x_"/>
-        </item>
-        <item row="3" column="4">
-         <widget class="QLineEdit" name="line_edit_bbox_h_"/>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>y:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2" colspan="3">
-         <widget class="QComboBox" name="combox_box_bbox_label_">
-          <property name="editable">
-           <bool>true</bool>
-          </property>
-          <item>
-           <property name="text">
-            <string>face</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>person</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>head</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>car</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>dog</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>cat</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="4" column="4">
-         <widget class="QPushButton" name="push_button_change_bbox_">
-          <property name="text">
-           <string>Set</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </item>
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="tool_panel2_">
+  <widget class="QDockWidget" name="toolPanel2">
    <property name="accessibleName">
     <string/>
    </property>
@@ -390,7 +341,7 @@
     <set>QDockWidget::DockWidgetClosable</set>
    </property>
    <property name="windowTitle">
-    <string>Export</string>
+    <string>Exporter</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -415,7 +366,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_4">
        <property name="title">
-        <string>Exporter</string>
+        <string/>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
         <property name="leftMargin">
@@ -433,35 +384,8 @@
         <property name="spacing">
          <number>2</number>
         </property>
-        <item row="4" column="2">
-         <widget class="QPushButton" name="pb_export_">
-          <property name="maximumSize">
-           <size>
-            <width>139</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Export</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Format:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" colspan="2">
-         <widget class="QCheckBox" name="check_box_use_xml_">
-          <property name="text">
-           <string>Use XML format</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <widget class="QComboBox" name="combo_box_line_format_">
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBoxLineFormat">
           <property name="editable">
            <bool>true</bool>
           </property>
@@ -482,20 +406,20 @@
           </item>
          </widget>
         </item>
-        <item row="2" column="0" colspan="3">
+        <item row="1" column="0" colspan="2">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLineEdit" name="le_label_to_add_"/>
+           <widget class="QLineEdit" name="leLabelToAdd"/>
           </item>
           <item>
-           <widget class="QToolButton" name="add_cls_to_filter_list_">
+           <widget class="QToolButton" name="addLabelToFilterList">
             <property name="text">
              <string>Add</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="remove_cls_to_filter_list_">
+           <widget class="QToolButton" name="removeLabelToFilterList">
             <property name="text">
              <string>Remove</string>
             </property>
@@ -503,8 +427,15 @@
           </item>
          </layout>
         </item>
-        <item row="3" column="0" colspan="3">
-         <widget class="QTableWidget" name="table_filter_list_">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Format:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QTableWidget" name="tableFilterList">
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
@@ -520,15 +451,28 @@
           </column>
          </widget>
         </item>
+        <item row="4" column="0" colspan="2">
+         <widget class="QPushButton" name="pbExport">
+          <property name="maximumSize">
+           <size>
+            <width>139</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Export</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
     </layout>
    </widget>
   </widget>
-  <action name="save_local_changes_">
+  <action name="saveLocalChanges">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/document-save.png</normaloff>
      <normalon>:/icons/icons/document-save.png</normalon>:/icons/icons/document-save.png</iconset>
    </property>
@@ -539,9 +483,9 @@
     <string>S</string>
    </property>
   </action>
-  <action name="add_new_bbox_">
+  <action name="addNewBbox">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/document-new.svg</normaloff>:/icons/icons/document-new.svg</iconset>
    </property>
    <property name="text">
@@ -551,9 +495,9 @@
     <string>A</string>
    </property>
   </action>
-  <action name="remove_bbox_">
+  <action name="removeBbox">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/edit-delete.svg</normaloff>:/icons/icons/edit-delete.svg</iconset>
    </property>
    <property name="text">
@@ -563,9 +507,9 @@
     <string>X</string>
    </property>
   </action>
-  <action name="action_show_bboxes_">
+  <action name="actionShowBboxes">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/icons/icons/im-invisible-user.svg</normaloff>:/icons/icons/im-invisible-user.svg</iconset>
    </property>
    <property name="text">
@@ -577,8 +521,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <customwidgets>
+  <customwidget>
+   <class>GraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>graphicsview.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
  <connections/>
 </ui>

@@ -5,13 +5,13 @@
 #include <QStringListModel>
 #include <QVariant>
 
-class ImgStringListModel : public QStringListModel
-{
-    Q_OBJECT
+class ImgStringListModel : public QStringListModel {
+  Q_OBJECT
 public:
-    ImgStringListModel(QObject *parent=nullptr);
-    QString GetOriginalText(const QModelIndex &index);
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+  ImgStringListModel(QObject *parent = nullptr);
+  QString originalText(const QModelIndex &index);
+  QVariant data(const QModelIndex &index,
+                int role = Qt::DisplayRole) const override;
 };
 
 #endif // MYSTRINGLISTMODEL_H
