@@ -1,13 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "annimgmanager.h"
-#include "bboxitem.h"
-#include "expensiveroutines.h"
-#include "imagecanvas.h"
-#include "imgstringlistmodel.h"
 #include <QDir>
 #include <QMainWindow>
+
+#include "annimgmanager.h"
+#include "imagecanvas.h"
+#include "imgstringlistmodel.h"
 
 namespace Ui {
 class MainWindow;
@@ -16,45 +15,40 @@ class MainWindow;
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
-public:
+ public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
   void resizeEvent(QResizeEvent *event) override;
 
-private slots:
-  void on_listViewImgNames_activated(const QModelIndex &index);
-  void on_lineEditImgFilter_editingFinished();
+ private slots:
   void on_addNewBbox_triggered();
-  void on_addLabelToFilterList_clicked();
-  void on_tbLoadImageFolder_clicked();
-  void on_tbLoadAnnFolder_clicked();
   void on_pbLoadImgAnn_clicked();
-  void on_removeLabelToFilterList_clicked();
-  void on_pbExport_clicked();
   void on_saveLocalChanges_triggered();
   void on_removeBbox_triggered();
   void on_actionShowBboxes_triggered();
-  void on_toolButtonZoom100_clicked();
-
-  void displayBBoxInfo(QGraphicsItem *newFocusItem, int reason);
   void selectionChangedOnImageCanvas();
+  void on_actionShow_Hide_Labels_triggered();
+  void on_actionNew_Point_triggered();
+  void onNeedSaveChange();
+  void on_listViewImgNames_clicked(const QModelIndex &index);
+  void on_actionAdd_New_Line_triggered();
 
+  void on_actionNext_triggered();
+  void on_actionPrevious_triggered();
+  void on_actionAdd_New_Polygon_triggered();
 
+  void on_actionzoom100_triggered();
 
 private:
   void setUp();
   void displayImageInfo();
 
+  QGraphicsItem *m_currentItem;
   Ui::MainWindow *ui;
   AnnImgManager m_annImgManager;
   ImageCanvas m_imageCanvas;
   ImgStringListModel m_imageListModel;
-  BoundingBoxItem *current_bbox_item_;
-  ExpensiveRoutines m_worker;
-
-signals:
-  void exportAnnotations(AnnImgManager *info, AnnotationFilter filter,
-                         const QString &output_ann_path, int);
+  QModelIndex m_current_index{};
 };
 
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

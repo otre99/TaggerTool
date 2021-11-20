@@ -1,7 +1,6 @@
 #ifndef IMAGECANVAS_H
 #define IMAGECANVAS_H
 
-#include "bboxitem.h"
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -10,67 +9,60 @@
 #include <QPropertyAnimation>
 #include <QUndoStack>
 
-// class NiceText : public QGraphicsTextItem {
-//  QPropertyAnimation anim;
-
-// public:
-//  NiceText() {
-//    anim.setTargetObject(this);
-//    anim.setPropertyName("opacity");
-//    anim.setKeyValueAt(0.0, 0.0);
-//    anim.setKeyValueAt(0.5, 1.0);
-//    anim.setKeyValueAt(1.0, 0.0);
-//    anim.setDuration(1200);
-//  }
-
-//  void display() {
-//    setOpacity(0.0);
-//    setVisible(true);
-//    anim.start();
-//  }
-//};
+#include "annimgmanager.h"
+#include "utils.h"
 
 class ImageCanvas : public QGraphicsScene {
   Q_OBJECT
-private:
+ private:
   QPixmap m_currentImage;
   QString m_imageId;
   QSizeF m_defaultBboxSize;
   QString m_bboxLabel;
-  bool m_waitingForNewBbox;
-  bool m_drawBboxStarted;
+  bool m_waitingForObj;
+  bool m_drawObjStarted;
   QPointF m_begPt;
   QPointF m_endPt;
   bool m_needSaveChanges;
-  // NiceText display_text_;
-  // TODO (otre99): to allow Ctr+Z
-  // QUndoStack undoStack_;
+  Helper::CustomItemType m_waitingForTypeObj;
 
-public:
-  void showNiceText(const QString &txt);
+ public:
   ImageCanvas(QObject *parent = nullptr);
   void reset(const QImage &img, const QString &img_id);
-  void addBoundingBoxes(const QList<QRectF> &bboxes,
-                        const QStringList &labels = QStringList());
-  QMap<QString, QList<QRectF>> boundingBoxes();
-  void removeSelectedBoundingBoxes();
+  void addAnnotations(const Annotations &ann);
+
+  Annotations annotations();
+  void removeUnlockedItems();
   void clear();
   QSize imageSize();
   QString imageId();
   void hideBoundingBoxes();
   void showBoundingBoxes();
-  void prepareForNewBBox(QString label = QString(), QSizeF bboxSize = QSizeF(),
-                         bool what = true);
-  bool addingNewBBox() { return m_waitingForNewBbox; }
+  void showLabels(bool show);
+
+  void prepareForNewBBox(QString label = QString());
+  void prepareForNewPoint(const QString &label = QString());
+  void prepareForNewLine(const QString &label = QString());
+  void prepareForNewPolygon(const QString &label = QString());
+
+  bool addingNewObj() { return m_waitingForObj; }
+  void setShowLabels(bool show) { m_showLabels = show; }
 
   void drawBackground(QPainter *painter, const QRectF &rect) override;
   void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
   void drawForeground(QPainter *painter, const QRectF &rect) override;
+  void keyPressEvent(QKeyEvent *keyEvent) override ;
 
-signals:
+
+ signals:
   void bboxItemToEditor(QGraphicsItem *iten, int reason);
+  void needSaveChanges();
+
+ private:
+  bool m_showLabels = true;
+  QPolygonF m_currentPolygon;
 };
 
-#endif // IMAGECANVAS_H
+#endif  // IMAGECANVAS_H

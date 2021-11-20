@@ -4,17 +4,17 @@
 #include <QGraphicsView>
 #include <QPainter>
 
-#include "bboxitem.h"
-#include "imagecanvascommands.h"
-#include "utils.h"
+#include "bbox_item.h"
+#include "line_item.h"
+#include "point_item.h"
+#include "polygon_item.h"
+#include <QKeyEvent>
 
 ImageCanvas::ImageCanvas(QObject *parent)
     : QGraphicsScene(parent),
       m_defaultBboxSize(20, 20),
-      m_waitingForNewBbox(false),
-      m_drawBboxStarted(false) {
-    //  addItem(&display_text_);
-}
+      m_waitingForObj(false),
+      m_drawObjStarted(false) {}
 
 void ImageCanvas::hideBoundingBoxes() {
   for (auto item : items()) {
@@ -24,19 +24,34 @@ void ImageCanvas::hideBoundingBoxes() {
   }
 }
 
-void ImageCanvas::showNiceText(const QString &txt) {
-//  QGraphicsView *view = views().first();
-//  QPointF pos = view->mapToScene(QPoint(10, 10));
-//  display_text_.setPos(pos);
-//  display_text_.setPlainText(txt);
-//  display_text_.display();
+void ImageCanvas::prepareForNewBBox(QString label) {
+  m_waitingForObj = true;
+  if (label != QString()) m_bboxLabel = label;
+  views().first()->viewport()->setCursor(Qt::CrossCursor);
+  m_waitingForTypeObj = Helper::kBBox;
 }
 
-void ImageCanvas::prepareForNewBBox(QString label, QSizeF bboxSize, bool what) {
-  m_waitingForNewBbox = what;
-  if (label != QString()) m_bboxLabel = label;
-  if (bboxSize != QSizeF()) m_defaultBboxSize = bboxSize;
+void ImageCanvas::prepareForNewPoint(const QString &label) {
+  m_waitingForObj = true;
+  m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
+  m_waitingForTypeObj = Helper::kPoint;
+}
+
+void ImageCanvas::prepareForNewLine(const QString &label) {
+  m_waitingForObj = true;
+  m_bboxLabel = label;
+  views().first()->viewport()->setCursor(Qt::CrossCursor);
+  m_waitingForTypeObj = Helper::kLine;
+}
+
+void ImageCanvas::prepareForNewPolygon(const QString &label)
+{
+    m_waitingForObj = true;
+    m_bboxLabel = label;
+    views().first()->viewport()->setCursor(Qt::CrossCursor);
+    m_waitingForTypeObj = Helper::kPolygon;
+    m_currentPolygon.clear();
 }
 
 void ImageCanvas::showBoundingBoxes() {
@@ -45,51 +60,81 @@ void ImageCanvas::showBoundingBoxes() {
   }
 }
 
+void ImageCanvas::showLabels(bool show) {
+  for (auto item : items()) {
+    auto it = dynamic_cast<CustomItem *>(item);
+    if (it) it->setShowLabel(show);
+  }
+}
+
 void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
   if (!m_currentImage.isNull()) painter->drawPixmap(0, 0, m_currentImage);
+
+  QPen p = painter->pen();
+  p.setColor(Qt::black);
+  painter->setPen(p);
+  painter->drawLine(QPoint{m_currentImage.width()/2, 0}, QPoint{m_currentImage.width()/2, m_currentImage.height()});
+  painter->drawLine(QPoint{0, m_currentImage.height()/2}, QPoint{m_currentImage.width(), m_currentImage.height()/2});
 }
 
 void ImageCanvas::reset(const QImage &img, const QString &img_id) {
   m_currentImage = QPixmap::fromImage(img);
-  setSceneRect(0, 0, m_currentImage.width(), m_currentImage.height());
+
+  const int marginW = m_currentImage.width() / 2;
+  const int marginH = m_currentImage.height() / 2;
+  setSceneRect(-marginW, -marginH, m_currentImage.width() + 2 * marginW,
+               m_currentImage.height() + 2 * marginH);
   clear();
   m_imageId = img_id;
   update();
 }
 
-void ImageCanvas::addBoundingBoxes(const QList<QRectF> &bboxes,
-                                   const QStringList &labels) {
-  if (labels.isEmpty()) {
-    for (const auto &rect : bboxes) {
-      QRectF frect = sceneRect() & rect;
-      if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
-      addItem(new BoundingBoxItem(frect));
+void ImageCanvas::addAnnotations(const Annotations &ann) {
+  for (auto &bbox : ann.bboxes) {
+    QRectF frect =
+        QRectF{{bbox.x1, bbox.y1}, QPointF{bbox.x2, bbox.y2}} & sceneRect();
+    if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
+    auto item = new BoundingBoxItem(frect, bbox.label);
+    item->setShowLabel(m_showLabels);
+    addItem(item);
+  }
+  for (auto &pt : ann.points) {
+    auto item = new PointItem({pt.x, pt.y}, pt.label);
+    addItem(item);
+  }
+  for (auto &l : ann.lines) {
+    auto item = new LineItem({l.x1, l.y1}, {l.x2, l.y2}, l.label);
+    addItem(item);
+  }
+
+  for (auto &poly : ann.polygons) {
+    QPolygonF p;
+    const int n = poly.xArray.size();
+    for (int i=0; i<n; ++i){
+        p.append({poly.xArray[i], poly.yArray[i]});
     }
-  } else if (labels.count() != bboxes.count()) {
-    for (const auto &rect : bboxes) {
-      QRectF frect = sceneRect() & rect;
-      if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
-      addItem(new BoundingBoxItem(frect, labels[0]));
-    }
-  } else {
-    for (int i = 0; i < bboxes.count(); ++i) {
-      QRectF frect = sceneRect() & bboxes[i];
-      if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
-      addItem(new BoundingBoxItem(frect, labels[i]));
-    }
+    auto item = new PolygonItem(p, poly.label);
+    addItem(item);
   }
 }
 
-void ImageCanvas::removeSelectedBoundingBoxes() {
-  for (auto *item : selectedItems()) {
-    removeItem(item);
-    delete item;
+void ImageCanvas::removeUnlockedItems() {
+  const auto all_items = items();
+  bool needSaveData=false;
+  for (auto *item : all_items ) {
+    auto ptr = dynamic_cast<CustomItem*>(item);
+    if (ptr && ptr->isLocked()==false){
+        removeItem(item);
+        delete item;
+        needSaveData=true;
+    }
   }
+  if (needSaveData) emit needSaveChanges();
 }
 
 void ImageCanvas::clear() {
   for (auto *item : items()) {
-    auto *to_del = dynamic_cast<BoundingBoxItem *>(item);
+    auto *to_del = dynamic_cast<CustomItem *>(item);
     if (to_del) {
       removeItem(item);
       delete item;
@@ -97,47 +142,151 @@ void ImageCanvas::clear() {
   }
 }
 
-QMap<QString, QList<QRectF>> ImageCanvas::boundingBoxes() {
-  QMap<QString, QList<QRectF>> result;
-  for (const auto &item : items()) {
-    auto *bbox = dynamic_cast<BoundingBoxItem *>(item);
+Annotations ImageCanvas::annotations() {
+  Annotations ann;
+  ann.image_name = m_imageId;
+  ann.img_h = m_currentImage.height();
+  ann.img_w = m_currentImage.width();
+
+  const auto all_items = items();
+  for (const auto &item : all_items) {
+    auto *bbox = dynamic_cast<CustomItem *>(item);
     if (bbox) {
-      result[bbox->m_info].append(bbox->boundingBoxCoordinates());
+      if (item->type() == Helper::kBBox) {
+        BBox bbox;
+        auto bbox_item = dynamic_cast<BoundingBoxItem *>(item);
+        const QRectF frect = bbox_item->boundingBoxCoordinates();
+        bbox.x1 = frect.topLeft().x();
+        bbox.y1 = frect.topLeft().y();
+        bbox.x2 = frect.bottomRight().x();
+        bbox.y2 = frect.bottomRight().y();
+        bbox.label = bbox_item->label();
+        ann.bboxes.push_back(bbox);
+        continue;
+      }
+
+      if (item->type() == Helper::kLine) {
+        Line line;
+        auto line_item = dynamic_cast<LineItem *>(item);
+        const QPointF p1 = line_item->p1();
+        const QPointF p2 = line_item->p2();
+        line.x1 = p1.x();
+        line.y1 = p1.y();
+        line.x2 = p2.x();
+        line.y2 = p2.y();
+        line.label = line_item->label();
+        ann.lines.append(line);
+        continue;
+      }
+
+      if (item->type() == Helper::kPoint) {
+        Point pt;
+        auto pt_item = dynamic_cast<PointItem *>(item);
+        const QPointF ct = pt_item->center();
+        pt.x = ct.x();
+        pt.y = ct.y();
+        pt.label = pt_item->label();
+        ann.points.push_back(pt);
+        continue;
+      }
+
+      if (item->type() == Helper::kPolygon) {
+        auto poly_item = dynamic_cast<PolygonItem *>(item);
+        const QPolygonF pdata = poly_item->mapToScene(poly_item->polygon());
+
+        Polygon poly;
+        poly.label = poly_item->label();
+        for (const auto &pt : pdata){
+            poly.xArray.push_back(pt.x());
+            poly.yArray.push_back(pt.y());
+        }
+        ann.polygons.push_back(poly);
+        continue;
+      }
     }
   }
-  return result;
+  return ann;
 }
 
 QSize ImageCanvas::imageSize() { return m_currentImage.size(); }
 QString ImageCanvas::imageId() { return m_imageId; }
 
 void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
-  if (m_waitingForNewBbox) {
+  if (m_waitingForObj) {
     m_endPt = m_begPt = mouseEvent->scenePos();
-    m_drawBboxStarted = true;
-    m_waitingForNewBbox = false;
+    if (m_waitingForTypeObj == Helper::kBBox ||
+        m_waitingForTypeObj == Helper::kLine ) {
+      m_drawObjStarted = true;
+      m_waitingForObj = false;
+    }
+
+    if (m_waitingForTypeObj == Helper::kPolygon) {
+        if (m_currentPolygon.empty()){
+            views()[0]->setMouseTracking(true);
+        }
+        m_currentPolygon.append(mouseEvent->scenePos());
+        m_drawObjStarted = true;
+    }
+
+    if (m_waitingForTypeObj == Helper::kPoint) {
+      views().first()->viewport()->setCursor(Qt::ArrowCursor);
+      auto *item =
+          new PointItem(mouseEvent->scenePos(), m_bboxLabel, nullptr, true);
+      addItem(item);
+      m_waitingForObj = false;
+      emit needSaveChanges();
+    }
   }
   QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
 void ImageCanvas::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) {
-  if (m_drawBboxStarted) {
+  if (m_drawObjStarted) {
     m_endPt = mouseEvent->scenePos();
     update();
   }
   QGraphicsScene::mouseMoveEvent(mouseEvent);
 }
+
 void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
-  if (m_drawBboxStarted) {
-    m_drawBboxStarted = false;
+  if (m_drawObjStarted) {
     views().first()->viewport()->setCursor(Qt::ArrowCursor);
-    if (m_begPt == m_endPt) return;
+    if (m_waitingForTypeObj == Helper::kBBox && (m_begPt != m_endPt)) {
+      auto bbox = Helper::buildRectFromTwoPoints(m_begPt, m_endPt);
+      auto *item = new BoundingBoxItem(bbox, m_bboxLabel, nullptr, true);
+      item->setShowLabel(m_showLabels);
+      addItem(item);
+      emit needSaveChanges();
+      m_drawObjStarted = false;
+    }
 
-    auto bbox = Helper::buildRectFromTwoPoints(m_begPt, m_endPt);
-    auto *item = new BoundingBoxItem(bbox, m_bboxLabel, nullptr, true);
-    addItem(item);
-    // undoStack_.push(new AddBBoxCommand(this, item) );
+    if (m_waitingForTypeObj == Helper::kLine && (m_begPt != m_endPt)) {
+      auto *item = new LineItem(m_begPt, m_endPt, m_bboxLabel, nullptr, true);
+      item->setShowLabel(m_showLabels);
+      addItem(item);
+      emit needSaveChanges();
+      m_drawObjStarted = false;
+    }
 
+    if (m_waitingForTypeObj==Helper::kPolygon) {
+        int n = m_currentPolygon.size();
+
+        if (n >=3 ){
+            qreal d = Helper::pointLen(m_currentPolygon[0] - m_currentPolygon.last());
+            if (d < Helper::kPointRadius ) {
+                if (n>3){
+                    m_currentPolygon.removeLast();
+                    auto *item = new PolygonItem(m_currentPolygon, m_bboxLabel, nullptr, true);
+                    item->setShowLabel(m_showLabels);
+                    addItem(item);
+                    emit needSaveChanges();
+                }
+                m_drawObjStarted = false;
+                m_waitingForObj = false;
+                views()[0]->setMouseTracking(false);
+            }
+        }
+    }
     update();
   }
   QGraphicsScene::mouseReleaseEvent(mouseEvent);
@@ -145,6 +294,30 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 
 void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
   QGraphicsScene::drawForeground(painter, rect);
-  if (m_drawBboxStarted)
-    painter->drawRect(Helper::buildRectFromTwoPoints(m_begPt, m_endPt));
+  if (m_drawObjStarted) {
+    if (m_waitingForTypeObj == Helper::kBBox)
+      painter->drawRect(Helper::buildRectFromTwoPoints(m_begPt, m_endPt));
+    if (m_waitingForTypeObj == Helper::kLine)
+      painter->drawLine(m_begPt, m_endPt);
+
+    if (m_waitingForTypeObj==Helper::kPolygon){
+        for (const auto pt : m_currentPolygon){
+            painter->drawEllipse(pt, Helper::kPointRadius/2, Helper::kPointRadius/2);
+        }
+        painter->drawPolyline(m_currentPolygon);
+        if (m_currentPolygon.last()!=m_endPt)
+            painter->drawLine(m_currentPolygon.last(), m_endPt);
+    }
+  }
+}
+
+void ImageCanvas::keyPressEvent(QKeyEvent *keyEvent) {
+    if (m_drawObjStarted){
+        if (keyEvent->key() == Qt::Key_Escape && m_waitingForTypeObj == Helper::kPolygon){
+            m_drawObjStarted = false;
+            m_waitingForObj=false;
+            update();
+        }
+    }
+    QGraphicsScene::keyPressEvent(keyEvent);
 }

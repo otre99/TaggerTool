@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>TaggerTool</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -30,28 +30,17 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="0" column="0">
-     <widget class="QToolButton" name="toolButtonZoom100">
-      <property name="text">
-       <string>100%</string>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>:/icons/icons/zoom-fit-best.svg</normaloff>:/icons/icons/zoom-fit-best.svg</iconset>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>0</number>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
+    <item row="0" column="2">
      <widget class="GraphicsView" name="bboxEditor">
       <property name="tabletTracking">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>0</number>
       </property>
      </widget>
     </item>
@@ -63,15 +52,15 @@
      <x>0</x>
      <y>0</y>
      <width>854</width>
-     <height>27</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="iconSize">
     <size>
-     <width>24</width>
-     <height>24</height>
+     <width>32</width>
+     <height>32</height>
     </size>
    </property>
    <property name="floatable">
@@ -86,8 +75,16 @@
    <addaction name="saveLocalChanges"/>
    <addaction name="separator"/>
    <addaction name="addNewBbox"/>
+   <addaction name="actionNew_Point"/>
+   <addaction name="actionAdd_New_Line"/>
+   <addaction name="actionAdd_New_Polygon"/>
    <addaction name="removeBbox"/>
    <addaction name="actionShowBboxes"/>
+   <addaction name="actionShow_Hide_Labels"/>
+   <addaction name="actionzoom100"/>
+   <addaction name="separator"/>
+   <addaction name="actionPrevious"/>
+   <addaction name="actionNext"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="tool_panel1_">
@@ -98,7 +95,7 @@
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetClosable</set>
+    <set>QDockWidget::NoDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea</set>
@@ -110,10 +107,7 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
-     <property name="spacing">
-      <number>2</number>
-     </property>
+    <layout class="QGridLayout" name="gridLayout_2">
      <property name="leftMargin">
       <number>3</number>
      </property>
@@ -126,118 +120,10 @@
      <property name="bottomMargin">
       <number>3</number>
      </property>
-     <item>
-      <widget class="QGroupBox" name="groupBox_5">
-       <property name="title">
-        <string/>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <property name="leftMargin">
-         <number>3</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item row="0" column="0" colspan="2">
-         <widget class="QLabel" name="label_11">
-          <property name="text">
-           <string>Images folder:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLineEdit" name="leInputImageFolder">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="tbLoadImageFolder">
-            <property name="text">
-             <string>...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QLabel" name="label_13">
-          <property name="text">
-           <string>Annotation folder:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0" colspan="3">
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <property name="spacing">
-           <number>2</number>
-          </property>
-          <item>
-           <widget class="QLineEdit" name="leInputAnnFolder">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="tbLoadAnnFolder">
-            <property name="text">
-             <string>...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="text">
-           <string>Ann. format:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QComboBox" name="cbboxAnnFormat">
-          <property name="editable">
-           <bool>true</bool>
-          </property>
-          <item>
-           <property name="text">
-            <string>.csv</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>.xml</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QPushButton" name="pbLoadImgAnn">
-          <property name="text">
-           <string>load</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEditImgFilter"/>
-     </item>
-     <item>
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item row="1" column="0" colspan="2">
       <widget class="QListView" name="listViewImgNames">
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
@@ -256,215 +142,11 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QGroupBox" name="groupBox_2">
-       <property name="title">
-        <string/>
+     <item row="0" column="0" colspan="2">
+      <widget class="QPushButton" name="pbLoadImgAnn">
+       <property name="text">
+        <string>load</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <property name="leftMargin">
-         <number>3</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item row="3" column="1" colspan="2">
-         <widget class="QLineEdit" name="lineEditBboxX"/>
-        </item>
-        <item row="4" column="1" colspan="2">
-         <widget class="QLineEdit" name="lineEditBboxY"/>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>x:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>y:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="4">
-         <widget class="QLineEdit" name="lineEditBboxW"/>
-        </item>
-        <item row="4" column="4">
-         <widget class="QLineEdit" name="lineEditBboxH"/>
-        </item>
-        <item row="3" column="3">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>w:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2" colspan="3">
-         <widget class="QLineEdit" name="lineEditBboxLabel"/>
-        </item>
-        <item row="4" column="3">
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>h:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="2">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Label:</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="toolPanel2">
-   <property name="accessibleName">
-    <string/>
-   </property>
-   <property name="features">
-    <set>QDockWidget::DockWidgetClosable</set>
-   </property>
-   <property name="windowTitle">
-    <string>Exporter</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_10">
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <property name="spacing">
-      <number>2</number>
-     </property>
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
-      <number>3</number>
-     </property>
-     <item>
-      <widget class="QGroupBox" name="groupBox_4">
-       <property name="title">
-        <string/>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <property name="leftMargin">
-         <number>3</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboBoxLineFormat">
-          <property name="editable">
-           <bool>true</bool>
-          </property>
-          <item>
-           <property name="text">
-            <string>Native format</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>XML (VOC like format)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Single file</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLineEdit" name="leLabelToAdd"/>
-          </item>
-          <item>
-           <widget class="QToolButton" name="addLabelToFilterList">
-            <property name="text">
-             <string>Add</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="removeLabelToFilterList">
-            <property name="text">
-             <string>Remove</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Format:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QTableWidget" name="tableFilterList">
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-          <column>
-           <property name="text">
-            <string>Label</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Alias</string>
-           </property>
-          </column>
-         </widget>
-        </item>
-        <item row="4" column="0" colspan="2">
-         <widget class="QPushButton" name="pbExport">
-          <property name="maximumSize">
-           <size>
-            <width>139</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Export</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </widget>
      </item>
     </layout>
@@ -472,9 +154,9 @@
   </widget>
   <action name="saveLocalChanges">
    <property name="icon">
-    <iconset>
-     <normaloff>:/icons/icons/document-save.png</normaloff>
-     <normalon>:/icons/icons/document-save.png</normalon>:/icons/icons/document-save.png</iconset>
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/document-save.svg</normaloff>
+     <normalon>:/icons/icons/document-save.png</normalon>:/icons/icons/document-save.svg</iconset>
    </property>
    <property name="text">
     <string>Save local changes</string>
@@ -485,8 +167,8 @@
   </action>
   <action name="addNewBbox">
    <property name="icon">
-    <iconset>
-     <normaloff>:/icons/icons/document-new.svg</normaloff>:/icons/icons/document-new.svg</iconset>
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/snap-bounding-box-center.svg</normaloff>:/icons/icons/snap-bounding-box-center.svg</iconset>
    </property>
    <property name="text">
     <string>New BBox</string>
@@ -497,11 +179,11 @@
   </action>
   <action name="removeBbox">
    <property name="icon">
-    <iconset>
+    <iconset resource="resource.qrc">
      <normaloff>:/icons/icons/edit-delete.svg</normaloff>:/icons/icons/edit-delete.svg</iconset>
    </property>
    <property name="text">
-    <string>Remove BBox</string>
+    <string>Remove unlocked items</string>
    </property>
    <property name="shortcut">
     <string>X</string>
@@ -509,14 +191,107 @@
   </action>
   <action name="actionShowBboxes">
    <property name="icon">
-    <iconset>
-     <normaloff>:/icons/icons/im-invisible-user.svg</normaloff>:/icons/icons/im-invisible-user.svg</iconset>
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/view-visible.svg</normaloff>:/icons/icons/view-visible.svg</iconset>
    </property>
    <property name="text">
     <string>Show </string>
    </property>
    <property name="shortcut">
     <string>H</string>
+   </property>
+  </action>
+  <action name="actionShow_Hide_Labels">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/show_hide_labels.svg</normaloff>:/icons/icons/show_hide_labels.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Show/Hide Labels</string>
+   </property>
+  </action>
+  <action name="actionNew_Point">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/point-center.svg</normaloff>:/icons/icons/point-center.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New Point</string>
+   </property>
+   <property name="shortcut">
+    <string>Z</string>
+   </property>
+  </action>
+  <action name="actionAdd_New_Line">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/draw-line.svg</normaloff>:/icons/icons/draw-line.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add New Line</string>
+   </property>
+   <property name="shortcut">
+    <string>Q</string>
+   </property>
+  </action>
+  <action name="actionNext">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/go-next-symbolic.svg</normaloff>:/icons/icons/go-next-symbolic.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Next</string>
+   </property>
+   <property name="shortcut">
+    <string>Right</string>
+   </property>
+  </action>
+  <action name="actionPrevious">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/go-next-symbolic-rtl.svg</normaloff>:/icons/icons/go-next-symbolic-rtl.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Previous</string>
+   </property>
+   <property name="shortcut">
+    <string>Left</string>
+   </property>
+  </action>
+  <action name="actionAdd_New_Polygon">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/draw-polygon.svg</normaloff>:/icons/icons/draw-polygon.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add New Polygon</string>
+   </property>
+   <property name="shortcut">
+    <string>W</string>
+   </property>
+  </action>
+  <action name="actionzoom100">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/fit100.svg</normaloff>:/icons/icons/fit100.svg</iconset>
+   </property>
+   <property name="text">
+    <string>zoom100</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom 100%</string>
    </property>
   </action>
  </widget>
@@ -528,6 +303,8 @@
    <header>graphicsview.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

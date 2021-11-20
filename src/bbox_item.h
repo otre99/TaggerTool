@@ -1,9 +1,12 @@
-#ifndef BBOX_H
-#define BBOX_H
+#ifndef BBOX_ITEM_H
+#define BBOX_ITEM_H
 #include <QGraphicsRectItem>
 
+#include "custom_item.h"
+#include "utils.h"
+
 class ImageCanvas;
-class BoundingBoxItem : public QGraphicsRectItem {
+class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   friend class ImageCanvas;
   enum CORNER {
     kCenter = -1,
@@ -14,19 +17,19 @@ class BoundingBoxItem : public QGraphicsRectItem {
     kTopCenter,
     kRightCenter,
     kBottomCenter,
-    kLeftCenter
+    kLeftCenter,
+    kInvalid
   } m_currentCorner;
 
-public:
+ public:
   BoundingBoxItem(const QRectF &rectf, const QString &label = QString(),
                   QGraphicsItem *parent = nullptr, bool ready = false);
   QRectF boundingBoxCoordinates();
-  QString label() { return m_info; }
-  void setLocked(bool what);
-
-  void setLabel(const QString &lb);
   void setCoordinates(const QRectF &coords);
+  int type() const override { return Helper::kBBox; }
 
+  void setLocked(bool what) override;
+  void setLabel(const QString &lb) override;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -38,17 +41,20 @@ public:
   QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
                       const QVariant &value) override;
 
-private:
+  void setShowLabel(bool show) override {
+    m_showLabel = show;
+    update();
+  }
+
+ private:
   CORNER positionInsideBBox(const QPointF &pos);
   QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw,
                                 bool &sh);
 
-  QString m_info;
   QPointF m_lastPt;
   bool m_showCorners;
-  bool m_moveEnable;
   double m_marginW;
   double m_marginH;
 };
 
-#endif // BBOX_H
+#endif  // BBOX_ITEM_H

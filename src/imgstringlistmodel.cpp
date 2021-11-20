@@ -13,3 +13,7 @@ QVariant ImgStringListModel::data(const QModelIndex &index, int role) const {
     return "[ " + QString::number(index.row()) + "] " + r.toString();
   return r;
 }
+
+QModelIndex ImgStringListModel::indexAtRow(int row) {
+  return createIndex(row, 0);
+}

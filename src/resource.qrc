@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/document-save.svg</file>
+        <file>icons/edit-delete.svg</file>
+        <file>icons/point-center.svg</file>
+        <file>icons/snap-bounding-box-center.svg</file>
+        <file>icons/draw-line.svg</file>
+        <file>icons/go-next-symbolic.svg</file>
+        <file>icons/go-next-symbolic-rtl.svg</file>
+        <file>icons/draw-polygon.svg</file>
+        <file>icons/view-visible.svg</file>
+        <file>icons/fit100.svg</file>
+        <file>icons/show_hide_labels.svg</file>
+    </qresource>
+</RCC>
