@@ -22,8 +22,7 @@ BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,
   setPos(rectf.topLeft());
   setRect(QRectF(0, 0, rectf.width(), rectf.height()));
 
-  m_moveEnable = ready;
-  Helper::setLocked(this, m_moveEnable);
+  __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
   }
@@ -262,16 +261,7 @@ QRectF BoundingBoxItem::buildRectFromTwoPoints(const QPointF &p1,
 void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
-    QPointF pt = mapToScene(event->pos());
-    const auto l = scene()->items(pt);
-    if (l.count() > 1) {
-      for (int i = 1; i < l.count(); ++i) this->stackBefore(l[i]);
-      auto *citem = dynamic_cast<CustomItem *>(l[1]);
-      if (citem) {
-        citem->setLocked(false);
-        this->setLocked(true);
-      }
-    }
+    __swapStackOrder(this, scene()->items(event->scenePos()));
   } else if (event->modifiers() == Qt::ShiftModifier &&
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
@@ -305,7 +295,7 @@ void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   QGraphicsRectItem::mouseReleaseEvent(event);
   if (isSelected())
     emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
-  m_currentCorner=kInvalid;
+  m_currentCorner = kInvalid;
   update();
 }
 
@@ -426,10 +416,7 @@ void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
     emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
 }
 
-void BoundingBoxItem::setLocked(bool what) {
-  CustomItem::setLocked(what);
-  Helper::setLocked(this, m_moveEnable);
-}
+void BoundingBoxItem::setLocked(bool what) { __setLocked(this, what); }
 
 QVariant BoundingBoxItem::itemChange(QGraphicsItem::GraphicsItemChange change,
                                      const QVariant &value) {
@@ -445,10 +432,8 @@ QVariant BoundingBoxItem::itemChange(QGraphicsItem::GraphicsItemChange change,
 }
 
 void BoundingBoxItem::setLabel(const QString &lb) {
-  CustomItem::setLabel(lb);
-  setPen(Helper::colorFromLabel(lb));
-  QFontMetrics fm(globalHelper.fontLabel());
-  m_labelLen = fm.horizontalAdvance("  " + m_label) + Helper::kLabelRectH;
+  __setLabel(this, lb);
+  m_labelLen += Helper::kLabelRectH;
 }
 
 void BoundingBoxItem::setCoordinates(const QRectF &coords) {

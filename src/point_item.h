@@ -13,7 +13,8 @@ class PointItem : public QGraphicsEllipseItem, public CustomItem {
   void setLocked(bool what) override;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
-  void setLabel(const QString &lb) override;
+  void setLabel(const QString &lb) override { __setLabel(this, lb); }
+
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
   QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
                       const QVariant &value) override;

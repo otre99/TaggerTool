@@ -6,9 +6,9 @@
 #include <QRegularExpression>
 #include <QWheelEvent>
 
+#include "loadimganndialog.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
-#include "loadimganndialog.h"
 
 extern Helper globalHelper;
 
@@ -31,9 +31,6 @@ void MainWindow::setUp() {
 
   connect(&m_imageCanvas, &ImageCanvas::needSaveChanges, this,
           &MainWindow::onNeedSaveChange);
-
-  ui->statusBar->addPermanentWidget(ui->progressBar);
-  ui->progressBar->setVisible(false);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -62,25 +59,25 @@ void MainWindow::selectionChangedOnImageCanvas() {
 }
 
 void MainWindow::on_addNewBbox_triggered() {
-  m_imageCanvas.prepareForNewBBox();
+  m_imageCanvas.prepareForNewBBox(ui->comboBoxActiveLabel->currentText());
 }
 
-
 void MainWindow::on_pbLoadImgAnn_clicked() {
-    LoadImgAnnDialog dlg;
+  LoadImgAnnDialog dlg;
 
-    dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(), m_annImgManager.annFolder());
-    if (dlg.exec()!=QDialog::Accepted) return;
+  dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
+                          m_annImgManager.annFolder());
+  if (dlg.exec() != QDialog::Accepted) return;
 
-    m_annImgManager.reset(dlg.imgFolder(), dlg.annFolder());
-    m_imageListModel.setStringList(m_annImgManager.imageIds());
-    ui->saveLocalChanges->setEnabled(false);
+  m_annImgManager.reset(dlg.imgFolder(), dlg.annFolder());
+  m_imageListModel.setStringList(m_annImgManager.imageIds());
+  ui->saveLocalChanges->setEnabled(false);
 
-    QModelIndex tmp = m_imageListModel.indexAtRow(0);
-    ui->listViewImgNames->setCurrentIndex(tmp);
-      on_listViewImgNames_clicked(tmp);
-      ui->actionNext->setEnabled(true);
-      ui->actionPrevious->setEnabled(true);
+  QModelIndex tmp = m_imageListModel.indexAtRow(0);
+  ui->listViewImgNames->setCurrentIndex(tmp);
+  on_listViewImgNames_clicked(tmp);
+  ui->actionNext->setEnabled(true);
+  ui->actionPrevious->setEnabled(true);
 }
 
 void MainWindow::on_saveLocalChanges_triggered() {
@@ -102,14 +99,13 @@ void MainWindow::on_actionShowBboxes_triggered() {
   vis = !vis;
 }
 
-
 void MainWindow::on_actionShow_Hide_Labels_triggered() {
   m_imageCanvas.showLabels(ui->actionShow_Hide_Labels->isChecked());
   m_imageCanvas.setShowLabels(ui->actionShow_Hide_Labels->isChecked());
 }
 
 void MainWindow::on_actionNew_Point_triggered() {
-  m_imageCanvas.prepareForNewPoint();
+  m_imageCanvas.prepareForNewPoint(ui->comboBoxActiveLabel->currentText());
 }
 
 void MainWindow::onNeedSaveChange() { ui->saveLocalChanges->setEnabled(true); }
@@ -117,15 +113,20 @@ void MainWindow::onNeedSaveChange() { ui->saveLocalChanges->setEnabled(true); }
 void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   if (index == m_current_index) return;
   if (ui->saveLocalChanges->isEnabled()) {
-    QMessageBox::StandardButton ex = QMessageBox::warning(
-        this, "Unsaved changes", "Do you want to saved changes?",
-        QMessageBox::StandardButtons({QMessageBox::Save, QMessageBox::Ignore}));
-    switch (ex) {
-      case QMessageBox::Save:
-        on_saveLocalChanges_triggered();
-        break;
-      default:
-        break;
+    if (ui->checkBoxAutoSave->isChecked()) {
+      on_saveLocalChanges_triggered();
+    } else {
+      QMessageBox::StandardButton ex = QMessageBox::warning(
+          this, "Unsaved changes", "Do you want to saved changes?",
+          QMessageBox::StandardButtons(
+              {QMessageBox::Save, QMessageBox::Ignore}));
+      switch (ex) {
+        case QMessageBox::Save:
+          on_saveLocalChanges_triggered();
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -143,7 +144,7 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
 }
 
 void MainWindow::on_actionAdd_New_Line_triggered() {
-  m_imageCanvas.prepareForNewLine();
+  m_imageCanvas.prepareForNewLine(ui->comboBoxActiveLabel->currentText());
 }
 
 void MainWindow::on_actionNext_triggered() {
@@ -165,15 +166,15 @@ void MainWindow::on_actionPrevious_triggered() {
   on_listViewImgNames_clicked(next_index);
 }
 
-void MainWindow::on_actionAdd_New_Polygon_triggered()
-{
-    m_imageCanvas.prepareForNewPolygon();
+void MainWindow::on_actionAdd_New_Polygon_triggered() {
+  m_imageCanvas.prepareForNewPolygon(ui->comboBoxActiveLabel->currentText());
 }
 
-
-void MainWindow::on_actionzoom100_triggered()
-{
-    ui->bboxEditor->resetTransform();
-    ui->bboxEditor->scale(1.0, 1.0);
+void MainWindow::on_actionzoom100_triggered() {
+  ui->bboxEditor->resetTransform();
+  ui->bboxEditor->scale(1.0, 1.0);
 }
 
+void MainWindow::on_actionGrid_triggered(bool checked) {
+  m_imageCanvas.setShowGrid(!m_imageCanvas.showGrid());
+}

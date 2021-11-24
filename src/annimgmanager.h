@@ -24,7 +24,6 @@ struct Polygon {
   QVector<float> yArray{};
 };
 
-
 struct Annotations {
   int img_w{-1}, img_h{-1};
   QString image_name{};
@@ -47,8 +46,8 @@ class AnnImgManager {
 
   void saveAnnotations(const QString &image_id, const Annotations &ann);
 
-  QString annFolder() const {return m_annotationsDir.absolutePath();}
-  QString imgFolder() const {return m_imagesDir.absolutePath();}
+  QString annFolder() const { return m_annotationsDir.absolutePath(); }
+  QString imgFolder() const { return m_imagesDir.absolutePath(); }
 
   Annotations annotations(const QString &image_id);
   QSize imageSize(const QString &image_id);

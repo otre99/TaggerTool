@@ -99,7 +99,6 @@ void AnnImgManager::_saveAnnotations(const QString &path,
   }
   root["points"] = array_points;
 
-
   // polygons
   QJsonArray array_polygons;
   for (auto &poly : ann.polygons) {
@@ -108,16 +107,15 @@ void AnnImgManager::_saveAnnotations(const QString &path,
 
     QJsonArray xArray, yArray;
     const int n = poly.xArray.size();
-    for (int i=0; i<n; ++i){
-        xArray.append(poly.xArray[i]);
-        yArray.append(poly.yArray[i]);
+    for (int i = 0; i < n; ++i) {
+      xArray.append(poly.xArray[i]);
+      yArray.append(poly.yArray[i]);
     }
     obj["x_coords"] = xArray;
     obj["y_coords"] = yArray;
     array_polygons.append(obj);
   }
   root["polygons"] = array_polygons;
-
 
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(path);
@@ -181,17 +179,17 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
   // polygons
   const QJsonArray polygons = root["polygons"].toArray();
   for (const auto &obj : polygons) {
-     Polygon poly;
-     poly.label = obj["label"].toString();
+    Polygon poly;
+    poly.label = obj["label"].toString();
 
-     QJsonArray xArray = obj["x_coords"].toArray();
-     QJsonArray yArray = obj["y_coords"].toArray();
-     const int n = xArray.count();
-     for (int i=0; i<n; ++i){
-        poly.xArray.push_back( xArray[i].toDouble() );
-        poly.yArray.push_back( yArray[i].toDouble() );
-     }
-     ann.polygons.push_back(poly);
+    QJsonArray xArray = obj["x_coords"].toArray();
+    QJsonArray yArray = obj["y_coords"].toArray();
+    const int n = xArray.count();
+    for (int i = 0; i < n; ++i) {
+      poly.xArray.push_back(xArray[i].toDouble());
+      poly.yArray.push_back(yArray[i].toDouble());
+    }
+    ann.polygons.push_back(poly);
   }
 
   return ann;

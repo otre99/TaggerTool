@@ -53,16 +53,21 @@ class ImageCanvas : public QGraphicsScene {
   void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
   void drawForeground(QPainter *painter, const QRectF &rect) override;
-  void keyPressEvent(QKeyEvent *keyEvent) override ;
+  void keyPressEvent(QKeyEvent *keyEvent) override;
 
+  bool showGrid() const {return m_showGrid;}
+
+public slots:
+  void setShowGrid(bool show);
 
  signals:
   void bboxItemToEditor(QGraphicsItem *iten, int reason);
   void needSaveChanges();
 
  private:
-  bool m_showLabels = true;
-  QPolygonF m_currentPolygon;
+  bool m_showLabels{true};
+  bool m_showGrid{true};
+  QPolygonF m_currentPolygon{};
 };
 
 #endif  // IMAGECANVAS_H

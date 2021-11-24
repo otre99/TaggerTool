@@ -32,14 +32,14 @@ class MainWindow : public QMainWindow {
   void onNeedSaveChange();
   void on_listViewImgNames_clicked(const QModelIndex &index);
   void on_actionAdd_New_Line_triggered();
-
   void on_actionNext_triggered();
   void on_actionPrevious_triggered();
   void on_actionAdd_New_Polygon_triggered();
-
   void on_actionzoom100_triggered();
 
-private:
+  void on_actionGrid_triggered(bool checked);
+
+ private:
   void setUp();
   void displayImageInfo();
 

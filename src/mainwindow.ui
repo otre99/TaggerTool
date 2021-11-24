@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>TaggerTool</string>
+   <string>Tagger Tool</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -30,17 +30,10 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="0" column="2">
+    <item row="0" column="1">
      <widget class="GraphicsView" name="bboxEditor">
       <property name="tabletTracking">
        <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>0</number>
       </property>
      </widget>
     </item>
@@ -79,6 +72,8 @@
    <addaction name="actionAdd_New_Line"/>
    <addaction name="actionAdd_New_Polygon"/>
    <addaction name="removeBbox"/>
+   <addaction name="separator"/>
+   <addaction name="actionGrid"/>
    <addaction name="actionShowBboxes"/>
    <addaction name="actionShow_Hide_Labels"/>
    <addaction name="actionzoom100"/>
@@ -149,6 +144,26 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="0">
+      <widget class="QCheckBox" name="checkBoxAutoSave">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Auto Save</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="comboBoxActiveLabel">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -202,11 +217,8 @@
    </property>
   </action>
   <action name="actionShow_Hide_Labels">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="resource.qrc">
@@ -292,6 +304,21 @@
    </property>
    <property name="toolTip">
     <string>Zoom 100%</string>
+   </property>
+  </action>
+  <action name="actionGrid">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/grid-rectangular.svg</normaloff>:/icons/icons/grid-rectangular.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Grid</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Grid</string>
+   </property>
+   <property name="shortcut">
+    <string>G</string>
    </property>
   </action>
  </widget>

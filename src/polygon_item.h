@@ -10,14 +10,15 @@ class ImageCanvas;
 
 class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   friend class ImageCanvas;
-  enum CORNER { kCenter = -1, kNode, kInvalid} m_currentCorner;
+  enum CORNER { kCenter = -1, kNode, kInvalid } m_currentCorner{kInvalid};
   int m_currentNodeIndx_;
 
-public:
-  PolygonItem(const QPolygonF &poly, const QString &label = QString(), QGraphicsItem *parent = nullptr, bool ready = false);
+ public:
+  PolygonItem(const QPolygonF &poly, const QString &label = QString(),
+              QGraphicsItem *parent = nullptr, bool ready = false);
   int type() const override { return Helper::kPolygon; }
   void setLocked(bool what) override;
-  void setLabel(const QString &lb) override;
+  void setLabel(const QString &lb) override { __setLabel(this, lb); }
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -28,6 +29,7 @@ public:
 
   QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
                       const QVariant &value) override;
+
   QRectF boundingRect() const override;
   QPainterPath shape() const override;
   void setShowLabel(bool show) override {
@@ -36,7 +38,7 @@ public:
   }
 
  private:
-    CORNER positionInsideBBox(const QPointF &pos);
+  CORNER positionInsideBBox(const QPointF &pos);
 };
 
 #endif  // POLYGON_ITEM_H

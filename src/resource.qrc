@@ -11,5 +11,6 @@
         <file>icons/view-visible.svg</file>
         <file>icons/fit100.svg</file>
         <file>icons/show_hide_labels.svg</file>
+        <file>icons/grid-rectangular.svg</file>
     </qresource>
 </RCC>

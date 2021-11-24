@@ -23,9 +23,7 @@ void GraphicsView::wheelEvent(QWheelEvent* event) {
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent* event) {
-  if ((event->modifiers() == Qt::ControlModifier)
-      << (event->buttons() == Qt::LeftButton)) {
-    // Store original position.
+  if ((event->modifiers() == Qt::ControlModifier) && (event->buttons() == Qt::LeftButton)) {
     m_originX = event->pos().x();
     m_originY = event->pos().y();
   } else {

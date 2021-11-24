@@ -17,7 +17,7 @@ class LineItem : public QGraphicsLineItem, public CustomItem {
            const QString &label = QString(), QGraphicsItem *parent = nullptr,
            bool ready = false);
   int type() const override { return Helper::kLine; }
-  void setLocked(bool what) override;
+  void setLocked(bool lk) override;
   void setLabel(const QString &lb) override;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;

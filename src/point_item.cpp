@@ -20,26 +20,16 @@ PointItem::PointItem(const QPointF &center, const QString &label,
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
-  m_moveEnable = ready;
-
-  Helper::setLocked(this, m_moveEnable);
+  __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
   }
 
-  m_label = label;
-  setPen(Helper::colorFromLabel(m_label));
-
-  QFontMetrics fm(Helper::fontLabel());
-  m_labelLen = fm.horizontalAdvance("  " + m_label);
-
+  __setLabel(this, label);
   setPos(center - QPointF{Helper::kPointRadius, Helper::kPointRadius});
 }
 
-void PointItem::setLocked(bool what) {
-  CustomItem::setLocked(what);
-  Helper::setLocked(this, m_moveEnable);
-}
+void PointItem::setLocked(bool what) { __setLocked(this, what); }
 
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                       QWidget *widget) {
@@ -69,16 +59,7 @@ void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
-    QPointF pt = mapToScene(event->pos());
-    const auto l = scene()->items(pt);
-    if (l.count() > 1) {
-      for (int i = 1; i < l.count(); ++i) this->stackBefore(l[i]);
-      auto *citem = dynamic_cast<CustomItem *>(l[1]);
-      if (citem) {
-        citem->setLocked(false);
-        this->setLocked(true);
-      }
-    }
+    __swapStackOrder(this, scene()->items(event->scenePos()));
   } else if (event->modifiers() == Qt::ShiftModifier &&
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
@@ -95,15 +76,6 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   } else {
     QGraphicsEllipseItem::mousePressEvent(event);
   }
-}
-
-void PointItem::setLabel(const QString &lb) {
-  CustomItem::setLabel(lb);
-  setPen(Helper::colorFromLabel(lb));
-
-  prepareGeometryChange();
-  QFontMetrics fm(Helper::fontLabel());
-  m_labelLen = fm.horizontalAdvance("  " + m_label);
 }
 
 QVariant PointItem::itemChange(QGraphicsItem::GraphicsItemChange change,

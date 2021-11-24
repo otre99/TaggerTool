@@ -11,8 +11,9 @@ const QColor Helper::kMarginBBoxColor = {128, 0, 0, 64};
 const QColor Helper::kLabelColor = {200, 200, 200, 64};
 const int Helper::kLabelRectH = 11;
 const int Helper::kFontPixelSize = 9;
+const int Helper::kImageMarging=32;
 const double Helper::kBorderSize = 32;
-const double Helper::kPointRadius = 4;
+const double Helper::kPointRadius = 2;
 
 QMap<QString, QColor> Helper::m_labelToColor{};
 QFont Helper::m_fontLabel;
@@ -40,12 +41,6 @@ QColor Helper::colorFromLabel(const QString &label) {
   int index = std::hash<std::string>()(label.toStdString()) % lst.count();
   Helper::m_labelToColor[label] = lst[index];
   return Helper::m_labelToColor[label];
-}
-
-void Helper::setLocked(QGraphicsItem *item, bool lk) {
-  item->setFlag(QGraphicsItem::ItemIsMovable, lk);
-  item->setFlag(QGraphicsItem::ItemIsSelectable, lk);
-  item->setFlag(QGraphicsItem::ItemIsFocusable, lk);
 }
 
 double Helper::pointLen(const QPointF &p) {
