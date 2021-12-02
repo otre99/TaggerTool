@@ -21,6 +21,7 @@ class LineItem : public QGraphicsLineItem, public CustomItem {
   void setLabel(const QString &lb) override;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
+  void helperParametersChanged() override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;

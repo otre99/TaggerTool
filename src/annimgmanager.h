@@ -31,6 +31,8 @@ struct Annotations {
   QVector<Point> points{};
   QVector<BBox> bboxes{};
   QVector<Polygon> polygons{};
+  QString description{};
+  QStringList tags{};
 };
 
 class AnnImgManager {

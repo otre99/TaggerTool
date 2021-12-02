@@ -3,7 +3,7 @@
 
 #include <QDir>
 #include <QMainWindow>
-
+#include <QTimer>
 #include "annimgmanager.h"
 #include "imagecanvas.h"
 #include "imgstringlistmodel.h"
@@ -36,19 +36,30 @@ class MainWindow : public QMainWindow {
   void on_actionPrevious_triggered();
   void on_actionAdd_New_Polygon_triggered();
   void on_actionzoom100_triggered();
-
   void on_actionGrid_triggered(bool checked);
+  void on_timeout();
+  void on_tBAdd_clicked();
+  void on_tBRemove_clicked();
+  void on_pTextImgDescription_textChanged();
 
- private:
+  void on_pushButtonUpdate_clicked();
+
+  void on_doubleSpinBoxPtRadius_valueChanged(double arg1);
+
+  void on_spinBoxLabelPixSize_valueChanged(int arg1);
+
+private:
   void setUp();
   void displayImageInfo();
 
+  QTimer m_timer;
   QGraphicsItem *m_currentItem;
   Ui::MainWindow *ui;
   AnnImgManager m_annImgManager;
   ImageCanvas m_imageCanvas;
   ImgStringListModel m_imageListModel;
   QModelIndex m_current_index{};
+
 };
 
 #endif  // MAINWINDOW_H

@@ -117,10 +117,21 @@ void AnnImgManager::_saveAnnotations(const QString &path,
   }
   root["polygons"] = array_polygons;
 
+  // description
+  root["description"] = ann.description;
+
+  // tags
+  QJsonArray array_tags;
+  for (auto &tag : ann.tags) {
+    array_tags.append(tag);
+  }
+  root["tags"] = array_tags;
+
+
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(path);
   if (!ofile.open(QFile::WriteOnly)) {
-    qDebug() << "Failed writing annotations";
+    qDebug() << "Failed writing annotations: " << path;
     return;
   }
   ofile.write(out);
@@ -192,6 +203,14 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
     ann.polygons.push_back(poly);
   }
 
+  // description
+  ann.description  = root["description"].toString();
+
+  // tags
+  const QJsonArray tags = root["tags"].toArray();
+  for (const auto &tag : tags){
+      ann.tags.append(tag.toString());
+  }
   return ann;
 }
 

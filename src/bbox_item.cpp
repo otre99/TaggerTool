@@ -16,7 +16,7 @@ extern Helper globalHelper;
 
 BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,
                                  QGraphicsItem *parent, bool ready)
-    : QGraphicsRectItem(parent), m_showCorners(ready) {
+    : QGraphicsRectItem(parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
   setPos(rectf.topLeft());
@@ -27,12 +27,20 @@ BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,
     setSelected(ready);
   }
 
-  m_label = label;
-  setPen(Helper::colorFromLabel(m_label));
-  QFontMetrics fm(globalHelper.fontLabel());
-  m_labelLen = fm.horizontalAdvance("  " + m_label) + Helper::kLabelRectH;
+  __setLabel(this, label);
+  auto p = pen();
+  p.setWidthF(Helper::kPointRadius);
+  setPen(p);
   setAcceptHoverEvents(true);
 }
+void BoundingBoxItem::helperParametersChanged()
+{
+    __calculateLabelSize(m_label);
+    QPen p = pen();
+    p.setWidth(Helper::kPointRadius);
+    setPen(p);
+}
+
 
 QRectF BoundingBoxItem::boundingBoxCoordinates() {
   const QSizeF sf = rect().size();
@@ -41,114 +49,68 @@ QRectF BoundingBoxItem::boundingBoxCoordinates() {
 }
 
 QRectF BoundingBoxItem::boundingRect() const {
-  double dw = 0.0;
-  if (rect().width() < m_labelLen) {
-    dw = m_labelLen - rect().width();
-  }
+    QRectF br = QGraphicsRectItem::boundingRect();
+    const qreal aj = Helper::kPointRadius/2;
+    br = br.adjusted(-aj, -aj, aj, aj);
 
-  return rect().adjusted(-0.5, -Helper::kLabelRectH, dw + 0.5, 0.5);
+    double dw = 0;
+    if (rect().width() < m_labelLen) {
+      dw = m_labelLen - rect().width();
+    }
+    return br.adjusted(0, -m_labelHeight, dw, 0);
 }
 
 void BoundingBoxItem::paint(QPainter *painter,
                             const QStyleOptionGraphicsItem *option,
                             QWidget *widget) {
   (void)widget;
-  painter->setFont(globalHelper.fontLabel());
-  painter->setPen(Qt::black);
-  QRectF brect = boundingRect();
+  QPen p = pen();
+  painter->setPen(p);
 
-  if (m_showLabel) {
-    QColor markerColor = pen().color();
-
-    auto r =
-        QRectF{brect.x(), brect.y(), static_cast<qreal>(Helper::kLabelRectH),
-               static_cast<qreal>(Helper::kLabelRectH)};
-    if (m_moveEnable) {
-      painter->setBrush(markerColor);
-      painter->drawEllipse(r.adjusted(0.5, 0.5, -0.5, -0.5));
-    } else {
-      painter->fillRect(
-          QRectF{brect.x(), brect.y(), static_cast<qreal>(Helper::kLabelRectH),
-                 static_cast<qreal>(Helper::kLabelRectH)},
-          markerColor);
-    }
-
-    QRectF lb_rect(brect.x() + Helper::kLabelRectH, brect.y(),
-                   m_labelLen - Helper::kLabelRectH, Helper::kLabelRectH);
-    painter->fillRect(lb_rect, Helper::kLabelColor);
-    painter->drawText(lb_rect, Qt::AlignVCenter, " " + m_label);
-  }
-
-  brect = rect();  // boundingRect();
-  painter->setPen(pen());
+  QRectF brect = rect();  // boundingRect();
   if (m_moveEnable) {
     painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
   } else {
     painter->setBrush(QBrush(Helper::kLockedBBoxColor));
   }
-  painter->drawRect(brect);
+  if (!m_moveEnable)
+      painter->drawRect(brect);
+
   if (m_moveEnable) {
-    const double ww = brect.width();
-    const double hh = brect.height();
-    m_marginW =
-        qMin(Helper::kBorderSize,
-             ww * 0.25);  // qMax(kBorderSize/4, qMin(kBorderSize, ww * 0.1));
-    m_marginH =
-        qMin(Helper::kBorderSize,
-             hh * 0.25);  // qMax(kBorderSize/4, qMin(kBorderSize, hh * 0.1));
-    m_marginW = m_marginH = qMin(m_marginW, m_marginH);
 
-    if (qMin(ww, hh) > 0.0) {
-      painter->setPen(Qt::NoPen);
-      painter->setBrush(QBrush(Helper::kMarginBBoxColor));
+      painter->save();
+      auto pp = p;
+      pp.setWidth(1);
+      pp.setStyle(Qt::DotLine);
+      pp.setColor(Qt::black);
+      painter->setPen(pp);
+      painter->drawRect(brect);
+      painter->restore();
 
-      switch (m_currentCorner) {
-        case kTopLeft:
-          painter->drawRect(
-              QRectF(brect.x() + 0.5, brect.y() + 0.5, m_marginW, m_marginH));
-          break;
-        case kTopCenter:
-          painter->drawRect(
-              QRectF(QPointF(brect.x() + m_marginW + 0.5, brect.y() + 0.5),
-                     QPointF(brect.x() + brect.width() - m_marginW - 0.5,
-                             brect.y() + 0.5 + m_marginH)));
-          break;
-        case kTopRight:
-          painter->drawRect(QRectF(brect.x() + brect.width() - m_marginW - 0.5,
-                                   brect.y() + 0.5, m_marginW, m_marginH));
-          break;
-        case kRightCenter:
-          painter->drawRect(
-              QRectF(QPointF(brect.x() + brect.width() - m_marginW - 0.5,
-                             brect.y() + 0.5 + m_marginH),
-                     QPointF(brect.x() + brect.width() - 0.5,
-                             brect.y() + brect.height() - 0.5 - m_marginH)));
-          break;
-        case kBottomRight:
-          painter->drawRect(QRectF(brect.x() + brect.width() - m_marginW - 0.5,
-                                   brect.y() + brect.height() - 0.5 - m_marginH,
-                                   m_marginW, m_marginH));
-          break;
-        case kBottomCenter:
-          painter->drawRect(
-              QRectF(QPointF(brect.x() + m_marginW + 0.5,
-                             brect.y() + brect.height() - 0.5 - m_marginH),
-                     QPointF(brect.x() + brect.width() - 0.5 - m_marginW,
-                             brect.y() + brect.height() - 0.5)));
-          break;
-        case kBottomLeft:
-          painter->drawRect(QRectF(brect.x() + 0.5,
-                                   brect.y() + brect.height() - 0.5 - m_marginH,
-                                   m_marginW, m_marginH));
-          break;
-        case kLeftCenter:
-          painter->drawRect(
-              QRectF(QPointF(brect.x() + 0.5, brect.y() + 0.5 + m_marginH),
-                     QPointF(brect.x() + m_marginW + 0.5,
-                             brect.y() + brect.height() - 0.5 - m_marginH)));
-          break;
-      }
-    }
+    painter->setPen(Qt::NoPen);
+    QColor color = pen().color(); color.setAlpha(150);
+    painter->setBrush(color);
+    qreal w2 = brect.left()+brect.width()/2;
+    qreal h2 = brect.top()+brect.height()/2;
+
+    Helper::drawCircleOrSquared(painter, brect.topLeft(), Helper::kPointRadius,m_currentCorner!=kTopLeft);
+    Helper::drawCircleOrSquared(painter, {w2,brect.top()}, Helper::kPointRadius,m_currentCorner!=kTopCenter);
+    Helper::drawCircleOrSquared(painter, brect.topRight(), Helper::kPointRadius,m_currentCorner!=kTopRight);
+    Helper::drawCircleOrSquared(painter, {brect.right(),h2}, Helper::kPointRadius,m_currentCorner!=kRightCenter);
+    Helper::drawCircleOrSquared(painter, brect.bottomLeft(), Helper::kPointRadius,m_currentCorner!=kBottomLeft);
+    Helper::drawCircleOrSquared(painter, {w2,brect.bottom()}, Helper::kPointRadius,m_currentCorner!=kBottomCenter);
+    Helper::drawCircleOrSquared(painter, brect.bottomRight(), Helper::kPointRadius,m_currentCorner!=kBottomRight);
+    Helper::drawCircleOrSquared(painter, {brect.left(),h2}, Helper::kPointRadius,m_currentCorner!=kLeftCenter);
+  }
+  if (m_showLabel) {
+    painter->setFont(globalHelper.fontLabel());
+    p.setColor(Qt::black);
+    painter->setPen(p);
+
+    brect = boundingRect();
+    QRectF lb_rect(brect.x(), brect.y(),  m_labelLen, m_labelHeight);
+    painter->fillRect(lb_rect, Helper::kLabelColor);
+    painter->drawText(lb_rect, Qt::AlignVCenter|Qt::AlignHCenter, m_label);
   }
 }
 
@@ -258,6 +220,10 @@ QRectF BoundingBoxItem::buildRectFromTwoPoints(const QPointF &p1,
   return {topleft, QSizeF(rw, rh)};
 }
 
+void drawCircleOrSquared(QPainter *painter, qreal w, bool circle){
+
+}
+
 void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
@@ -304,55 +270,38 @@ BoundingBoxItem::CORNER BoundingBoxItem::positionInsideBBox(
   CORNER result = kCenter;
   const QRectF brect = rect();  // boundingRect();
 
-  if (QRectF(brect.x() + 0.5, brect.y() + 0.5, m_marginW, m_marginH)
-          .contains(pos)) {
+  qreal w2 = brect.left()+brect.width()/2;
+  qreal h2 = brect.top()+brect.height()/2;
+
+  if ( Helper::pointLen(brect.topLeft()-pos) < Helper::kPointRadius ){
     result = kTopLeft;
-    if (m_moveEnable) setCursor(Qt::SizeFDiagCursor);
-  } else if (QRectF(brect.x() + brect.width() - m_marginW - 0.5,
-                    brect.y() + 0.5, m_marginW, m_marginH)
-                 .contains(pos)) {
-    result = kTopRight;
-    if (m_moveEnable) setCursor(Qt::SizeBDiagCursor);
-  } else if (QRectF(brect.x() + brect.width() - m_marginW - 0.5,
-                    brect.y() + brect.height() - 0.5 - m_marginH, m_marginW,
-                    m_marginH)
-                 .contains(pos)) {
-    result = kBottomRight;
-    if (m_moveEnable) setCursor(Qt::SizeFDiagCursor);
-  } else if (QRectF(brect.x() + 0.5,
-                    brect.y() + brect.height() - 0.5 - m_marginH, m_marginW,
-                    m_marginH)
-                 .contains(pos)) {
-    result = kBottomLeft;
-    if (m_moveEnable) setCursor(Qt::SizeBDiagCursor);
-  } else if (QRectF(QPointF(brect.x() + m_marginW + 0.5, brect.y() + 0.5),
-                    QPointF(brect.x() + brect.width() - m_marginW - 0.5,
-                            brect.y() + 0.5 + m_marginH))
-                 .contains(pos)) {
+  }
+  if ( Helper::pointLen(QPointF{w2,brect.top()}-pos) < Helper::kPointRadius ){
     result = kTopCenter;
-    if (m_moveEnable) setCursor(Qt::SizeVerCursor);
-  } else if (QRectF(QPointF(brect.x() + brect.width() - m_marginW - 0.5,
-                            brect.y() + 0.5 + m_marginH),
-                    QPointF(brect.x() + brect.width() - 0.5,
-                            brect.y() + brect.height() - 0.5 - m_marginH))
-                 .contains(pos)) {
+  }
+
+  if ( Helper::pointLen(brect.topRight()-pos) < Helper::kPointRadius ){
+     result = kTopRight;
+  }
+
+  if ( Helper::pointLen(QPointF{brect.right(),h2}-pos) < Helper::kPointRadius){
     result = kRightCenter;
-    if (m_moveEnable) setCursor(Qt::SizeHorCursor);
-  } else if (QRectF(QPointF(brect.x() + m_marginW + 0.5,
-                            brect.y() + brect.height() - 0.5 - m_marginH),
-                    QPointF(brect.x() + brect.width() - 0.5 - m_marginW,
-                            brect.y() + brect.height() - 0.5))
-                 .contains(pos)) {
-    result = kBottomCenter;
-    if (m_moveEnable) setCursor(Qt::SizeVerCursor);
-  } else if (QRectF(QPointF(brect.x() + 0.5, brect.y() + 0.5 + m_marginH),
-                    QPointF(brect.x() + m_marginW + 0.5,
-                            brect.y() + brect.height() - 0.5 - m_marginH))
-                 .contains(pos)) {
+  }
+
+  if ( Helper::pointLen(brect.bottomLeft()-pos) < Helper::kPointRadius ){
+    result = kBottomLeft;
+  }
+
+  if ( Helper::pointLen(QPointF{w2,brect.bottom()}-pos) < Helper::kPointRadius){
+    result=kBottomCenter;
+  }
+
+  if ( Helper::pointLen(brect.bottomRight()-pos)< Helper::kPointRadius) {
+    result=kBottomRight;
+  }
+
+  if ( Helper::pointLen(QPointF{brect.left(),h2}-pos)< Helper::kPointRadius){
     result = kLeftCenter;
-    if (m_moveEnable) setCursor(Qt::SizeHorCursor);
-  } else {
-    if (m_moveEnable) setCursor(Qt::SizeAllCursor);
   }
   return result;
 }
@@ -433,10 +382,39 @@ QVariant BoundingBoxItem::itemChange(QGraphicsItem::GraphicsItemChange change,
 
 void BoundingBoxItem::setLabel(const QString &lb) {
   __setLabel(this, lb);
-  m_labelLen += Helper::kLabelRectH;
 }
 
 void BoundingBoxItem::setCoordinates(const QRectF &coords) {
   setPos(coords.topLeft());
   setRect(QRectF(QPointF(0, 0), coords.size()));
+}
+
+QPainterPath BoundingBoxItem::shape() const {
+  QPainterPath path;
+  const QRectF brect = rect();
+  qreal w2 = brect.left()+brect.width()/2;
+  qreal h2 = brect.top()+brect.height()/2;
+  path.addRect(brect);
+
+  path.addEllipse(brect.topLeft(), Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+  path.addEllipse({w2,brect.top()}, Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+
+  path.addEllipse(brect.topRight(), Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+  path.addEllipse({brect.right(),h2}, Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+
+  path.addEllipse(brect.bottomLeft(), Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+  path.addEllipse({w2,brect.bottom()}, Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+
+  path.addEllipse(brect.bottomRight(), Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+  path.addEllipse({brect.left(),h2}, Helper::kPointRadius / 2, Helper::kPointRadius / 2);
+
+  QPainterPathStroker spath;
+  const QPen p = pen();
+  spath.setCapStyle(p.capStyle());
+  spath.setJoinStyle(p.joinStyle());
+  spath.setWidth(p.widthF());
+  spath.setMiterLimit(p.miterLimit());
+  QPainterPath op = spath.createStroke(path);
+  op.addPath(path);
+  return op;
 }

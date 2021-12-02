@@ -25,11 +25,18 @@ PolygonItem::PolygonItem(const QPolygonF &poly, const QString &label,
   }
 
   __setLabel(this, label);
-
   auto p = pen();
   p.setWidthF(Helper::kPointRadius);
   setPen(p);
   setAcceptHoverEvents(true);
+}
+
+void PolygonItem::helperParametersChanged()
+{
+    __calculateLabelSize(m_label);
+    QPen p = pen();
+    p.setWidth(Helper::kPointRadius);
+    setPen(p);
 }
 
 void PolygonItem::paint(QPainter *painter,
@@ -37,7 +44,7 @@ void PolygonItem::paint(QPainter *painter,
                         QWidget *widget) {
   (void)widget;
   QPen p = pen();
-  p.setWidth(Helper::kPointRadius / 2);
+  p.setWidth(Helper::kPointRadius);
   painter->setPen(p);
   const QPolygonF poly = polygon();
   if (m_moveEnable) {
@@ -45,24 +52,28 @@ void PolygonItem::paint(QPainter *painter,
   } else {
     painter->setBrush(QBrush(Helper::kLockedBBoxColor));
   }
-  painter->drawPolygon(poly);
+
+  if (!m_moveEnable)
+      painter->drawPolygon(poly);
 
   if (m_moveEnable) {
-    QPen pp = painter->pen();
+    painter->save();
+    auto pp = p;
+    pp.setWidth(1);
+    pp.setStyle(Qt::DotLine);
+    pp.setColor(Qt::black);
+    painter->setPen(pp);
+    painter->drawPolygon(poly);
+    painter->restore();
+
     int index = 0;
     painter->setPen(Qt::NoPen);
-    painter->setBrush(pen().color());
+    QColor color = pen().color(); color.setAlpha(150);
+    painter->setBrush(color);
+
     for (auto pt : poly) {
-      if (m_currentCorner == kNode && index == m_currentNodeIndx_) {
-        painter->save();
-        painter->setPen(p);
-        painter->setBrush(Qt::NoBrush);
-        painter->drawEllipse(pt, Helper::kPointRadius, Helper::kPointRadius);
-        painter->restore();
-      } else {
-        painter->drawEllipse(pt, Helper::kPointRadius, Helper::kPointRadius);
-      }
-      ++index;
+        Helper::drawCircleOrSquared(painter, pt, Helper::kPointRadius, (m_currentCorner != kNode || index != m_currentNodeIndx_));
+        ++index;
     }
   }
 
@@ -72,8 +83,8 @@ void PolygonItem::paint(QPainter *painter,
     QRectF bb = boundingRect();
     QPointF bc = bb.center();
     qreal dw = m_labelLen / 2.0;
-    qreal dh = Helper::kLabelRectH / 2.0;
-    QRectF brect(bc - QPointF{dw, dh}, QSizeF(m_labelLen, Helper::kLabelRectH));
+    qreal dh = m_labelHeight / 2.0;
+    QRectF brect(bc - QPointF{dw, dh}, QSizeF(m_labelLen, m_labelHeight));
     painter->fillRect(brect, Helper::kLabelColor);
     painter->drawText(brect, Qt::AlignVCenter | Qt::AlignHCenter, m_label);
   }
@@ -108,6 +119,34 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
       if (dlg.label() != m_label) {
         setLabel(dlg.label());
         emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
+      }
+    }
+  } else if (event->modifiers() == Qt::AltModifier &&
+             event->button() == Qt::LeftButton) {
+    auto corner = positionInsideBBox(event->pos());
+    QPolygonF poly = polygon();
+    if (corner == kNode) {
+      if (poly.count() > 3) {
+        poly.remove(m_currentNodeIndx_);
+        setPolygon(poly);
+      }
+    } else {
+      for (int i = 0; i < poly.count(); ++i) {
+        const QPointF p1 = poly[i];
+        const QPointF p2 = i == poly.count() - 1 ? poly[0] : poly[i + 1];
+        const double dist =
+            Helper::distanceToLine(QVector2D{p1}, QVector2D{p2}, event->pos());
+        if (dist < Helper::kPointRadius) {
+          QPointF newPt = Helper::pointLineIntersection(
+              QVector2D{p1}, QVector2D{p2}, event->pos());
+          QPointF midPt = 0.5 * (p1 + p2);
+          const double len = Helper::pointLen(p1 - p2);
+          if (Helper::pointLen(newPt - midPt) <= len / 2.0) {
+            poly.insert(i + 1, newPt);
+            setPolygon(poly);
+            break;
+          }
+        }
       }
     }
   } else {
@@ -174,8 +213,8 @@ QRectF PolygonItem::boundingRect() const {
   if (br.width() < m_labelLen) {
     dw = (m_labelLen - br.width()) / 2.0;
   }
-  if (br.height() < Helper::kLabelRectH) {
-    dh = (Helper::kLabelRectH - br.height()) / 2.0;
+  if (br.height() < m_labelHeight) {
+    dh = (m_labelHeight - br.height()) / 2.0;
   }
   return br.adjusted(-dw, -dh, dw, dh);
 }

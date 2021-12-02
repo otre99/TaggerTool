@@ -27,7 +27,7 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   QRectF boundingBoxCoordinates();
   void setCoordinates(const QRectF &coords);
   int type() const override { return Helper::kBBox; }
-
+  void helperParametersChanged() override;
   void setLocked(bool what) override;
   void setLabel(const QString &lb) override;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
@@ -37,6 +37,8 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
   void keyPressEvent(QKeyEvent *event) override;
+  QPainterPath shape() const override;
+
   QRectF boundingRect() const override;
   QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
                       const QVariant &value) override;
@@ -50,11 +52,7 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   CORNER positionInsideBBox(const QPointF &pos);
   QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw,
                                 bool &sh);
-
   QPointF m_lastPt;
-  bool m_showCorners;
-  double m_marginW;
-  double m_marginH;
 };
 
 #endif  // BBOX_ITEM_H

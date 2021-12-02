@@ -24,6 +24,17 @@ void ImageCanvas::hideBoundingBoxes() {
   }
 }
 
+void  ImageCanvas::helperParametersChanged()
+{
+    for (auto item : items()) {
+        CustomItem *citem = dynamic_cast<CustomItem*>(item);
+        if (citem){
+            citem->helperParametersChanged();
+            item->update();
+        }
+    }
+}
+
 void ImageCanvas::prepareForNewBBox(QString label) {
   m_waitingForObj = true;
   if (label != QString()) m_bboxLabel = label;
@@ -64,6 +75,7 @@ void ImageCanvas::showLabels(bool show) {
     auto it = dynamic_cast<CustomItem *>(item);
     if (it) it->setShowLabel(show);
   }
+  m_showLabels = show;
 }
 
 void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
@@ -308,6 +320,7 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
       painter->drawLine(m_begPt, m_endPt);
 
     if (m_waitingForTypeObj == Helper::kPolygon) {
+        painter->setBrush(Qt::black);
       for (const auto pt : m_currentPolygon) {
         painter->drawEllipse(pt, Helper::kPointRadius / 2,
                              Helper::kPointRadius / 2);
@@ -333,6 +346,5 @@ void ImageCanvas::keyPressEvent(QKeyEvent *keyEvent) {
 
 void ImageCanvas::setShowGrid(bool show) {
   m_showGrid = show;
-  qDebug() << "AAAAAAAAAAAAAAAAAAAAAa" << m_showGrid;
   update();
 }

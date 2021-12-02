@@ -12,6 +12,8 @@ class Helper {
   static QMap<QString, QColor> m_labelToColor;
 
  public:
+  static bool m_labelsUpdated;
+
   enum CustomItemType {
     kBBox = QGraphicsItem::UserType + 1,
     kLine,
@@ -24,18 +26,20 @@ class Helper {
   static const QFont &fontLabel();
 
   static QStringList currentLabels() { return Helper::m_labelToColor.keys(); }
-
   static QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2);
   static QColor colorFromLabel(const QString &label);
   static double pointLen(const QPointF &p);
+  static double distanceToLine(const QVector2D &lp1, const QVector2D &lp2, const QPointF &p);
+  static QPointF pointLineIntersection(const QVector2D &lp1, const QVector2D &lp2, const QPointF &p);
+  static void drawCircleOrSquared(QPainter *painter, const QPointF &ct, qreal w, bool circle);
 
   static const QColor kUnlockedBBoxColor;
   static const QColor kLockedBBoxColor;
   static const QColor kMarginBBoxColor;
   static const QColor kLabelColor;
-  static const int kLabelRectH;
-  static const double kPointRadius;
-  static const int kFontPixelSize;
+  //static const int kLabelRectH;
+  static double kPointRadius;
+  static int kFontPixelSize;
   static const int kImageMarging;
   static const double kBorderSize;
 };

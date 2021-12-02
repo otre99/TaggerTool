@@ -14,6 +14,7 @@ class PointItem : public QGraphicsEllipseItem, public CustomItem {
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void setLabel(const QString &lb) override { __setLabel(this, lb); }
+  void helperParametersChanged() override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
   QVariant itemChange(QGraphicsItem::GraphicsItemChange change,

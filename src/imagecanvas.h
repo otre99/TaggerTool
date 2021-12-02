@@ -37,8 +37,9 @@ class ImageCanvas : public QGraphicsScene {
   QSize imageSize();
   QString imageId();
   void hideBoundingBoxes();
+  void helperParametersChanged();
   void showBoundingBoxes();
-  void showLabels(bool show);
+  bool showLabels() const {return m_showLabels;};
 
   void prepareForNewBBox(QString label = QString());
   void prepareForNewPoint(const QString &label = QString());
@@ -46,7 +47,7 @@ class ImageCanvas : public QGraphicsScene {
   void prepareForNewPolygon(const QString &label = QString());
 
   bool addingNewObj() { return m_waitingForObj; }
-  void setShowLabels(bool show) { m_showLabels = show; }
+  void showLabels(bool show);
 
   void drawBackground(QPainter *painter, const QRectF &rect) override;
   void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;

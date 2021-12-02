@@ -11,8 +11,13 @@ void CustomItem::__setLabel(QAbstractGraphicsShapeItem *item, QString label) {
   auto p = item->pen();
   p.setColor(Helper::colorFromLabel(label));
   item->setPen(p);
+  __calculateLabelSize(label);
+}
+
+void CustomItem::__calculateLabelSize(const QString &label) {
   QFontMetrics fm(Helper::fontLabel());
-  m_labelLen = fm.horizontalAdvance(" " + m_label + " ");
+  m_labelLen = fm.horizontalAdvance(label);
+  m_labelHeight = fm.height();
 }
 
 void CustomItem::__setLocked(QGraphicsItem *item, bool lk) {

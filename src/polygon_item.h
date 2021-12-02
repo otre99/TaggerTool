@@ -19,6 +19,8 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   int type() const override { return Helper::kPolygon; }
   void setLocked(bool what) override;
   void setLabel(const QString &lb) override { __setLabel(this, lb); }
+  void helperParametersChanged() override;
+
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;

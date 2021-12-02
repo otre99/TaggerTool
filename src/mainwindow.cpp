@@ -20,7 +20,10 @@ MainWindow::MainWindow(QWidget *parent)
   setUp();
 }
 
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow() {
+  m_timer.stop();
+  delete ui;
+}
 
 void MainWindow::setUp() {
   ui->bboxEditor->setScene(&m_imageCanvas);
@@ -31,6 +34,8 @@ void MainWindow::setUp() {
 
   connect(&m_imageCanvas, &ImageCanvas::needSaveChanges, this,
           &MainWindow::onNeedSaveChange);
+  connect(&m_timer, &QTimer::timeout, this, &MainWindow::on_timeout);
+  m_timer.start(1000);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -81,7 +86,14 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 }
 
 void MainWindow::on_saveLocalChanges_triggered() {
-  const auto ann = m_imageCanvas.annotations();
+  auto ann = m_imageCanvas.annotations();
+
+  // description and tags
+  ann.description = ui->pTextImgDescription->toPlainText();
+  for (int i = 0; i < ui->listWidgetTags->count(); ++i) {
+    ann.tags.append(ui->listWidgetTags->item(i)->text());
+  }
+
   m_annImgManager.saveAnnotations(ann.image_name, ann);
   ui->saveLocalChanges->setEnabled(false);
 }
@@ -100,8 +112,8 @@ void MainWindow::on_actionShowBboxes_triggered() {
 }
 
 void MainWindow::on_actionShow_Hide_Labels_triggered() {
-  m_imageCanvas.showLabels(ui->actionShow_Hide_Labels->isChecked());
-  m_imageCanvas.setShowLabels(ui->actionShow_Hide_Labels->isChecked());
+  const bool w = !m_imageCanvas.showLabels();
+  m_imageCanvas.showLabels(w);
 }
 
 void MainWindow::on_actionNew_Point_triggered() {
@@ -136,6 +148,16 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   m_imageCanvas.reset(image, image_id);
 
   m_imageCanvas.addAnnotations(ann);
+  // description and tags
+  ui->pTextImgDescription->setPlainText(ann.description);
+  ui->listWidgetTags->clear();
+  for (auto &tag : ann.tags) {
+    auto item = new QListWidgetItem();
+    item->setFlags(item->flags() | Qt::ItemIsEditable);
+    item->setText(tag);
+    ui->listWidgetTags->addItem(item);
+  }
+
   ui->bboxEditor->resetTransform();
   ui->bboxEditor->scale(1.0, 1.0);
   displayImageInfo();
@@ -177,4 +199,59 @@ void MainWindow::on_actionzoom100_triggered() {
 
 void MainWindow::on_actionGrid_triggered(bool checked) {
   m_imageCanvas.setShowGrid(!m_imageCanvas.showGrid());
+}
+
+void MainWindow::on_timeout() {
+  if (Helper::m_labelsUpdated) {
+    QString currLabel = ui->comboBoxActiveLabel->currentText();
+    ui->comboBoxActiveLabel->clear();
+    ui->comboBoxActiveLabel->addItems(Helper::currentLabels());
+    if (currLabel.isEmpty()) {
+      ui->comboBoxActiveLabel->setCurrentIndex(0);
+    } else {
+      ui->comboBoxActiveLabel->setCurrentText(currLabel);
+    }
+    Helper::m_labelsUpdated = false;
+  }
+}
+
+void MainWindow::on_tBAdd_clicked() {
+  QString currTag = ui->comboBoxTag->currentText();
+  if (currTag.isEmpty()) return;
+
+  auto item = new QListWidgetItem();
+  item->setFlags(item->flags() | Qt::ItemIsEditable);
+  item->setText(currTag);
+  auto idx = ui->listWidgetTags->currentIndex();
+  if (idx.isValid()) {
+    ui->listWidgetTags->insertItem(idx.row() + 1, item);
+  } else {
+    ui->listWidgetTags->addItem(item);
+  }
+  onNeedSaveChange();
+}
+
+void MainWindow::on_tBRemove_clicked() {
+  auto idx = ui->listWidgetTags->currentIndex();
+  if (idx.isValid()) {
+    delete ui->listWidgetTags->takeItem(idx.row());
+    onNeedSaveChange();
+  }
+}
+
+void MainWindow::on_pTextImgDescription_textChanged() { onNeedSaveChange(); }
+
+void MainWindow::on_pushButtonUpdate_clicked() {
+  Helper::kPointRadius = ui->doubleSpinBoxPtRadius->value();
+  Helper::kFontPixelSize = ui->spinBoxLabelPixSize->value();
+  Helper::InitFonts(font());
+  m_imageCanvas.helperParametersChanged();
+}
+
+void MainWindow::on_doubleSpinBoxPtRadius_valueChanged(double arg1) {
+  on_pushButtonUpdate_clicked();
+}
+
+void MainWindow::on_spinBoxLabelPixSize_valueChanged(int arg1) {
+  on_pushButtonUpdate_clicked();
 }

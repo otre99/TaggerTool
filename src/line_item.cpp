@@ -28,6 +28,7 @@ LineItem::LineItem(const QPointF &p1, const QPointF &p2, const QString &label,
   setPen(Helper::colorFromLabel(m_label));
   QFontMetrics fm(Helper::fontLabel());
   m_labelLen = fm.horizontalAdvance(m_label);
+  m_labelHeight = fm.height();
 
   auto p = pen();
   p.setWidthF(2 * Helper::kPointRadius);
@@ -35,51 +36,52 @@ LineItem::LineItem(const QPointF &p1, const QPointF &p2, const QString &label,
   setAcceptHoverEvents(true);
 }
 
+void LineItem::helperParametersChanged()
+{
+    __calculateLabelSize(m_label);
+    QPen p = pen();
+    p.setWidth(2*Helper::kPointRadius);
+    setPen(p);
+}
+
 void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                      QWidget *widget) {
   (void)widget;
   QPen p = pen();
-  p.setWidth(Helper::kPointRadius / 2);
+  p.setWidth(Helper::kPointRadius);
   painter->setPen(p);
   painter->drawLine(line());
+
   if (m_moveEnable) {
+    painter->save();
+    auto pp = p;
+    pp.setWidth(1);
+    pp.setStyle(Qt::DotLine);
+    pp.setColor(Qt::black);
+    painter->setPen(pp);
+    painter->drawLine(line());
+    painter->restore();
+
     painter->setPen(Qt::NoPen);
     painter->setBrush(pen().color());
 
-    if (m_currentCorner == kP1) {
-      painter->save();
-      painter->setPen(p);
-      painter->setBrush(Qt::NoBrush);
-      painter->drawEllipse(line().p1(), Helper::kPointRadius,
-                           Helper::kPointRadius);
-      painter->restore();
-    } else {
-      painter->drawEllipse(line().p1(), Helper::kPointRadius,
-                           Helper::kPointRadius);
-    }
+    Helper::drawCircleOrSquared(painter,line().p1(),Helper::kPointRadius,m_currentCorner == kP1);
+    Helper::drawCircleOrSquared(painter,line().p2(),Helper::kPointRadius,m_currentCorner == kP2);
 
-    if (m_currentCorner == kP2) {
-      painter->save();
-      painter->setPen(p);
-      painter->setBrush(Qt::NoBrush);
-      painter->drawEllipse(line().p2(), Helper::kPointRadius,
-                           Helper::kPointRadius);
-      painter->restore();
-    } else {
-      painter->drawEllipse(line().p2(), Helper::kPointRadius,
-                           Helper::kPointRadius);
-    }
   }
+
   if (m_showLabel) {
     painter->setFont(Helper::fontLabel());
     painter->setPen(Qt::black);
     QRectF brect = QGraphicsLineItem::boundingRect();
-    QRectF lb_rect(brect.center().x(), brect.center().y() - Helper::kLabelRectH,
-                   m_labelLen, Helper::kLabelRectH);
+    QRectF lb_rect(brect.center().x(), brect.center().y() - m_labelHeight,
+                   m_labelLen, m_labelHeight);
     painter->fillRect(lb_rect, Helper::kLabelColor);
     painter->drawText(lb_rect, Qt::AlignVCenter, m_label);
   }
 }
+
+
 
 void LineItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
   if (m_currentCorner == kCenter || !m_moveEnable)
@@ -176,8 +178,8 @@ QRectF LineItem::boundingRect() const {
   if (0.5 * br.width() < m_labelLen) {
     dw = m_labelLen - 0.5 * br.width();
   }
-  if (0.5 * br.height() < Helper::kLabelRectH) {
-    dh = Helper::kLabelRectH - 0.5 * br.height();
+  if (0.5 * br.height() < m_labelHeight) {
+    dh = m_labelHeight - 0.5 * br.height();
   }
   return br.adjusted(-Helper::kPointRadius / 2, -dh - Helper::kPointRadius / 2,
                      dw + Helper::kPointRadius / 2, Helper::kPointRadius / 2);
