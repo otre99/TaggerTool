@@ -11,9 +11,7 @@
 #include "polygon_item.h"
 
 ImageCanvas::ImageCanvas(QObject *parent)
-    : QGraphicsScene(parent),
-      m_defaultBboxSize(20, 20),
-      m_waitingForObj(false),
+    : QGraphicsScene(parent), m_defaultBboxSize(20, 20), m_waitingForObj(false),
       m_drawObjStarted(false) {}
 
 void ImageCanvas::hideBoundingBoxes() {
@@ -24,20 +22,20 @@ void ImageCanvas::hideBoundingBoxes() {
   }
 }
 
-void  ImageCanvas::helperParametersChanged()
-{
-    for (auto item : items()) {
-        CustomItem *citem = dynamic_cast<CustomItem*>(item);
-        if (citem){
-            citem->helperParametersChanged();
-            item->update();
-        }
+void ImageCanvas::helperParametersChanged() {
+  auto all_items = items();
+  for (auto item : all_items) {
+    CustomItem *citem = dynamic_cast<CustomItem *>(item);
+    if (citem) {
+      citem->helperParametersChanged();
     }
+  }
 }
 
 void ImageCanvas::prepareForNewBBox(QString label) {
   m_waitingForObj = true;
-  if (label != QString()) m_bboxLabel = label;
+  if (label != QString())
+    m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kBBox;
 }
@@ -73,16 +71,19 @@ void ImageCanvas::showBoundingBoxes() {
 void ImageCanvas::showLabels(bool show) {
   for (auto item : items()) {
     auto it = dynamic_cast<CustomItem *>(item);
-    if (it) it->setShowLabel(show);
+    if (it)
+      it->setShowLabel(show);
   }
   m_showLabels = show;
 }
 
 void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
-  if (!m_currentImage.isNull()) painter->drawPixmap(0, 0, m_currentImage);
+  if (!m_currentImage.isNull())
+    painter->drawPixmap(0, 0, m_currentImage);
 
   QPen p = painter->pen();
   p.setColor(Qt::black);
+  p.setCosmetic(true);
   painter->setPen(p);
   if (m_showGrid) {
     painter->drawLine(
@@ -110,7 +111,8 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
   for (auto &bbox : ann.bboxes) {
     QRectF frect =
         QRectF{{bbox.x1, bbox.y1}, QPointF{bbox.x2, bbox.y2}} & sceneRect();
-    if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
+    if (frect.isNull() || frect.isEmpty() || !frect.isValid())
+      continue;
     auto item = new BoundingBoxItem(frect, bbox.label);
     item->setShowLabel(m_showLabels);
     addItem(item);
@@ -138,19 +140,24 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
 void ImageCanvas::removeUnlockedItems() {
   const auto all_items = items();
   bool needSaveData = false;
+  qDebug() << "Removing items ...";
   for (auto *item : all_items) {
     auto ptr = dynamic_cast<CustomItem *>(item);
     if (ptr && ptr->isLocked() == false) {
+      qDebug() << "Item " << item->type();
       removeItem(item);
       delete item;
       needSaveData = true;
     }
   }
-  if (needSaveData) emit needSaveChanges();
+  qDebug() << "Done";
+  if (needSaveData)
+    emit needSaveChanges();
 }
 
 void ImageCanvas::clear() {
-  for (auto *item : items()) {
+  const auto all_items = items();
+  for (auto *item : all_items) {
     auto *to_del = dynamic_cast<CustomItem *>(item);
     if (to_del) {
       removeItem(item);
@@ -291,7 +298,7 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
       if (n >= 3) {
         qreal d =
             Helper::pointLen(m_currentPolygon[0] - m_currentPolygon.last());
-        if (d < Helper::kPointRadius) {
+        if (d < Helper::kPointRadius * Helper::kInvScaleFactor) {
           if (n > 3) {
             m_currentPolygon.removeLast();
             auto *item =
@@ -314,16 +321,30 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
   QGraphicsScene::drawForeground(painter, rect);
   if (m_drawObjStarted) {
+
+    auto p = painter->pen();
+    p.setWidthF(3);
+    p.setCosmetic(true);
+    painter->setPen(p);
+
     if (m_waitingForTypeObj == Helper::kBBox)
       painter->drawRect(Helper::buildRectFromTwoPoints(m_begPt, m_endPt));
     if (m_waitingForTypeObj == Helper::kLine)
       painter->drawLine(m_begPt, m_endPt);
 
     if (m_waitingForTypeObj == Helper::kPolygon) {
-        painter->setBrush(Qt::black);
-      for (const auto pt : m_currentPolygon) {
-        painter->drawEllipse(pt, Helper::kPointRadius / 2,
-                             Helper::kPointRadius / 2);
+      painter->setBrush(Qt::black);
+      for (int i = 0; i < m_currentPolygon.count(); ++i) {
+        if (i == 0) {
+          painter->drawEllipse(m_currentPolygon[0],
+                               Helper::kPointRadius * Helper::kInvScaleFactor,
+                               Helper::kPointRadius * Helper::kInvScaleFactor);
+        } else {
+          painter->drawEllipse(
+              m_currentPolygon[i],
+              0.5 * Helper::kPointRadius * Helper::kInvScaleFactor,
+              0.5 * Helper::kPointRadius * Helper::kInvScaleFactor);
+        }
       }
       painter->drawPolyline(m_currentPolygon);
       if (m_currentPolygon.last() != m_endPt)

@@ -5,12 +5,12 @@
 #include <QWheelEvent>
 
 #include "imagecanvas.h"
-GraphicsView::GraphicsView(QWidget* parent) : QGraphicsView(parent) {
+GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent) {
   setTransformationAnchor(QGraphicsView::NoAnchor);
   setRenderHint(QPainter::Antialiasing);
 }
 
-void GraphicsView::wheelEvent(QWheelEvent* event) {
+void GraphicsView::wheelEvent(QWheelEvent *event) {
   setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
   const QPoint numDegrees = event->angleDelta();
   if (numDegrees.y() > 0) {
@@ -20,10 +20,13 @@ void GraphicsView::wheelEvent(QWheelEvent* event) {
   }
   event->accept();
   setTransformationAnchor(QGraphicsView::NoAnchor);
+  Helper::setScale(1.0 / transform().m11());
+  dynamic_cast<ImageCanvas *>(scene())->helperParametersChanged();
 }
 
-void GraphicsView::mousePressEvent(QMouseEvent* event) {
-  if ((event->modifiers() == Qt::ControlModifier) && (event->buttons() == Qt::LeftButton)) {
+void GraphicsView::mousePressEvent(QMouseEvent *event) {
+  if ((event->modifiers() == Qt::ControlModifier) &&
+      (event->buttons() == Qt::LeftButton)) {
     m_originX = event->pos().x();
     m_originY = event->pos().y();
   } else {
@@ -31,7 +34,7 @@ void GraphicsView::mousePressEvent(QMouseEvent* event) {
   }
 }
 
-void GraphicsView::mouseMoveEvent(QMouseEvent* event) {
+void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
   if (event->modifiers() == Qt::ControlModifier &&
       event->buttons() == Qt::LeftButton) {
     QPointF oldP = mapToScene(m_originX, m_originY);

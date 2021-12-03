@@ -23,6 +23,7 @@ class Helper {
 
   Helper() = default;
   static void InitFonts(const QFont &baseFont);
+  static void setScale(const double &scale);
   static const QFont &fontLabel();
 
   static QStringList currentLabels() { return Helper::m_labelToColor.keys(); }
@@ -40,6 +41,7 @@ class Helper {
   //static const int kLabelRectH;
   static double kPointRadius;
   static int kFontPixelSize;
+  static double kInvScaleFactor;
   static const int kImageMarging;
   static const double kBorderSize;
 };

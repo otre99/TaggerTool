@@ -12,11 +12,11 @@ const QColor Helper::kUnlockedBBoxColor = {0, 0, 128, 64};
 const QColor Helper::kLockedBBoxColor = {128, 128, 128, 64};
 const QColor Helper::kMarginBBoxColor = {128, 0, 0, 64};
 const QColor Helper::kLabelColor = {200, 200, 200, 64};
-//const int Helper::kLabelRectH = 26;
 int Helper::kFontPixelSize = 24;
 const int Helper::kImageMarging= 32;
 const double Helper::kBorderSize = 32;
-double Helper::kPointRadius = 2;
+double Helper::kPointRadius = 8;
+double Helper::kInvScaleFactor=1.0;
 
 QMap<QString, QColor> Helper::m_labelToColor{};
 bool Helper::m_labelsUpdated=false;
@@ -24,8 +24,13 @@ QFont Helper::m_fontLabel;
 
 void Helper::InitFonts(const QFont &baseFont) {
   Helper::m_fontLabel = baseFont;
-  Helper::m_fontLabel.setPixelSize(Helper::kFontPixelSize);
+  Helper::m_fontLabel.setPixelSize(Helper::kFontPixelSize*kInvScaleFactor);
   Helper::m_fontLabel.setBold(true);
+}
+void Helper::setScale(const double &scale)
+{
+    kInvScaleFactor = scale;
+    Helper::m_fontLabel.setPixelSize( qMax(1.0,Helper::kFontPixelSize*kInvScaleFactor));
 }
 
 const QFont &Helper::fontLabel() { return Helper::m_fontLabel; }

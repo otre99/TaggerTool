@@ -15,8 +15,9 @@
 
 PointItem::PointItem(const QPointF &center, const QString &label,
                      QGraphicsItem *parent, bool ready)
-    : QGraphicsEllipseItem(0, 0, 2 * Helper::kPointRadius,
-                           2 * Helper::kPointRadius, parent) {
+    : QGraphicsEllipseItem(
+          0, 0, 2 * Helper::kPointRadius * Helper::kInvScaleFactor,
+          2 * Helper::kPointRadius * Helper::kInvScaleFactor, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
@@ -26,18 +27,31 @@ PointItem::PointItem(const QPointF &center, const QString &label,
   }
 
   __setLabel(this, label);
-  setPos(center - QPointF{Helper::kPointRadius, Helper::kPointRadius});
+  setPos(center - QPointF{Helper::kPointRadius * Helper::kInvScaleFactor,
+                          Helper::kPointRadius * Helper::kInvScaleFactor});
   QPen p = pen();
-  p.setWidth(Helper::kPointRadius/2.0);
+  p.setWidthF(Helper::kPointRadius / 2.0 * Helper::kInvScaleFactor);
   setPen(p);
+}
 
+void PointItem::helperParametersChanged() {
+  prepareGeometryChange();
+  __calculateLabelSize(m_label);
+  auto pt =
+      rect().center() - QPointF{Helper::kPointRadius * Helper::kInvScaleFactor,
+                                Helper::kPointRadius * Helper::kInvScaleFactor};
+  setRect(pt.x(), pt.y(), 2 * Helper::kPointRadius * Helper::kInvScaleFactor,
+          2 * Helper::kPointRadius * Helper::kInvScaleFactor);
+  QPen p = pen();
+  p.setWidthF(Helper::kPointRadius / 2.0 * Helper::kInvScaleFactor);
+  setPen(p);
 }
 
 void PointItem::setLocked(bool what) { __setLocked(this, what); }
 
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                       QWidget *widget) {
-  QRectF brect = rect();  // boundingRect();
+  QRectF brect = rect(); // boundingRect();
   if (!m_moveEnable) {
     painter->setPen(Qt::NoPen);
     painter->setBrush(pen().brush());
@@ -45,7 +59,7 @@ void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   } else {
     painter->setPen(pen());
     float pw = pen().widthF();
-    brect.adjust(pw/2.0, pw/2.0, -pw/2, -pw/2);
+    brect.adjust(pw / 2.0, pw / 2.0, -pw / 2, -pw / 2);
     painter->drawLine(brect.topLeft(), brect.bottomRight());
     painter->drawLine(brect.bottomLeft(), brect.topRight());
   }
@@ -58,16 +72,6 @@ void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->drawText(lb_rect, Qt::AlignVCenter, m_label);
   }
 }
-
-void  PointItem::helperParametersChanged()
-{
-    __calculateLabelSize(m_label);
-    auto pt = rect().center()-QPointF{Helper::kPointRadius,Helper::kPointRadius};
-    setRect(pt.x(), pt.y(), 2*Helper::kPointRadius, 2*Helper::kPointRadius);
-    QPen p = pen();
-    p.setWidth(Helper::kPointRadius/2.0);
-    setPen(p);
- }
 
 void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
@@ -93,13 +97,14 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 
 QVariant PointItem::itemChange(QGraphicsItem::GraphicsItemChange change,
                                const QVariant &value) {
-  if (scene() == nullptr) return value;
+  if (scene() == nullptr)
+    return value;
   switch (change) {
-    case QGraphicsItem::ItemPositionChange:
-      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-      break;
-    default:
-      break;
+  case QGraphicsItem::ItemPositionChange:
+    emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
+    break;
+  default:
+    break;
   }
   return value;
 }
@@ -107,10 +112,11 @@ QVariant PointItem::itemChange(QGraphicsItem::GraphicsItemChange change,
 QRectF PointItem::boundingRect() const {
   QRectF br = QGraphicsEllipseItem::boundingRect();
   double dw = 0;
-  if (rect().width() < m_labelLen) {
-    dw = m_labelLen - rect().width();
+  if (br.width() < m_labelLen) {
+    dw = m_labelLen - br.width();
   }
-  return rect().adjusted(-Helper::kPointRadius/4.0, -m_labelHeight-Helper::kPointRadius/4.0, dw+Helper::kPointRadius/4.0, Helper::kPointRadius/4.0);
+  qreal o = pen().widthF() / 2.0;
+  return rect().adjusted(-o, -o - m_labelHeight, dw + o, o);
 }
 
 QPointF PointItem::center() const {

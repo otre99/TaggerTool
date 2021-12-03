@@ -72,7 +72,8 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 
   dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
                           m_annImgManager.annFolder());
-  if (dlg.exec() != QDialog::Accepted) return;
+  if (dlg.exec() != QDialog::Accepted)
+    return;
 
   m_annImgManager.reset(dlg.imgFolder(), dlg.annFolder());
   m_imageListModel.setStringList(m_annImgManager.imageIds());
@@ -123,7 +124,8 @@ void MainWindow::on_actionNew_Point_triggered() {
 void MainWindow::onNeedSaveChange() { ui->saveLocalChanges->setEnabled(true); }
 
 void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
-  if (index == m_current_index) return;
+  if (index == m_current_index)
+    return;
   if (ui->saveLocalChanges->isEnabled()) {
     if (ui->checkBoxAutoSave->isChecked()) {
       on_saveLocalChanges_triggered();
@@ -133,11 +135,11 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
           QMessageBox::StandardButtons(
               {QMessageBox::Save, QMessageBox::Ignore}));
       switch (ex) {
-        case QMessageBox::Save:
-          on_saveLocalChanges_triggered();
-          break;
-        default:
-          break;
+      case QMessageBox::Save:
+        on_saveLocalChanges_triggered();
+        break;
+      default:
+        break;
       }
     }
   }
@@ -195,6 +197,8 @@ void MainWindow::on_actionAdd_New_Polygon_triggered() {
 void MainWindow::on_actionzoom100_triggered() {
   ui->bboxEditor->resetTransform();
   ui->bboxEditor->scale(1.0, 1.0);
+  Helper::setScale(1.0);
+  m_imageCanvas.helperParametersChanged();
 }
 
 void MainWindow::on_actionGrid_triggered(bool checked) {
@@ -202,22 +206,23 @@ void MainWindow::on_actionGrid_triggered(bool checked) {
 }
 
 void MainWindow::on_timeout() {
-  if (Helper::m_labelsUpdated) {
-    QString currLabel = ui->comboBoxActiveLabel->currentText();
-    ui->comboBoxActiveLabel->clear();
-    ui->comboBoxActiveLabel->addItems(Helper::currentLabels());
-    if (currLabel.isEmpty()) {
-      ui->comboBoxActiveLabel->setCurrentIndex(0);
-    } else {
-      ui->comboBoxActiveLabel->setCurrentText(currLabel);
-    }
-    Helper::m_labelsUpdated = false;
-  }
+  //  if (Helper::m_labelsUpdated) {
+  //    QString currLabel = ui->comboBoxActiveLabel->currentText();
+  //    ui->comboBoxActiveLabel->clear();
+  //    ui->comboBoxActiveLabel->addItems(Helper::currentLabels());
+  //    if (currLabel.isEmpty()) {
+  //      ui->comboBoxActiveLabel->setCurrentIndex(0);
+  //    } else {
+  //      ui->comboBoxActiveLabel->setCurrentText(currLabel);
+  //    }
+  //    Helper::m_labelsUpdated = false;
+  //  }
 }
 
 void MainWindow::on_tBAdd_clicked() {
   QString currTag = ui->comboBoxTag->currentText();
-  if (currTag.isEmpty()) return;
+  if (currTag.isEmpty())
+    return;
 
   auto item = new QListWidgetItem();
   item->setFlags(item->flags() | Qt::ItemIsEditable);

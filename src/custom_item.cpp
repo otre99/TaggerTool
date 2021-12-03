@@ -1,5 +1,5 @@
 #include "custom_item.h"
-
+#include <QFontMetrics>
 #include <QAbstractGraphicsShapeItem>
 #include <QDebug>
 #include <QPen>

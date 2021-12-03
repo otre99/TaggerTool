@@ -41,11 +41,8 @@ class MainWindow : public QMainWindow {
   void on_tBAdd_clicked();
   void on_tBRemove_clicked();
   void on_pTextImgDescription_textChanged();
-
   void on_pushButtonUpdate_clicked();
-
   void on_doubleSpinBoxPtRadius_valueChanged(double arg1);
-
   void on_spinBoxLabelPixSize_valueChanged(int arg1);
 
 private:
