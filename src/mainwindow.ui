@@ -212,31 +212,6 @@
          <property name="editable">
           <bool>true</bool>
          </property>
-         <item>
-          <property name="text">
-           <string>cruce</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>road</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>sidewalk</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>parking</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>none</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item>
