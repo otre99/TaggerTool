@@ -25,7 +25,6 @@ class CustomItem {
   void __calculateLabelSize(const QString &label);
   void __setLocked(QGraphicsItem *item, bool lk);
   void __swapStackOrder(QGraphicsItem *item, const QList<QGraphicsItem *> &l);
-
 };
 
 #endif  // CUSTOM_ITEM_H

@@ -77,6 +77,7 @@
    <addaction name="actionShowBboxes"/>
    <addaction name="actionShow_Hide_Labels"/>
    <addaction name="actionzoom100"/>
+   <addaction name="actionFit_Into_View"/>
    <addaction name="separator"/>
    <addaction name="actionPrevious"/>
    <addaction name="actionNext"/>
@@ -179,6 +180,21 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QGridLayout" name="gridLayout_4">
+     <property name="leftMargin">
+      <number>3</number>
+     </property>
+     <property name="topMargin">
+      <number>3</number>
+     </property>
+     <property name="rightMargin">
+      <number>3</number>
+     </property>
+     <property name="bottomMargin">
+      <number>3</number>
+     </property>
+     <property name="spacing">
+      <number>2</number>
+     </property>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
@@ -263,23 +279,25 @@
         <string>Settings</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <item row="0" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string>Point Radius:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QDoubleSpinBox" name="doubleSpinBoxPtRadius">
-          <property name="minimum">
-           <double>0.500000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.500000000000000</double>
-          </property>
-          <property name="value">
-           <double>8.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -303,10 +321,16 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QPushButton" name="pushButtonUpdate">
-          <property name="text">
-           <string>Update</string>
+        <item row="0" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBoxPtRadius">
+          <property name="minimum">
+           <double>0.500000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.500000000000000</double>
+          </property>
+          <property name="value">
+           <double>8.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -468,6 +492,15 @@
    </property>
    <property name="shortcut">
     <string>G</string>
+   </property>
+  </action>
+  <action name="actionFit_Into_View">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/zoom-fit-best.svg</normaloff>:/icons/icons/zoom-fit-best.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Fit Into View</string>
    </property>
   </action>
  </widget>

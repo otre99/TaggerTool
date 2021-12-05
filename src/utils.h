@@ -13,6 +13,11 @@ class Helper {
 
  public:
   static bool m_labelsUpdated;
+  static double kPointRadius;
+  static int kFontPixelSize;
+  static double kInvScaleFactor;
+  static double kLineWidth;
+  static QStringList kImgExts;
 
   enum CustomItemType {
     kBBox = QGraphicsItem::UserType + 1,
@@ -23,25 +28,28 @@ class Helper {
 
   Helper() = default;
   static void InitFonts(const QFont &baseFont);
+  static void InitSupportedImageFormats();
   static void setScale(const double &scale);
   static const QFont &fontLabel();
+  static double penWidth();
 
   static QStringList currentLabels() { return Helper::m_labelToColor.keys(); }
   static QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2);
   static QColor colorFromLabel(const QString &label);
   static double pointLen(const QPointF &p);
-  static double distanceToLine(const QVector2D &lp1, const QVector2D &lp2, const QPointF &p);
-  static QPointF pointLineIntersection(const QVector2D &lp1, const QVector2D &lp2, const QPointF &p);
-  static void drawCircleOrSquared(QPainter *painter, const QPointF &ct, qreal w, bool circle);
+  static double distanceToLine(const QVector2D &lp1, const QVector2D &lp2,
+                               const QPointF &p);
+  static QPointF pointLineIntersection(const QVector2D &lp1,
+                                       const QVector2D &lp2, const QPointF &p);
+  static void drawCircleOrSquared(QPainter *painter, const QPointF &ct, qreal w,
+                                  bool circle);
 
   static const QColor kUnlockedBBoxColor;
   static const QColor kLockedBBoxColor;
   static const QColor kMarginBBoxColor;
   static const QColor kLabelColor;
-  //static const int kLabelRectH;
-  static double kPointRadius;
-  static int kFontPixelSize;
-  static double kInvScaleFactor;
+  static const double kMinPenW;
+  static const double kMaxPenW;
   static const int kImageMarging;
   static const double kBorderSize;
 };

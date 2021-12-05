@@ -10,10 +10,10 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   friend class ImageCanvas;
   enum CORNER {
     kCenter = -1,
-    kTopLeft = 0,
-    kTopRight = 1,
-    kBottomRight = 2,
-    kBottomLeft = 3,
+    kTopLeft,
+    kTopRight,
+    kBottomRight,
+    kBottomLeft,
     kTopCenter,
     kRightCenter,
     kBottomCenter,
@@ -24,12 +24,18 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
  public:
   BoundingBoxItem(const QRectF &rectf, const QString &label = QString(),
                   QGraphicsItem *parent = nullptr, bool ready = false);
-  QRectF boundingBoxCoordinates();
-  void setCoordinates(const QRectF &coords);
-  int type() const override { return Helper::kBBox; }
+
+  // CustomItem
   void helperParametersChanged() override;
-  void setLocked(bool what) override;
-  void setLabel(const QString &lb) override;
+  void setLocked(bool what) override { __setLocked(this, what); }
+  void setLabel(const QString &lb) override { __setLabel(this, lb); }
+  void setShowLabel(bool show) override {
+    m_showLabel = show;
+    update();
+  }
+
+  // QGraphicsItem
+  int type() const override { return Helper::kBBox; }
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -38,20 +44,19 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
   void keyPressEvent(QKeyEvent *event) override;
   QPainterPath shape() const override;
-
   QRectF boundingRect() const override;
   QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
                       const QVariant &value) override;
 
-  void setShowLabel(bool show) override {
-    m_showLabel = show;
-    update();
-  }
+  // get/set
+  QRectF boundingBoxCoordinates();
+  void setCoordinates(const QRectF &coords);
 
  private:
-  CORNER positionInsideBBox(const QPointF &pos);
   QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw,
                                 bool &sh);
+  CORNER positionInside(const QPointF &pos);
+
   QPointF m_lastPt;
 };
 

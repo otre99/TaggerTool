@@ -31,7 +31,7 @@ LineItem::LineItem(const QPointF &p1, const QPointF &p2, const QString &label,
   m_labelHeight = fm.height();
 
   auto p = pen();
-  p.setWidthF(2 * Helper::kPointRadius * Helper::kInvScaleFactor);
+  p.setWidthF(2 * Helper::penWidth());
   setPen(p);
   setAcceptHoverEvents(true);
 }
@@ -40,23 +40,38 @@ void LineItem::helperParametersChanged() {
   prepareGeometryChange();
   __calculateLabelSize(m_label);
   QPen p = pen();
-  p.setWidthF(2 * Helper::kPointRadius * Helper::kInvScaleFactor);
+  p.setWidthF(2 * Helper::penWidth());
   setPen(p);
 }
 
+void LineItem::setLabel(const QString &lb) {
+  m_label = lb;
+  auto p = pen();
+  p.setColor(Helper::colorFromLabel(lb));
+  this->setPen(p);
+  QFontMetrics fm(Helper::fontLabel());
+  m_labelLen = fm.horizontalAdvance(m_label);
+}
+
+// QGraphicsItem
 void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                      QWidget *widget) {
   (void)widget;
   QPen p = pen();
   p.setWidthF(p.widthF() / 2.0);
   painter->setPen(p);
-  if (!m_moveEnable)
+  if (!m_moveEnable) {
+    QPen pp = p;
+    pp.setWidth(Helper::kLineWidth);
+    pp.setCosmetic(true);
+    painter->setPen(pp);
     painter->drawLine(line());
+    painter->setPen(p);
+  }
 
   if (m_moveEnable) {
     painter->save();
     auto pp = p;
-    pp.setWidth(1);
     pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
@@ -122,7 +137,7 @@ void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     }
 
   } else {
-    m_currentCorner = positionInsideBBox(event->pos());
+    m_currentCorner = positionInside(event->pos());
     if (m_currentCorner == kCenter || !m_moveEnable) {
       QGraphicsLineItem::mousePressEvent(event);
     } else {
@@ -144,35 +159,8 @@ void LineItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   update();
 }
 
-LineItem::CORNER LineItem::positionInsideBBox(const QPointF &pos) {
-  qreal d1 = Helper::pointLen(line().p1() - pos);
-  qreal d2 = Helper::pointLen(line().p2() - pos);
-  qreal th = pen().widthF() / 2.0;
-  if (d1 < th)
-    return kP1;
-  if (d2 < th)
-    return kP2;
-  return kCenter;
-}
-
 void LineItem::keyPressEvent(QKeyEvent *event) {
   QGraphicsLineItem::keyPressEvent(event);
-}
-
-void LineItem::setLocked(bool lk) { __setLocked(this, lk); }
-
-QVariant LineItem::itemChange(QGraphicsItem::GraphicsItemChange change,
-                              const QVariant &value) {
-  if (scene() == nullptr)
-    return value;
-  switch (change) {
-  case QGraphicsItem::ItemPositionChange:
-    emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-    break;
-  default:
-    break;
-  }
-  return value;
 }
 
 QRectF LineItem::boundingRect() const {
@@ -189,11 +177,25 @@ QRectF LineItem::boundingRect() const {
   return br.adjusted(-w / 2, -dh - w, dw + w, w);
 }
 
-void LineItem::setLabel(const QString &lb) {
-  m_label = lb;
-  auto p = pen();
-  p.setColor(Helper::colorFromLabel(lb));
-  this->setPen(p);
-  QFontMetrics fm(Helper::fontLabel());
-  m_labelLen = fm.horizontalAdvance(m_label);
+QVariant LineItem::itemChange(QGraphicsItem::GraphicsItemChange change,
+                              const QVariant &value) {
+  if (scene() == nullptr) return value;
+  switch (change) {
+    case QGraphicsItem::ItemPositionChange:
+      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
+      break;
+    default:
+      break;
+  }
+  return value;
+}
+
+// private
+LineItem::CORNER LineItem::positionInside(const QPointF &pos) {
+  qreal d1 = Helper::pointLen(line().p1() - pos);
+  qreal d2 = Helper::pointLen(line().p2() - pos);
+  qreal th = pen().widthF() / 2.0;
+  if (d1 < th) return kP1;
+  if (d2 < th) return kP2;
+  return kCenter;
 }

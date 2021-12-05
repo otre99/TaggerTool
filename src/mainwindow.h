@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QMainWindow>
 #include <QTimer>
+
 #include "annimgmanager.h"
 #include "imagecanvas.h"
 #include "imgstringlistmodel.h"
@@ -41,9 +42,11 @@ class MainWindow : public QMainWindow {
   void on_tBAdd_clicked();
   void on_tBRemove_clicked();
   void on_pTextImgDescription_textChanged();
-  void on_pushButtonUpdate_clicked();
+  void updateSettings();
   void on_doubleSpinBoxPtRadius_valueChanged(double arg1);
   void on_spinBoxLabelPixSize_valueChanged(int arg1);
+
+  void on_actionFit_Into_View_triggered();
 
 private:
   void setUp();
@@ -56,7 +59,6 @@ private:
   ImageCanvas m_imageCanvas;
   ImgStringListModel m_imageListModel;
   QModelIndex m_current_index{};
-
 };
 
 #endif  // MAINWINDOW_H

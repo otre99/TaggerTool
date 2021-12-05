@@ -9,25 +9,26 @@ class PointItem : public QGraphicsEllipseItem, public CustomItem {
  public:
   PointItem(const QPointF &center, const QString &label = QString(),
             QGraphicsItem *parent = nullptr, bool ready = false);
-  int type() const override { return Helper::kPoint; }
-  void setLocked(bool what) override;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
-             QWidget *widget) override;
-  void setLabel(const QString &lb) override { __setLabel(this, lb); }
+
+  // CustomItem
   void helperParametersChanged() override;
-
-  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
-                      const QVariant &value) override;
-  QRectF boundingRect() const override;
-
-  QPointF center() const;
+  void setLocked(bool what) override { __setLocked(this, what); }
+  void setLabel(const QString &lb) override { __setLabel(this, lb); }
   void setShowLabel(bool show) override {
     m_showLabel = show;
     update();
   }
 
- private:
+  // QGraphicsItem
+  int type() const override { return Helper::kPoint; }
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+             QWidget *widget) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  QRectF boundingRect() const override;
+  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
+                      const QVariant &value) override;
+  // get/set
+  QPointF center() const;
 };
 
 #endif  // POINT_ITEM_H

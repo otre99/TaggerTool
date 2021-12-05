@@ -26,19 +26,21 @@ PolygonItem::PolygonItem(const QPolygonF &poly, const QString &label,
 
   __setLabel(this, label);
   auto p = pen();
-  p.setWidthF(Helper::kPointRadius * Helper::kInvScaleFactor);
+  p.setWidthF(Helper::penWidth());
   setPen(p);
   setAcceptHoverEvents(true);
 }
 
+// CustomItem
 void PolygonItem::helperParametersChanged() {
   prepareGeometryChange();
   __calculateLabelSize(m_label);
   QPen p = pen();
-  p.setWidthF(Helper::kPointRadius * Helper::kInvScaleFactor);
+  p.setWidthF(Helper::penWidth());
   setPen(p);
 }
 
+// QGraphicsItem
 void PolygonItem::paint(QPainter *painter,
                         const QStyleOptionGraphicsItem *option,
                         QWidget *widget) {
@@ -52,13 +54,18 @@ void PolygonItem::paint(QPainter *painter,
     painter->setBrush(QBrush(Helper::kLockedBBoxColor));
   }
 
-  if (!m_moveEnable)
+  if (!m_moveEnable) {
+    QPen pp = p;
+    pp.setWidth(Helper::kLineWidth);
+    pp.setCosmetic(true);
+    painter->setPen(pp);
     painter->drawPolygon(poly);
-
+    painter->setPen(p);
+  }
   if (m_moveEnable) {
     painter->save();
     auto pp = p;
-    pp.setWidth(1);
+    pp.setWidthF(1.0);
     pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
@@ -126,7 +133,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     }
   } else if (event->modifiers() == Qt::AltModifier &&
              event->button() == Qt::LeftButton) {
-    auto corner = positionInsideBBox(event->pos());
+    auto corner = positionInside(event->pos());
     QPolygonF poly = polygon();
     if (corner == kNode) {
       if (poly.count() > 3) {
@@ -154,7 +161,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
       }
     }
   } else {
-    m_currentCorner = positionInsideBBox(event->pos());
+    m_currentCorner = positionInside(event->pos());
     if (m_currentCorner == kCenter || !m_moveEnable) {
       QGraphicsPolygonItem::mousePressEvent(event);
     } else {
@@ -176,53 +183,8 @@ void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   update();
 }
 
-PolygonItem::CORNER PolygonItem::positionInsideBBox(const QPointF &pos) {
-  const QPolygonF poly = polygon();
-  qreal th = pen().widthF();
-  for (int i = 0; i < poly.size(); ++i) {
-    qreal d = Helper::pointLen(poly[i] - pos);
-    if (d < th) {
-      m_currentNodeIndx_ = i;
-      return kNode;
-    }
-  }
-  return kCenter;
-}
-
 void PolygonItem::keyPressEvent(QKeyEvent *event) {
   QGraphicsPolygonItem::keyPressEvent(event);
-}
-
-void PolygonItem::setLocked(bool what) { __setLocked(this, what); }
-
-QVariant PolygonItem::itemChange(QGraphicsItem::GraphicsItemChange change,
-                                 const QVariant &value) {
-  if (scene() == nullptr)
-    return value;
-  switch (change) {
-  case QGraphicsItem::ItemPositionChange:
-    emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-    break;
-  default:
-    break;
-  }
-  return value;
-}
-
-QRectF PolygonItem::boundingRect() const {
-  QRectF br = QGraphicsPolygonItem::boundingRect();
-  qreal o = pen().widthF();
-  br = br.adjusted(-o, -o, o, o);
-
-  double dw = 0;
-  double dh = 0;
-  if (br.width() < m_labelLen) {
-    dw = (m_labelLen - br.width()) / 2.0;
-  }
-  if (br.height() < m_labelHeight) {
-    dh = (m_labelHeight - br.height()) / 2.0;
-  }
-  return br.adjusted(-dw, -dh, dw, dh);
 }
 
 QPainterPath PolygonItem::shape() const {
@@ -241,4 +203,47 @@ QPainterPath PolygonItem::shape() const {
   QPainterPath op = spath.createStroke(path);
   op.addPath(path);
   return op;
+}
+
+QRectF PolygonItem::boundingRect() const {
+  QRectF br = QGraphicsPolygonItem::boundingRect();
+  qreal o = pen().widthF();
+  br = br.adjusted(-o, -o, o, o);
+
+  double dw = 0;
+  double dh = 0;
+  if (br.width() < m_labelLen) {
+    dw = (m_labelLen - br.width()) / 2.0;
+  }
+  if (br.height() < m_labelHeight) {
+    dh = (m_labelHeight - br.height()) / 2.0;
+  }
+  return br.adjusted(-dw, -dh, dw, dh);
+}
+
+QVariant PolygonItem::itemChange(QGraphicsItem::GraphicsItemChange change,
+                                 const QVariant &value) {
+  if (scene() == nullptr) return value;
+  switch (change) {
+    case QGraphicsItem::ItemPositionChange:
+      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
+      break;
+    default:
+      break;
+  }
+  return value;
+}
+
+// private
+PolygonItem::CORNER PolygonItem::positionInside(const QPointF &pos) {
+  const QPolygonF poly = polygon();
+  qreal th = pen().widthF();
+  for (int i = 0; i < poly.size(); ++i) {
+    qreal d = Helper::pointLen(poly[i] - pos);
+    if (d < th) {
+      m_currentNodeIndx_ = i;
+      return kNode;
+    }
+  }
+  return kCenter;
 }

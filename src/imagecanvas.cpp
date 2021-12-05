@@ -11,11 +11,11 @@
 #include "polygon_item.h"
 
 ImageCanvas::ImageCanvas(QObject *parent)
-    : QGraphicsScene(parent), m_defaultBboxSize(20, 20), m_waitingForObj(false),
-      m_drawObjStarted(false) {}
+    : QGraphicsScene(parent), m_waitingForObj(false), m_drawObjStarted(false) {}
 
 void ImageCanvas::hideBoundingBoxes() {
-  for (auto item : items()) {
+  const auto all_items = items();
+  for (auto item : all_items) {
     if (!item->isSelected()) {
       item->setVisible(false);
     }
@@ -23,7 +23,7 @@ void ImageCanvas::hideBoundingBoxes() {
 }
 
 void ImageCanvas::helperParametersChanged() {
-  auto all_items = items();
+  const auto all_items = items();
   for (auto item : all_items) {
     CustomItem *citem = dynamic_cast<CustomItem *>(item);
     if (citem) {
@@ -34,8 +34,7 @@ void ImageCanvas::helperParametersChanged() {
 
 void ImageCanvas::prepareForNewBBox(QString label) {
   m_waitingForObj = true;
-  if (label != QString())
-    m_bboxLabel = label;
+  if (label != QString()) m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kBBox;
 }
@@ -71,15 +70,13 @@ void ImageCanvas::showBoundingBoxes() {
 void ImageCanvas::showLabels(bool show) {
   for (auto item : items()) {
     auto it = dynamic_cast<CustomItem *>(item);
-    if (it)
-      it->setShowLabel(show);
+    if (it) it->setShowLabel(show);
   }
   m_showLabels = show;
 }
 
 void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
-  if (!m_currentImage.isNull())
-    painter->drawPixmap(0, 0, m_currentImage);
+  if (!m_currentImage.isNull()) painter->drawPixmap(0, 0, m_currentImage);
 
   QPen p = painter->pen();
   p.setColor(Qt::black);
@@ -111,8 +108,7 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
   for (auto &bbox : ann.bboxes) {
     QRectF frect =
         QRectF{{bbox.x1, bbox.y1}, QPointF{bbox.x2, bbox.y2}} & sceneRect();
-    if (frect.isNull() || frect.isEmpty() || !frect.isValid())
-      continue;
+    if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
     auto item = new BoundingBoxItem(frect, bbox.label);
     item->setShowLabel(m_showLabels);
     addItem(item);
@@ -140,19 +136,15 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
 void ImageCanvas::removeUnlockedItems() {
   const auto all_items = items();
   bool needSaveData = false;
-  qDebug() << "Removing items ...";
   for (auto *item : all_items) {
     auto ptr = dynamic_cast<CustomItem *>(item);
     if (ptr && ptr->isLocked() == false) {
-      qDebug() << "Item " << item->type();
       removeItem(item);
       delete item;
       needSaveData = true;
     }
   }
-  qDebug() << "Done";
-  if (needSaveData)
-    emit needSaveChanges();
+  if (needSaveData) emit needSaveChanges();
 }
 
 void ImageCanvas::clear() {
@@ -321,7 +313,6 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
   QGraphicsScene::drawForeground(painter, rect);
   if (m_drawObjStarted) {
-
     auto p = painter->pen();
     p.setWidthF(3);
     p.setCosmetic(true);

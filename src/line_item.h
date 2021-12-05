@@ -16,30 +16,33 @@ class LineItem : public QGraphicsLineItem, public CustomItem {
   LineItem(const QPointF &p1, const QPointF &p2,
            const QString &label = QString(), QGraphicsItem *parent = nullptr,
            bool ready = false);
-  int type() const override { return Helper::kLine; }
-  void setLocked(bool lk) override;
-  void setLabel(const QString &lb) override;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
-             QWidget *widget) override;
+  // CustomItem
   void helperParametersChanged() override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-  void keyPressEvent(QKeyEvent *event) override;
-  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
-                      const QVariant &value) override;
-  QRectF boundingRect() const override;
+  void setLocked(bool lk) override { __setLocked(this, lk); };
+  void setLabel(const QString &lb) override;
   void setShowLabel(bool show) override {
     m_showLabel = show;
     update();
   }
 
+  // QGraphicsItem
+  int type() const override { return Helper::kLine; }
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+             QWidget *widget) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
+  QRectF boundingRect() const override;
+  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
+                      const QVariant &value) override;
+  // get/set
   QPointF p1() const { return mapToScene(line().p1()); }
   QPointF p2() const { return mapToScene(line().p2()); }
 
  private:
-  CORNER positionInsideBBox(const QPointF &pos);
+  CORNER positionInside(const QPointF &pos);
 };
 
 #endif  // LINE_ITEM_H

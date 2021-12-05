@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include <QCompleter>
 #include <QDebug>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -9,15 +10,14 @@
 #include "loadimganndialog.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
-
 extern Helper globalHelper;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
-
-  Helper::InitFonts(font());
   setUp();
+  Helper::InitFonts(font());
+  Helper::InitSupportedImageFormats();
 }
 
 MainWindow::~MainWindow() {
@@ -36,6 +36,7 @@ void MainWindow::setUp() {
           &MainWindow::onNeedSaveChange);
   connect(&m_timer, &QTimer::timeout, this, &MainWindow::on_timeout);
   m_timer.start(1000);
+  ui->comboBoxTag->completer()->setCaseSensitivity(Qt::CaseSensitive);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -72,8 +73,7 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 
   dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
                           m_annImgManager.annFolder());
-  if (dlg.exec() != QDialog::Accepted)
-    return;
+  if (dlg.exec() != QDialog::Accepted) return;
 
   m_annImgManager.reset(dlg.imgFolder(), dlg.annFolder());
   m_imageListModel.setStringList(m_annImgManager.imageIds());
@@ -81,6 +81,7 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 
   QModelIndex tmp = m_imageListModel.indexAtRow(0);
   ui->listViewImgNames->setCurrentIndex(tmp);
+  m_current_index = QModelIndex();
   on_listViewImgNames_clicked(tmp);
   ui->actionNext->setEnabled(true);
   ui->actionPrevious->setEnabled(true);
@@ -124,8 +125,7 @@ void MainWindow::on_actionNew_Point_triggered() {
 void MainWindow::onNeedSaveChange() { ui->saveLocalChanges->setEnabled(true); }
 
 void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
-  if (index == m_current_index)
-    return;
+  if (index == m_current_index) return;
   if (ui->saveLocalChanges->isEnabled()) {
     if (ui->checkBoxAutoSave->isChecked()) {
       on_saveLocalChanges_triggered();
@@ -135,11 +135,11 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
           QMessageBox::StandardButtons(
               {QMessageBox::Save, QMessageBox::Ignore}));
       switch (ex) {
-      case QMessageBox::Save:
-        on_saveLocalChanges_triggered();
-        break;
-      default:
-        break;
+        case QMessageBox::Save:
+          on_saveLocalChanges_triggered();
+          break;
+        default:
+          break;
       }
     }
   }
@@ -148,7 +148,6 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   auto image = m_annImgManager.image(image_id);
   auto ann = m_annImgManager.annotations(image_id);
   m_imageCanvas.reset(image, image_id);
-
   m_imageCanvas.addAnnotations(ann);
   // description and tags
   ui->pTextImgDescription->setPlainText(ann.description);
@@ -159,9 +158,7 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
     item->setText(tag);
     ui->listWidgetTags->addItem(item);
   }
-
-  ui->bboxEditor->resetTransform();
-  ui->bboxEditor->scale(1.0, 1.0);
+  on_actionFit_Into_View_triggered();
   displayImageInfo();
   ui->saveLocalChanges->setEnabled(false);
   m_current_index = index;
@@ -206,23 +203,22 @@ void MainWindow::on_actionGrid_triggered(bool checked) {
 }
 
 void MainWindow::on_timeout() {
-  //  if (Helper::m_labelsUpdated) {
-  //    QString currLabel = ui->comboBoxActiveLabel->currentText();
-  //    ui->comboBoxActiveLabel->clear();
-  //    ui->comboBoxActiveLabel->addItems(Helper::currentLabels());
-  //    if (currLabel.isEmpty()) {
-  //      ui->comboBoxActiveLabel->setCurrentIndex(0);
-  //    } else {
-  //      ui->comboBoxActiveLabel->setCurrentText(currLabel);
-  //    }
-  //    Helper::m_labelsUpdated = false;
-  //  }
+  if (Helper::m_labelsUpdated) {
+    QString currLabel = ui->comboBoxActiveLabel->currentText();
+    ui->comboBoxActiveLabel->clear();
+    ui->comboBoxActiveLabel->addItems(Helper::currentLabels());
+    if (currLabel.isEmpty()) {
+      ui->comboBoxActiveLabel->setCurrentIndex(0);
+    } else {
+      ui->comboBoxActiveLabel->setCurrentText(currLabel);
+    }
+    Helper::m_labelsUpdated = false;
+  }
 }
 
 void MainWindow::on_tBAdd_clicked() {
   QString currTag = ui->comboBoxTag->currentText();
-  if (currTag.isEmpty())
-    return;
+  if (currTag.isEmpty()) return;
 
   auto item = new QListWidgetItem();
   item->setFlags(item->flags() | Qt::ItemIsEditable);
@@ -246,17 +242,21 @@ void MainWindow::on_tBRemove_clicked() {
 
 void MainWindow::on_pTextImgDescription_textChanged() { onNeedSaveChange(); }
 
-void MainWindow::on_pushButtonUpdate_clicked() {
+void MainWindow::updateSettings() {
   Helper::kPointRadius = ui->doubleSpinBoxPtRadius->value();
   Helper::kFontPixelSize = ui->spinBoxLabelPixSize->value();
-  Helper::InitFonts(font());
+  Helper::setScale(Helper::kInvScaleFactor);
   m_imageCanvas.helperParametersChanged();
 }
 
 void MainWindow::on_doubleSpinBoxPtRadius_valueChanged(double arg1) {
-  on_pushButtonUpdate_clicked();
+  updateSettings();
 }
 
 void MainWindow::on_spinBoxLabelPixSize_valueChanged(int arg1) {
-  on_pushButtonUpdate_clicked();
+  updateSettings();
+}
+
+void MainWindow::on_actionFit_Into_View_triggered() {
+  ui->bboxEditor->fitInView(ui->bboxEditor->sceneRect(), Qt::KeepAspectRatio);
 }

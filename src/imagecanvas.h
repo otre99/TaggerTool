@@ -17,7 +17,6 @@ class ImageCanvas : public QGraphicsScene {
  private:
   QPixmap m_currentImage;
   QString m_imageId;
-  QSizeF m_defaultBboxSize;
   QString m_bboxLabel;
   bool m_waitingForObj;
   bool m_drawObjStarted;
@@ -39,7 +38,7 @@ class ImageCanvas : public QGraphicsScene {
   void hideBoundingBoxes();
   void helperParametersChanged();
   void showBoundingBoxes();
-  bool showLabels() const {return m_showLabels;};
+  bool showLabels() const { return m_showLabels; };
 
   void prepareForNewBBox(QString label = QString());
   void prepareForNewPoint(const QString &label = QString());
@@ -56,9 +55,9 @@ class ImageCanvas : public QGraphicsScene {
   void drawForeground(QPainter *painter, const QRectF &rect) override;
   void keyPressEvent(QKeyEvent *keyEvent) override;
 
-  bool showGrid() const {return m_showGrid;}
+  bool showGrid() const { return m_showGrid; }
 
-public slots:
+ public slots:
   void setShowGrid(bool show);
 
  signals:

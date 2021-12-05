@@ -1,5 +1,7 @@
 #include "editdialog.h"
 
+#include <QCompleter>
+
 #include "ui_editdialog.h"
 #include "utils.h"
 
@@ -8,6 +10,7 @@ EditDialog::EditDialog(QWidget *parent)
   ui->setupUi(this);
 
   ui->labelsComboBox->addItems(Helper::currentLabels());
+  ui->labelsComboBox->completer()->setCaseSensitivity(Qt::CaseSensitive);
 }
 
 EditDialog::~EditDialog() { delete ui; }

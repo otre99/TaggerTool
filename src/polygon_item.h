@@ -16,11 +16,17 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
  public:
   PolygonItem(const QPolygonF &poly, const QString &label = QString(),
               QGraphicsItem *parent = nullptr, bool ready = false);
-  int type() const override { return Helper::kPolygon; }
-  void setLocked(bool what) override;
-  void setLabel(const QString &lb) override { __setLabel(this, lb); }
+  // CustomItem
   void helperParametersChanged() override;
+  void setLocked(bool what) override { __setLocked(this, what); }
+  void setLabel(const QString &lb) override { __setLabel(this, lb); }
+  void setShowLabel(bool show) override {
+    m_showLabel = show;
+    update();
+  }
 
+  // QGraphicsItem
+  int type() const override { return Helper::kPolygon; }
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -28,19 +34,13 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
   void keyPressEvent(QKeyEvent *event) override;
-
+  QPainterPath shape() const override;
+  QRectF boundingRect() const override;
   QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
                       const QVariant &value) override;
 
-  QRectF boundingRect() const override;
-  QPainterPath shape() const override;
-  void setShowLabel(bool show) override {
-    m_showLabel = show;
-    update();
-  }
-
  private:
-  CORNER positionInsideBBox(const QPointF &pos);
+  CORNER positionInside(const QPointF &pos);
 };
 
 #endif  // POLYGON_ITEM_H

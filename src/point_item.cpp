@@ -15,9 +15,8 @@
 
 PointItem::PointItem(const QPointF &center, const QString &label,
                      QGraphicsItem *parent, bool ready)
-    : QGraphicsEllipseItem(
-          0, 0, 2 * Helper::kPointRadius * Helper::kInvScaleFactor,
-          2 * Helper::kPointRadius * Helper::kInvScaleFactor, parent) {
+    : QGraphicsEllipseItem(0, 0, 2 * Helper::penWidth(), 2 * Helper::penWidth(),
+                           parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
@@ -27,31 +26,27 @@ PointItem::PointItem(const QPointF &center, const QString &label,
   }
 
   __setLabel(this, label);
-  setPos(center - QPointF{Helper::kPointRadius * Helper::kInvScaleFactor,
-                          Helper::kPointRadius * Helper::kInvScaleFactor});
+  setPos(center - QPointF{Helper::penWidth(), Helper::penWidth()});
   QPen p = pen();
-  p.setWidthF(Helper::kPointRadius / 2.0 * Helper::kInvScaleFactor);
+  p.setWidthF(Helper::penWidth() / 2.0);
   setPen(p);
 }
 
+// CustomItem
 void PointItem::helperParametersChanged() {
   prepareGeometryChange();
   __calculateLabelSize(m_label);
-  auto pt =
-      rect().center() - QPointF{Helper::kPointRadius * Helper::kInvScaleFactor,
-                                Helper::kPointRadius * Helper::kInvScaleFactor};
-  setRect(pt.x(), pt.y(), 2 * Helper::kPointRadius * Helper::kInvScaleFactor,
-          2 * Helper::kPointRadius * Helper::kInvScaleFactor);
+  auto pt = rect().center() - QPointF{Helper::penWidth(), Helper::penWidth()};
+  setRect(pt.x(), pt.y(), 2 * Helper::penWidth(), 2 * Helper::penWidth());
   QPen p = pen();
-  p.setWidthF(Helper::kPointRadius / 2.0 * Helper::kInvScaleFactor);
+  p.setWidthF(Helper::penWidth() / 2.0);
   setPen(p);
 }
 
-void PointItem::setLocked(bool what) { __setLocked(this, what); }
-
+// QGraphicsItem
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                       QWidget *widget) {
-  QRectF brect = rect(); // boundingRect();
+  QRectF brect = rect();  // boundingRect();
   if (!m_moveEnable) {
     painter->setPen(Qt::NoPen);
     painter->setBrush(pen().brush());
@@ -95,20 +90,6 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   }
 }
 
-QVariant PointItem::itemChange(QGraphicsItem::GraphicsItemChange change,
-                               const QVariant &value) {
-  if (scene() == nullptr)
-    return value;
-  switch (change) {
-  case QGraphicsItem::ItemPositionChange:
-    emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-    break;
-  default:
-    break;
-  }
-  return value;
-}
-
 QRectF PointItem::boundingRect() const {
   QRectF br = QGraphicsEllipseItem::boundingRect();
   double dw = 0;
@@ -119,6 +100,20 @@ QRectF PointItem::boundingRect() const {
   return rect().adjusted(-o, -o - m_labelHeight, dw + o, o);
 }
 
+QVariant PointItem::itemChange(QGraphicsItem::GraphicsItemChange change,
+                               const QVariant &value) {
+  if (scene() == nullptr) return value;
+  switch (change) {
+    case QGraphicsItem::ItemPositionChange:
+      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
+      break;
+    default:
+      break;
+  }
+  return value;
+}
+
+// get/set
 QPointF PointItem::center() const {
   const QSizeF sf = rect().size();
   return pos() + QPointF{0.5 * sf.width(), 0.5 * sf.height()};

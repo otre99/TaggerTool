@@ -20,15 +20,7 @@ void AnnImgManager::reset(const QString &images_folder_path,
   m_imagesDir.setPath(images_folder_path);
   m_annotationsDir.setPath(annotations_folder_path);
   if (image_ids.empty())
-    m_imageIdsList = m_imagesDir.entryList(QStringList() << "*.jpg"
-                                                         << "*.JPG"
-                                                         << "*.png"
-                                                         << "*.PNG"
-                                                         << "*.bmp"
-                                                         << "*.BMP"
-                                                         << "*.jpeg"
-                                                         << ".JPEG",
-                                           QDir::Files);
+    m_imageIdsList = m_imagesDir.entryList(Helper::kImgExts, QDir::Files);
   else
     m_imageIdsList = image_ids;
 }
@@ -127,7 +119,6 @@ void AnnImgManager::_saveAnnotations(const QString &path,
   }
   root["tags"] = array_tags;
 
-
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(path);
   if (!ofile.open(QFile::WriteOnly)) {
@@ -204,12 +195,12 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
   }
 
   // description
-  ann.description  = root["description"].toString();
+  ann.description = root["description"].toString();
 
   // tags
   const QJsonArray tags = root["tags"].toArray();
-  for (const auto &tag : tags){
-      ann.tags.append(tag.toString());
+  for (const auto &tag : tags) {
+    ann.tags.append(tag.toString());
   }
   return ann;
 }

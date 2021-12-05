@@ -14,5 +14,6 @@
         <file>icons/grid-rectangular.svg</file>
         <file>icons/emblem-added.svg</file>
         <file>icons/emblem-remove.svg</file>
+        <file>icons/zoom-fit-best.svg</file>
     </qresource>
 </RCC>
