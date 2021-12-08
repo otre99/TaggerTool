@@ -19,6 +19,7 @@ class Helper {
   static double kLineWidth;
   static QStringList kImgExts;
 
+
   enum CustomItemType {
     kBBox = QGraphicsItem::UserType + 1,
     kLine,
@@ -44,6 +45,7 @@ class Helper {
   static void drawCircleOrSquared(QPainter *painter, const QPointF &ct, qreal w,
                                   bool circle);
 
+  static const QRgb kLabelColorsArray[80];
   static const QColor kUnlockedBBoxColor;
   static const QColor kLockedBBoxColor;
   static const QColor kMarginBBoxColor;

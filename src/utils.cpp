@@ -9,6 +9,35 @@
 #include <QVector3D>
 #include <cmath>
 
+const QRgb Helper::kLabelColorsArray[] = {
+    qRgb(0, 113, 188),   qRgb(216, 82, 24),   qRgb(236, 176, 31),
+    qRgb(125, 46, 141),  qRgb(118, 171, 47),  qRgb(76, 189, 237),
+    qRgb(161, 19, 46),   qRgb(76, 76, 76),    qRgb(153, 153, 153),
+    qRgb(255, 0, 0),     qRgb(255, 127, 0),   qRgb(190, 190, 0),
+    qRgb(0, 255, 0),     qRgb(0, 0, 255),     qRgb(170, 0, 255),
+    qRgb(84, 84, 0),     qRgb(84, 170, 0),    qRgb(84, 255, 0),
+    qRgb(170, 84, 0),    qRgb(170, 170, 0),   qRgb(170, 255, 0),
+    qRgb(255, 84, 0),    qRgb(255, 170, 0),   qRgb(255, 255, 0),
+    qRgb(0, 84, 127),    qRgb(0, 170, 127),   qRgb(0, 255, 127),
+    qRgb(84, 0, 127),    qRgb(84, 84, 127),   qRgb(84, 170, 127),
+    qRgb(84, 255, 127),  qRgb(170, 0, 127),   qRgb(170, 84, 127),
+    qRgb(170, 170, 127), qRgb(170, 255, 127), qRgb(255, 0, 127),
+    qRgb(255, 84, 127),  qRgb(255, 170, 127), qRgb(255, 255, 127),
+    qRgb(0, 84, 255),    qRgb(0, 170, 255),   qRgb(0, 255, 255),
+    qRgb(84, 0, 255),    qRgb(84, 84, 255),   qRgb(84, 170, 255),
+    qRgb(84, 255, 255),  qRgb(170, 0, 255),   qRgb(170, 84, 255),
+    qRgb(170, 170, 255), qRgb(170, 255, 255), qRgb(255, 0, 255),
+    qRgb(255, 84, 255),  qRgb(255, 170, 255), qRgb(84, 0, 0),
+    qRgb(127, 0, 0),     qRgb(170, 0, 0),     qRgb(212, 0, 0),
+    qRgb(255, 0, 0),     qRgb(0, 42, 0),      qRgb(0, 84, 0),
+    qRgb(0, 127, 0),     qRgb(0, 170, 0),     qRgb(0, 212, 0),
+    qRgb(0, 255, 0),     qRgb(0, 0, 42),      qRgb(0, 0, 84),
+    qRgb(0, 0, 127),     qRgb(0, 0, 170),     qRgb(0, 0, 212),
+    qRgb(0, 0, 255),     qRgb(0, 0, 0),       qRgb(36, 36, 36),
+    qRgb(72, 72, 72),    qRgb(109, 109, 109), qRgb(145, 145, 145),
+    qRgb(182, 182, 182), qRgb(218, 218, 218), qRgb(0, 113, 188),
+    qRgb(80, 182, 188),  qRgb(127, 127, 0)};
+
 const QColor Helper::kUnlockedBBoxColor = {0, 0, 128, 64};
 const QColor Helper::kLockedBBoxColor = {128, 128, 128, 64};
 const QColor Helper::kMarginBBoxColor = {128, 0, 0, 64};
@@ -72,9 +101,8 @@ QColor Helper::colorFromLabel(const QString &label) {
     return Helper::m_labelToColor[label];
   }
   m_labelsUpdated = true;
-  const QStringList lst = QColor::colorNames();
-  int index = std::hash<std::string>()(label.toStdString()) % lst.count();
-  Helper::m_labelToColor[label] = lst[index];
+  const int index = std::hash<std::string>()(label.toStdString()) % 80;
+  Helper::m_labelToColor[label] = kLabelColorsArray[index];
   return Helper::m_labelToColor[label];
 }
 

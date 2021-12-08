@@ -259,4 +259,6 @@ void MainWindow::on_spinBoxLabelPixSize_valueChanged(int arg1) {
 
 void MainWindow::on_actionFit_Into_View_triggered() {
   ui->bboxEditor->fitInView(ui->bboxEditor->sceneRect(), Qt::KeepAspectRatio);
+  Helper::setScale(1.0 / ui->bboxEditor->transform().m11());
+  m_imageCanvas.helperParametersChanged();
 }
