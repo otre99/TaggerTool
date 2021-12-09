@@ -5,6 +5,7 @@
     "image_h": 1536,
     "image_name": "DSC00109.JPG",
     "image_w": 2048,
+    "label": "sample01",
     "lines": [
     ],
     "points": [
@@ -459,5 +460,7 @@
         }
     ],
     "tags": [
+        "fish",
+        "aquarium"
     ]
 }

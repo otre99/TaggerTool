@@ -13,6 +13,8 @@ namespace Ui {
 class MainWindow;
 }
 
+class QComboBox;
+
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
@@ -45,12 +47,13 @@ class MainWindow : public QMainWindow {
   void updateSettings();
   void on_doubleSpinBoxPtRadius_valueChanged(double arg1);
   void on_spinBoxLabelPixSize_valueChanged(int arg1);
-
   void on_actionFit_Into_View_triggered();
+  void on_comboBoxImgLabel_currentTextChanged(const QString &arg1);
 
-private:
+ private:
   void setUp();
   void displayImageInfo();
+  void AddNewUniqueItem(QComboBox *cbox, const QString &label);
 
   QTimer m_timer;
   QGraphicsItem *m_currentItem;

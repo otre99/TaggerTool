@@ -37,6 +37,7 @@ void MainWindow::setUp() {
   connect(&m_timer, &QTimer::timeout, this, &MainWindow::on_timeout);
   m_timer.start(1000);
   ui->comboBoxTag->completer()->setCaseSensitivity(Qt::CaseSensitive);
+  ui->comboBoxImgLabel->completer()->setCaseSensitivity(Qt::CaseSensitive);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -45,6 +46,18 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
 }
 
 void MainWindow::displayImageInfo() {}
+
+void MainWindow::AddNewUniqueItem(QComboBox *cbox, const QString &label) {
+  const int n = cbox->count();
+  for (int i = 0; i < n; ++i) {
+    if (cbox->itemText(i) == label) {
+      cbox->setCurrentIndex(i);
+      return;
+    }
+  }
+  cbox->addItem(label);
+  cbox->setCurrentText(label);
+}
 
 void MainWindow::selectionChangedOnImageCanvas() {
   const auto selected_items = m_imageCanvas.selectedItems();
@@ -90,7 +103,8 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 void MainWindow::on_saveLocalChanges_triggered() {
   auto ann = m_imageCanvas.annotations();
 
-  // description and tags
+  // image label, description and tags
+  ann.label = ui->comboBoxImgLabel->currentText();
   ann.description = ui->pTextImgDescription->toPlainText();
   for (int i = 0; i < ui->listWidgetTags->count(); ++i) {
     ann.tags.append(ui->listWidgetTags->item(i)->text());
@@ -149,8 +163,14 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   auto ann = m_annImgManager.annotations(image_id);
   m_imageCanvas.reset(image, image_id);
   m_imageCanvas.addAnnotations(ann);
-  // description and tags
+
+  // label
+  AddNewUniqueItem(ui->comboBoxImgLabel, ann.label);
+
+  // description
   ui->pTextImgDescription->setPlainText(ann.description);
+
+  // tags
   ui->listWidgetTags->clear();
   for (auto &tag : ann.tags) {
     auto item = new QListWidgetItem();
@@ -261,4 +281,8 @@ void MainWindow::on_actionFit_Into_View_triggered() {
   ui->bboxEditor->fitInView(ui->bboxEditor->sceneRect(), Qt::KeepAspectRatio);
   Helper::setScale(1.0 / ui->bboxEditor->transform().m11());
   m_imageCanvas.helperParametersChanged();
+}
+
+void MainWindow::on_comboBoxImgLabel_currentTextChanged(const QString &arg1) {
+  onNeedSaveChange();
 }

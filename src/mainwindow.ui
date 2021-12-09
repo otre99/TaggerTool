@@ -196,16 +196,49 @@
       <number>2</number>
      </property>
      <item row="0" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Image Label:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBoxImgLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Image Description:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="2" column="0">
       <widget class="QPlainTextEdit" name="pTextImgDescription"/>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
         <number>2</number>
@@ -266,14 +299,14 @@
        </item>
       </layout>
      </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QListWidget" name="listWidgetTags">
        <property name="alternatingRowColors">
         <bool>true</bool>
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
+     <item row="5" column="0">
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
         <string>Settings</string>

@@ -362,9 +362,7 @@ QVariant BoundingBoxItem::itemChange(QGraphicsItem::GraphicsItemChange change,
 
 // set/get
 QRectF BoundingBoxItem::boundingBoxCoordinates() {
-  const QSizeF sf = rect().size();
-  const QPointF tl = pos();
-  return {tl.x(), tl.y(), sf.width(), sf.height()};
+  return mapRectToScene(rect());
 }
 
 void BoundingBoxItem::setCoordinates(const QRectF &coords) {

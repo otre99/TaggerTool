@@ -19,7 +19,6 @@ class Helper {
   static double kLineWidth;
   static QStringList kImgExts;
 
-
   enum CustomItemType {
     kBBox = QGraphicsItem::UserType + 1,
     kLine,

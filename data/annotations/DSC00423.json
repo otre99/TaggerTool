@@ -5,6 +5,7 @@
     "image_h": 1536,
     "image_name": "DSC00423.JPG",
     "image_w": 2048,
+    "label": "sample02",
     "lines": [
     ],
     "points": [
@@ -423,5 +424,7 @@
         }
     ],
     "tags": [
+        "iguana",
+        "reptile"
     ]
 }

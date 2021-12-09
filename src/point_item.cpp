@@ -114,7 +114,4 @@ QVariant PointItem::itemChange(QGraphicsItem::GraphicsItemChange change,
 }
 
 // get/set
-QPointF PointItem::center() const {
-  const QSizeF sf = rect().size();
-  return pos() + QPointF{0.5 * sf.width(), 0.5 * sf.height()};
-}
+QPointF PointItem::center() const { return mapToScene(rect().center()); }

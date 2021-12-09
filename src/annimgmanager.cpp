@@ -50,52 +50,52 @@ void AnnImgManager::saveAnnotations(const QString &image_id,
 void AnnImgManager::_saveAnnotations(const QString &path,
                                      const Annotations &ann) {
   QJsonObject root;
-  root.insert("image_name", ann.image_name);
-  root.insert("image_w", ann.img_w);
-  root.insert("image_h", ann.img_h);
+  root.insert(QString("image_name"), ann.image_name);
+  root.insert(QString("image_w"), ann.img_w);
+  root.insert(QString("image_h"), ann.img_h);
 
   // lines
   QJsonArray array_lines;
   for (auto &line : ann.lines) {
     QJsonObject obj;
-    obj["label"] = line.label;
-    obj["x1"] = line.x1;
-    obj["y1"] = line.y1;
-    obj["x2"] = line.x2;
-    obj["y2"] = line.y2;
+    obj[QString("label")] = line.label;
+    obj[QString("x1")] = line.x1;
+    obj[QString("y1")] = line.y1;
+    obj[QString("x2")] = line.x2;
+    obj[QString("y2")] = line.y2;
     array_lines.append(obj);
   }
-  root["lines"] = array_lines;
+  root[QString("lines")] = array_lines;
 
   // boxes
   QJsonArray array_boxes;
   for (auto &bbox : ann.bboxes) {
     QJsonObject obj;
-    obj["label"] = bbox.label;
-    obj["x1"] = bbox.x1;
-    obj["y1"] = bbox.y1;
-    obj["x2"] = bbox.x2;
-    obj["y2"] = bbox.y2;
+    obj[QString("label")] = bbox.label;
+    obj[QString("x1")] = bbox.x1;
+    obj[QString("y1")] = bbox.y1;
+    obj[QString("x2")] = bbox.x2;
+    obj[QString("y2")] = bbox.y2;
     array_boxes.append(obj);
   }
-  root["bboxes"] = array_boxes;
+  root[QString("bboxes")] = array_boxes;
 
   // points
   QJsonArray array_points;
   for (auto &pt : ann.points) {
     QJsonObject obj;
-    obj["label"] = pt.label;
-    obj["x"] = pt.x;
-    obj["y"] = pt.y;
+    obj[QString("label")] = pt.label;
+    obj[QString("x")] = pt.x;
+    obj[QString("y")] = pt.y;
     array_points.append(obj);
   }
-  root["points"] = array_points;
+  root[QString("points")] = array_points;
 
   // polygons
   QJsonArray array_polygons;
   for (auto &poly : ann.polygons) {
     QJsonObject obj;
-    obj["label"] = poly.label;
+    obj[QString("label")] = poly.label;
 
     QJsonArray xArray, yArray;
     const int n = poly.xArray.size();
@@ -103,21 +103,24 @@ void AnnImgManager::_saveAnnotations(const QString &path,
       xArray.append(poly.xArray[i]);
       yArray.append(poly.yArray[i]);
     }
-    obj["x_coords"] = xArray;
-    obj["y_coords"] = yArray;
+    obj[QString("x_coords")] = xArray;
+    obj[QString("y_coords")] = yArray;
     array_polygons.append(obj);
   }
-  root["polygons"] = array_polygons;
+  root[QString("polygons")] = array_polygons;
 
   // description
-  root["description"] = ann.description;
+  root[QString("label")] = ann.label;
+
+  // description
+  root[QString("description")] = ann.description;
 
   // tags
   QJsonArray array_tags;
   for (auto &tag : ann.tags) {
     array_tags.append(tag);
   }
-  root["tags"] = array_tags;
+  root[QString("tags")] = array_tags;
 
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(path);
@@ -140,52 +143,52 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
   QJsonDocument doc = QJsonDocument::fromJson(json);
   QJsonObject root = doc.object();
 
-  ann.image_name = root["image_name"].toString();
-  ann.img_w = root["image_w"].toInt();
-  ann.img_h = root["image_h"].toInt();
+  ann.image_name = root[QString("image_name")].toString();
+  ann.img_w = root[QString("image_w")].toInt();
+  ann.img_h = root[QString("image_h")].toInt();
 
   // lines
-  const QJsonArray lines = root["lines"].toArray();
+  const QJsonArray lines = root[QString("lines")].toArray();
   for (const auto &obj : lines) {
     Line line;
-    line.label = obj["label"].toString();
-    line.x1 = obj["x1"].toDouble();
-    line.y1 = obj["y1"].toDouble();
-    line.x2 = obj["x2"].toDouble();
-    line.y2 = obj["y2"].toDouble();
+    line.label = obj[QString("label")].toString();
+    line.x1 = obj[QString("x1")].toDouble();
+    line.y1 = obj[QString("y1")].toDouble();
+    line.x2 = obj[QString("x2")].toDouble();
+    line.y2 = obj[QString("y2")].toDouble();
     ann.lines.push_back(line);
   }
 
   // bboxes
-  const QJsonArray bboxes = root["bboxes"].toArray();
+  const QJsonArray bboxes = root[QString("bboxes")].toArray();
   for (const auto &obj : bboxes) {
     BBox bbox;
-    bbox.label = obj["label"].toString();
-    bbox.x1 = obj["x1"].toDouble();
-    bbox.y1 = obj["y1"].toDouble();
-    bbox.x2 = obj["x2"].toDouble();
-    bbox.y2 = obj["y2"].toDouble();
+    bbox.label = obj[QString("label")].toString();
+    bbox.x1 = obj[QString("x1")].toDouble();
+    bbox.y1 = obj[QString("y1")].toDouble();
+    bbox.x2 = obj[QString("x2")].toDouble();
+    bbox.y2 = obj[QString("y2")].toDouble();
     ann.bboxes.push_back(bbox);
   }
 
   // points
-  const QJsonArray points = root["points"].toArray();
+  const QJsonArray points = root[QString("points")].toArray();
   for (const auto &obj : points) {
     Point pt;
-    pt.label = obj["label"].toString();
-    pt.x = obj["x"].toDouble();
-    pt.y = obj["y"].toDouble();
+    pt.label = obj[QString("label")].toString();
+    pt.x = obj[QString("x")].toDouble();
+    pt.y = obj[QString("y")].toDouble();
     ann.points.push_back(pt);
   }
 
   // polygons
-  const QJsonArray polygons = root["polygons"].toArray();
+  const QJsonArray polygons = root[QString("polygons")].toArray();
   for (const auto &obj : polygons) {
     Polygon poly;
-    poly.label = obj["label"].toString();
+    poly.label = obj[QString("label")].toString();
 
-    QJsonArray xArray = obj["x_coords"].toArray();
-    QJsonArray yArray = obj["y_coords"].toArray();
+    QJsonArray xArray = obj[QString("x_coords")].toArray();
+    QJsonArray yArray = obj[QString("y_coords")].toArray();
     const int n = xArray.count();
     for (int i = 0; i < n; ++i) {
       poly.xArray.push_back(xArray[i].toDouble());
@@ -194,11 +197,14 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
     ann.polygons.push_back(poly);
   }
 
+  // image label
+  ann.label = root[QString("label")].toString();
+
   // description
-  ann.description = root["description"].toString();
+  ann.description = root[QString("description")].toString();
 
   // tags
-  const QJsonArray tags = root["tags"].toArray();
+  const QJsonArray tags = root[QString("tags")].toArray();
   for (const auto &tag : tags) {
     ann.tags.append(tag.toString());
   }

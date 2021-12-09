@@ -19,6 +19,7 @@
     "image_h": 1536,
     "image_name": "DSC01700.JPG",
     "image_w": 2048,
+    "label": "sample04",
     "lines": [
         {
             "label": "distance",
@@ -86,5 +87,8 @@
         }
     ],
     "tags": [
+        "dog",
+        "ball",
+        "vegetation"
     ]
 }
