@@ -53,7 +53,7 @@ class MainWindow : public QMainWindow {
  private:
   void setUp();
   void displayImageInfo();
-  void AddNewUniqueItem(QComboBox *cbox, const QString &label);
+  void addNewUniqueItem(QComboBox *cbox, const QString &label);
 
   QTimer m_timer;
   QGraphicsItem *m_currentItem;

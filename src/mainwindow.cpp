@@ -47,7 +47,7 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
 
 void MainWindow::displayImageInfo() {}
 
-void MainWindow::AddNewUniqueItem(QComboBox *cbox, const QString &label) {
+void MainWindow::addNewUniqueItem(QComboBox *cbox, const QString &label) {
   const int n = cbox->count();
   for (int i = 0; i < n; ++i) {
     if (cbox->itemText(i) == label) {
@@ -165,7 +165,7 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   m_imageCanvas.addAnnotations(ann);
 
   // label
-  AddNewUniqueItem(ui->comboBoxImgLabel, ann.label);
+  addNewUniqueItem(ui->comboBoxImgLabel, ann.label);
 
   // description
   ui->pTextImgDescription->setPlainText(ann.description);
@@ -176,6 +176,7 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
     auto item = new QListWidgetItem();
     item->setFlags(item->flags() | Qt::ItemIsEditable);
     item->setText(tag);
+    addNewUniqueItem(ui->comboBoxTag, tag);
     ui->listWidgetTags->addItem(item);
   }
   on_actionFit_Into_View_triggered();
@@ -249,6 +250,7 @@ void MainWindow::on_tBAdd_clicked() {
   } else {
     ui->listWidgetTags->addItem(item);
   }
+  addNewUniqueItem(ui->comboBoxTag,currTag);
   onNeedSaveChange();
 }
 
