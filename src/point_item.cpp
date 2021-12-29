@@ -76,15 +76,7 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
   } else if (event->button() == Qt::RightButton && m_moveEnable) {
-    EditDialog dlg;
-    dlg.setGeometry(QRect{event->screenPos(), dlg.size()});
-    dlg.setLabel(m_label);
-    if (dlg.exec() == QDialog::Accepted) {
-      if (dlg.label() != m_label) {
-        setLabel(dlg.label());
-        emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-      }
-    }
+    __showEditDialog(this, event->screenPos());
   } else {
     QGraphicsEllipseItem::mousePressEvent(event);
   }

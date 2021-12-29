@@ -1,5 +1,6 @@
 #ifndef CUSTOM_ITEM_H
 #define CUSTOM_ITEM_H
+#include <QPoint>
 #include <QString>
 
 class QAbstractGraphicsShapeItem;
@@ -25,6 +26,7 @@ class CustomItem {
   void __calculateLabelSize(const QString &label);
   void __setLocked(QGraphicsItem *item, bool lk);
   void __swapStackOrder(QGraphicsItem *item, const QList<QGraphicsItem *> &l);
+  void __showEditDialog(QGraphicsItem *item, const QPoint screenPos);
 };
 
 #endif  // CUSTOM_ITEM_H

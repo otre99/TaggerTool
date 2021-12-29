@@ -31,7 +31,6 @@ class ImageCanvas : public QGraphicsScene {
   void addAnnotations(const Annotations &ann);
 
   Annotations annotations();
-  void removeUnlockedItems();
   void clear();
   QSize imageSize();
   QString imageId();
@@ -59,10 +58,12 @@ class ImageCanvas : public QGraphicsScene {
 
  public slots:
   void setShowGrid(bool show);
+  void removeItemCmd(QGraphicsItem *item);
 
  signals:
   void bboxItemToEditor(QGraphicsItem *iten, int reason);
   void needSaveChanges();
+  void deferredRemoveItem(QGraphicsItem *item);
 
  private:
   bool m_showLabels{true};

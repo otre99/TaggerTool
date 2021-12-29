@@ -7,6 +7,7 @@
 #include <QRegularExpression>
 #include <QWheelEvent>
 
+#include "dialoglabels.h"
 #include "loadimganndialog.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
@@ -36,8 +37,8 @@ void MainWindow::setUp() {
           &MainWindow::onNeedSaveChange);
   connect(&m_timer, &QTimer::timeout, this, &MainWindow::on_timeout);
   m_timer.start(1000);
-  ui->comboBoxTag->completer()->setCaseSensitivity(Qt::CaseSensitive);
-  ui->comboBoxImgLabel->completer()->setCaseSensitivity(Qt::CaseSensitive);
+  //  ui->comboBoxTag->completer()->setCaseSensitivity(Qt::CaseSensitive);
+  //  ui->comboBoxImgLabel->completer()->setCaseSensitivity(Qt::CaseSensitive);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -47,16 +48,26 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
 
 void MainWindow::displayImageInfo() {}
 
-void MainWindow::addNewUniqueItem(QComboBox *cbox, const QString &label) {
+void MainWindow::addNewUniqueItem(QComboBox *cbox, const QString &label,
+                                  bool selected) {
   const int n = cbox->count();
-  for (int i = 0; i < n; ++i) {
+  int i;
+  for (i = 0; i < n; ++i) {
     if (cbox->itemText(i) == label) {
-      cbox->setCurrentIndex(i);
+      if (selected) cbox->setCurrentIndex(i);
       return;
     }
   }
   cbox->addItem(label);
-  cbox->setCurrentText(label);
+  if (selected) cbox->setCurrentIndex(i);
+}
+
+QStringList MainWindow::getLabelsFromComboBox(QComboBox *cbox) {
+  QStringList labels;
+  for (int i = 0; i < cbox->count(); ++i) {
+    labels << cbox->itemText(i);
+  }
+  return labels;
 }
 
 void MainWindow::selectionChangedOnImageCanvas() {
@@ -114,10 +125,6 @@ void MainWindow::on_saveLocalChanges_triggered() {
   ui->saveLocalChanges->setEnabled(false);
 }
 
-void MainWindow::on_removeBbox_triggered() {
-  m_imageCanvas.removeUnlockedItems();
-}
-
 void MainWindow::on_actionShowBboxes_triggered() {
   static bool vis = false;
   if (vis)
@@ -165,7 +172,7 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   m_imageCanvas.addAnnotations(ann);
 
   // label
-  addNewUniqueItem(ui->comboBoxImgLabel, ann.label);
+  addNewUniqueItem(ui->comboBoxImgLabel, ann.label, true);
 
   // description
   ui->pTextImgDescription->setPlainText(ann.description);
@@ -176,7 +183,7 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
     auto item = new QListWidgetItem();
     item->setFlags(item->flags() | Qt::ItemIsEditable);
     item->setText(tag);
-    addNewUniqueItem(ui->comboBoxTag, tag);
+    addNewUniqueItem(ui->comboBoxTag, tag, false);
     ui->listWidgetTags->addItem(item);
   }
   on_actionFit_Into_View_triggered();
@@ -250,7 +257,7 @@ void MainWindow::on_tBAdd_clicked() {
   } else {
     ui->listWidgetTags->addItem(item);
   }
-  addNewUniqueItem(ui->comboBoxTag,currTag);
+  // addNewUniqueItem(ui->comboBoxTag, currTag);
   onNeedSaveChange();
 }
 
@@ -287,4 +294,36 @@ void MainWindow::on_actionFit_Into_View_triggered() {
 
 void MainWindow::on_comboBoxImgLabel_currentTextChanged(const QString &arg1) {
   onNeedSaveChange();
+}
+
+void MainWindow::on_toolButtonAddItemLabels_clicked() {
+  DialogLabels dlb(this, "ITEM'S LABELS");
+  dlb.setLabels(getLabelsFromComboBox(ui->comboBoxActiveLabel));
+  if (dlb.exec() == QDialog::Accepted) {
+    Helper::registerNewLabels(dlb.getLabels());
+  }
+}
+
+void MainWindow::on_toolButtonAddTags_clicked() {
+  DialogLabels dlb(this, "TAGS");
+  QStringList tags = getLabelsFromComboBox(ui->comboBoxTag);
+  tags.removeFirst();
+  dlb.setLabels(tags);
+  if (dlb.exec() == QDialog::Accepted) {
+    tags = dlb.getLabels();
+    tags.push_front("");
+    ui->comboBoxTag->clear();
+    ui->comboBoxTag->addItems(tags);
+  }
+}
+
+void MainWindow::on_toolButtonAddImgLabels_clicked() {
+  DialogLabels dlb(this, "IMAGE'S LABELS");
+  QStringList labels = getLabelsFromComboBox(ui->comboBoxImgLabel);
+  dlb.setLabels(labels);
+  if (dlb.exec() == QDialog::Accepted) {
+    labels = dlb.getLabels();
+    ui->comboBoxImgLabel->clear();
+    ui->comboBoxImgLabel->addItems(labels);
+  }
 }

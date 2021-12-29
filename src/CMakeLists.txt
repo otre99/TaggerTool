@@ -30,6 +30,7 @@ set(PROJECT_SOURCES
     main.cpp
     editdialog.cpp editdialog.h editdialog.ui
     loadimganndialog.cpp loadimganndialog.h loadimganndialog.ui
+    dialoglabels.cpp dialoglabels.h dialoglabels.ui
     resource.qrc
     )
 

@@ -14,9 +14,14 @@ class EditDialog : public QDialog {
   ~EditDialog();
   QString label() const;
   void setLabel(const QString &lb);
+  bool removeItem() const { return m_removedItem; }
+
+ private slots:
+  void on_toolButtonRemoveItem_clicked();
 
  private:
   Ui::EditDialog *ui;
+  bool m_removedItem{false};
 };
 
 #endif  // EDITDIALOG_H

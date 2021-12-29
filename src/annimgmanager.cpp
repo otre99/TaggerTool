@@ -34,7 +34,7 @@ Annotations AnnImgManager::annotations(const QString &image_id) {
 
 QString AnnImgManager::annFilePath(const QString &image_id) {
   QFileInfo info(image_id);
-  return m_annotationsDir.absoluteFilePath(info.baseName() + ".json");
+  return m_annotationsDir.absoluteFilePath(basename(info.filePath()) + ".json");
 }
 
 QString AnnImgManager::imgFilePath(const QString &img_id) {
@@ -209,6 +209,14 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
     ann.tags.append(tag.toString());
   }
   return ann;
+}
+
+QString AnnImgManager::basename(const QString &filePath) const {
+  int i = filePath.count() - 1;
+  while (filePath[i] != QChar('.')) {
+    --i;
+  }
+  return filePath.mid(0, i);
 }
 
 QSize AnnImgManager::imageSize(const QString &image_id) {

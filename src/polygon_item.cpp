@@ -65,7 +65,7 @@ void PolygonItem::paint(QPainter *painter,
   if (m_moveEnable) {
     painter->save();
     auto pp = p;
-    pp.setWidthF(1.0);
+    pp.setWidthF(qMin(1.0, p.widthF()));
     pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
@@ -122,15 +122,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
   } else if (event->button() == Qt::RightButton && m_moveEnable) {
-    EditDialog dlg;
-    dlg.setGeometry(QRect{event->screenPos(), dlg.size()});
-    dlg.setLabel(m_label);
-    if (dlg.exec() == QDialog::Accepted) {
-      if (dlg.label() != m_label) {
-        setLabel(dlg.label());
-        emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-      }
-    }
+    __showEditDialog(this, event->screenPos());
   } else if (event->modifiers() == Qt::AltModifier &&
              event->button() == Qt::LeftButton) {
     auto corner = positionInside(event->pos());

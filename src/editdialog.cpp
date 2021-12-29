@@ -20,3 +20,8 @@ QString EditDialog::label() const { return ui->labelsComboBox->currentText(); }
 void EditDialog::setLabel(const QString &lb) {
   ui->labelsComboBox->setCurrentText(lb);
 }
+
+void EditDialog::on_toolButtonRemoveItem_clicked() {
+  m_removedItem = true;
+  accept();
+}

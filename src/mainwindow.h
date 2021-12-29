@@ -27,7 +27,6 @@ class MainWindow : public QMainWindow {
   void on_addNewBbox_triggered();
   void on_pbLoadImgAnn_clicked();
   void on_saveLocalChanges_triggered();
-  void on_removeBbox_triggered();
   void on_actionShowBboxes_triggered();
   void selectionChangedOnImageCanvas();
   void on_actionShow_Hide_Labels_triggered();
@@ -49,11 +48,15 @@ class MainWindow : public QMainWindow {
   void on_spinBoxLabelPixSize_valueChanged(int arg1);
   void on_actionFit_Into_View_triggered();
   void on_comboBoxImgLabel_currentTextChanged(const QString &arg1);
+  void on_toolButtonAddItemLabels_clicked();
+  void on_toolButtonAddTags_clicked();
+  void on_toolButtonAddImgLabels_clicked();
 
  private:
   void setUp();
   void displayImageInfo();
-  void addNewUniqueItem(QComboBox *cbox, const QString &label);
+  void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);
+  QStringList getLabelsFromComboBox(QComboBox *cbox);
 
   QTimer m_timer;
   QGraphicsItem *m_currentItem;

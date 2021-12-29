@@ -1,29 +1,15 @@
-# SimpleQtBBox (still under construction)
-This is a very simple tool to verify/edit your object detection image data set. It only depends on Qt SDK 5.12.*, so it is very easy to compile.
+# TaggerTool (still under construction)
+This is a very simple tool for adding / editing visual annotations on images. Supports BoundingBoxes, Polygons, Points and Lines
 
-SimpleQtBBox support **XML VOC format** and its navite format. In the folder *data* there are some useful samples.
-
-
-###  How to use?
+### How to use?
     
     1-> Open the folder containing the annotations 
     2-> Open the folder containing the images 
-    3-> Select the correct annotation format (.xml (VOC) or .csv (Native) ) and press the load button
 
-#### Useful shorcuts
-
-    a : add new bounding box
-    x : delete selected bbox 
-    h : show/hide bounding boxes 
-    s : save changes  
-  
 ### How to compile?
 
-Open ***SimpleQtBBox.pro*** with QtCreator program and build the project!!!!!
+Tested with Qt6.2 
 
 
-if you don't want to build the program, you can just uncompress *SimpleQtBBox.tar.gz* and type:
-    
-    ~$ ./SimpleQtBBox/AppRun 
-
-
+### Gallery
+[]

@@ -11,12 +11,16 @@
 #include "polygon_item.h"
 
 ImageCanvas::ImageCanvas(QObject *parent)
-    : QGraphicsScene(parent), m_waitingForObj(false), m_drawObjStarted(false) {}
+    : QGraphicsScene(parent), m_waitingForObj(false), m_drawObjStarted(false) {
+  QObject::connect(this, &ImageCanvas::deferredRemoveItem, this,
+                   &ImageCanvas::removeItemCmd, Qt::QueuedConnection);
+}
 
 void ImageCanvas::hideBoundingBoxes() {
   const auto all_items = items();
   for (auto item : all_items) {
-    if (!item->isSelected()) {
+    CustomItem *citem = dynamic_cast<CustomItem *>(item);
+    if (citem && citem->isLocked()) {
       item->setVisible(false);
     }
   }
@@ -133,25 +137,12 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
   }
 }
 
-void ImageCanvas::removeUnlockedItems() {
-  const auto all_items = items();
-  bool needSaveData = false;
-  for (auto *item : all_items) {
-    auto ptr = dynamic_cast<CustomItem *>(item);
-    if (ptr && ptr->isLocked() == false) {
-      removeItem(item);
-      delete item;
-      needSaveData = true;
-    }
-  }
-  if (needSaveData) emit needSaveChanges();
-}
-
 void ImageCanvas::clear() {
   const auto all_items = items();
   for (auto *item : all_items) {
     auto *to_del = dynamic_cast<CustomItem *>(item);
     if (to_del) {
+      // removeItemCmd(item);
       removeItem(item);
       delete item;
     }
@@ -359,4 +350,10 @@ void ImageCanvas::keyPressEvent(QKeyEvent *keyEvent) {
 void ImageCanvas::setShowGrid(bool show) {
   m_showGrid = show;
   update();
+}
+
+void ImageCanvas::removeItemCmd(QGraphicsItem *item) {
+  removeItem(item);
+  delete item;
+  emit needSaveChanges();
 }

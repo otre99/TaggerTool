@@ -62,6 +62,7 @@ class AnnImgManager {
  private:
   void _saveAnnotations(const QString &path, const Annotations &ann);
   Annotations _loadAnnotation(const QString &path);
+  QString basename(const QString &filePath) const;
 };
 
 #endif  // ANNIMGMANAGER_H

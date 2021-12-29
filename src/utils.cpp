@@ -43,8 +43,8 @@ const QColor Helper::kLockedBBoxColor = {128, 128, 128, 64};
 const QColor Helper::kMarginBBoxColor = {128, 0, 0, 64};
 const QColor Helper::kLabelColor = {200, 200, 200, 64};
 
-const double Helper::kMinPenW = 1.0;
-const double Helper::kMaxPenW = 200.0;
+const double Helper::kMinPenW = 0.250;
+const double Helper::kMaxPenW = 100.0;
 
 int Helper::kFontPixelSize = 24;
 const int Helper::kImageMarging = 32;
@@ -85,6 +85,12 @@ const QFont &Helper::fontLabel() { return Helper::m_fontLabel; }
 
 double Helper::penWidth() {
   return qMin(kMaxPenW, qMax(kMinPenW, kPointRadius * kInvScaleFactor));
+}
+
+void Helper::registerNewLabels(const QStringList &labels) {
+  for (const auto &lb : labels) {
+    (void)colorFromLabel(lb);
+  }
 }
 
 QRectF Helper::buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2) {

@@ -4,7 +4,10 @@
 #include <QDebug>
 #include <QFontMetrics>
 #include <QPen>
+#include <QTimer>
 
+#include "editdialog.h"
+#include "imagecanvas.h"
 #include "utils.h"
 
 void CustomItem::__setLabel(QAbstractGraphicsShapeItem *item, QString label) {
@@ -36,6 +39,25 @@ void CustomItem::__swapStackOrder(QGraphicsItem *item,
     if (citem) {
       citem->setLocked(false);
       dynamic_cast<CustomItem *>(item)->setLocked(true);
+    }
+  }
+}
+
+void CustomItem::__showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
+  EditDialog dlg;
+  dlg.setGeometry(QRect{screenPos, dlg.size()});
+  dlg.setLabel(m_label);
+  if (dlg.exec() == QDialog::Accepted) {
+    ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
+
+    if (dlg.removeItem()) {
+      canvas->deferredRemoveItem(item);
+      return;
+    }
+
+    if (dlg.label() != m_label) {
+      setLabel(dlg.label());
+      emit canvas->needSaveChanges();
     }
   }
 }
