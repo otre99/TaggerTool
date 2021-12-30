@@ -1,13 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-  <defs id="defs3051">
-    <style type="text/css" id="current-color-scheme">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="draw-line.svg"
+   width="32"
+   height="32"
+   inkscape:version="1.1.1 (1:1.1+202109281949+c3084ef5ed)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview8"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     width="15px"
+     inkscape:zoom="13.09375"
+     inkscape:cx="25.699284"
+     inkscape:cy="7.2171838"
+     inkscape:window-width="1864"
+     inkscape:window-height="1016"
+     inkscape:window-x="56"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6" />
+  <defs
+     id="defs3051">
+    <style
+       type="text/css"
+       id="current-color-scheme">
       .ColorScheme-Text {
         color:#232629;
       }
       </style>
   </defs>
- <path style="fill:currentColor;fill-opacity:1;stroke:none" 
-     d="M 11 2 L 11 4.3125 L 4.3125 11.001953 L 2.0019531 11.001953 L 2.0019531 14.001953 L 5.0019531 14.001953 L 5.0019531 11.6875 L 11.6875 5 L 14 5 L 14 2 L 11 2 z M 12 3 L 13 3 L 13 4 L 12 4 L 12 3 z M 3 12 L 4 12 L 4 13 L 3 13 L 3 12 z "
+  <path
+     style="fill:currentColor;fill-opacity:1;stroke:none;stroke-width:2.49984"
+     d="M 23.591304,1.0764985 V 6.8568082 L 6.8697627,23.577719 H 1.0924681 v 7.49878 h 7.501226 V 25.291303 L 25.310327,8.5752745 h 5.782141 v -7.498776 z m 2.500328,2.4995973 H 28.59206 V 6.0756931 H 26.091632 Z M 3.5879937,26.072448 h 2.5004212 v 2.499597 H 3.5879937 Z"
      class="ColorScheme-Text"
-     />
+     id="path4" />
 </svg>
