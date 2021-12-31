@@ -14,7 +14,8 @@
 
 class ImageCanvas : public QGraphicsScene {
   Q_OBJECT
- private:
+
+private:
   QPixmap m_currentImage;
   QString m_imageId;
   QString m_bboxLabel;
@@ -24,6 +25,8 @@ class ImageCanvas : public QGraphicsScene {
   QPointF m_endPt;
   bool m_needSaveChanges;
   Helper::CustomItemType m_waitingForTypeObj;
+
+  friend class BoundingBoxItem;
 
  public:
   ImageCanvas(QObject *parent = nullptr);
@@ -55,6 +58,7 @@ class ImageCanvas : public QGraphicsScene {
   void keyPressEvent(QKeyEvent *keyEvent) override;
 
   bool showGrid() const { return m_showGrid; }
+  QUndoStack *undoStack() {return &m_undoStack;}
 
  public slots:
   void setShowGrid(bool show);
@@ -69,6 +73,8 @@ class ImageCanvas : public QGraphicsScene {
   bool m_showLabels{true};
   bool m_showGrid{true};
   QPolygonF m_currentPolygon{};
+  QUndoStack m_undoStack;
+
 };
 
 #endif  // IMAGECANVAS_H

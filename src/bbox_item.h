@@ -58,6 +58,7 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   CORNER positionInside(const QPointF &pos);
 
   QPointF m_lastPt;
+  QRectF m_oldCoords;
 };
 
 #endif  // BBOX_ITEM_H

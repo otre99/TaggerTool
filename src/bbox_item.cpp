@@ -11,6 +11,7 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
+#include "undo_cmds.h"
 
 extern Helper globalHelper;
 
@@ -19,8 +20,10 @@ BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,
     : QGraphicsRectItem(parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
-  setPos(rectf.topLeft());
-  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
+
+  setCoordinates(rectf);
+//  setPos(rectf.topLeft());
+//  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
 
   __setLocked(this, !ready);
   if (ready) {
@@ -215,6 +218,8 @@ void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     __showEditDialog(this, event->screenPos());
   } else {
     m_currentCorner = positionInside(event->pos());
+    m_oldCoords = boundingBoxCoordinates();
+
     if (m_currentCorner == kCenter || !m_moveEnable) {
       QGraphicsRectItem::mousePressEvent(event);
     } else {
@@ -233,8 +238,23 @@ void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   QGraphicsRectItem::mouseReleaseEvent(event);
   if (isSelected())
     emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
+
+
+  auto newCoords = boundingBoxCoordinates();
+  if (m_oldCoords != newCoords){
+    if (m_currentCorner==kCenter){
+        auto canvas = dynamic_cast<ImageCanvas*>(this->scene());
+        auto cmd  = new MoveBBoxCommand(m_oldCoords, newCoords,this);
+        canvas->undoStack()->push(cmd);
+    } else if (m_currentCorner!=kInvalid){
+        auto canvas = dynamic_cast<ImageCanvas*>(this->scene());
+        auto cmd  = new SizeChangeBBoxCommand(m_oldCoords, newCoords,this);
+        canvas->undoStack()->push(cmd);
+    }
+  } else {
+    update();
+  }
   m_currentCorner = kInvalid;
-  update();
 }
 
 void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
@@ -358,8 +378,11 @@ QRectF BoundingBoxItem::boundingBoxCoordinates() {
 }
 
 void BoundingBoxItem::setCoordinates(const QRectF &coords) {
-  setPos(coords.topLeft());
-  setRect(QRectF(QPointF(0, 0), coords.size()));
+    setPos(coords.topLeft());
+    setRect(QRectF(0, 0, coords.width(), coords.height()));
+
+    //  setPos(rectf.topLeft());
+    //  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
 }
 
 // private

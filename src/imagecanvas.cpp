@@ -9,6 +9,7 @@
 #include "line_item.h"
 #include "point_item.h"
 #include "polygon_item.h"
+#include "undo_cmds.h"
 
 ImageCanvas::ImageCanvas(QObject *parent)
     : QGraphicsScene(parent), m_waitingForObj(false), m_drawObjStarted(false) {
@@ -106,6 +107,8 @@ void ImageCanvas::reset(const QImage &img, const QString &img_id) {
   clear();
   m_imageId = img_id;
   update();
+
+  m_undoStack.clear();
 }
 
 void ImageCanvas::addAnnotations(const Annotations &ann) {
@@ -144,7 +147,7 @@ void ImageCanvas::clear() {
     if (to_del) {
       // removeItemCmd(item);
       removeItem(item);
-      delete item;
+      //delete item;
     }
   }
 }
@@ -259,10 +262,20 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
   if (m_drawObjStarted) {
     views().first()->viewport()->setCursor(Qt::ArrowCursor);
     if (m_waitingForTypeObj == Helper::kBBox && (m_begPt != m_endPt)) {
+
+
+
       auto bbox = Helper::buildRectFromTwoPoints(m_begPt, m_endPt);
-      auto *item = new BoundingBoxItem(bbox, m_bboxLabel, nullptr, true);
-      item->setShowLabel(m_showLabels);
-      addItem(item);
+
+      auto cmd = new AddBBoxCommand(bbox,m_bboxLabel,true,this);
+      m_undoStack.push(cmd);
+
+
+//      auto *item = new BoundingBoxItem(bbox, m_bboxLabel, nullptr, true);
+//      item->setShowLabel(m_showLabels);
+//      addItem(item);
+
+
       emit needSaveChanges();
       m_drawObjStarted = false;
     }

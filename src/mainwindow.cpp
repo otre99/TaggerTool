@@ -197,22 +197,25 @@ void MainWindow::on_actionAdd_New_Line_triggered() {
 }
 
 void MainWindow::on_actionNext_triggered() {
-  int N = m_imageListModel.rowCount();
-  const int row = (m_current_index.row() + 1) % N;
-  const QModelIndex next_index = m_imageListModel.indexAtRow(row);
-  ui->listViewImgNames->setCurrentIndex(next_index);
-  on_listViewImgNames_clicked(next_index);
+    m_imageCanvas.undoStack()->redo();
+//  int N = m_imageListModel.rowCount();
+//  const int row = (m_current_index.row() + 1) % N;
+//  const QModelIndex next_index = m_imageListModel.indexAtRow(row);
+//  ui->listViewImgNames->setCurrentIndex(next_index);
+//  on_listViewImgNames_clicked(next_index);
 }
 
 void MainWindow::on_actionPrevious_triggered() {
-  int N = m_imageListModel.rowCount();
-  int row = N - 1;
-  if (m_current_index.row() != 0) {
-    row = (m_current_index.row() - 1) % N;
-  }
-  const QModelIndex next_index = m_imageListModel.indexAtRow(row);
-  ui->listViewImgNames->setCurrentIndex(next_index);
-  on_listViewImgNames_clicked(next_index);
+    m_imageCanvas.undoStack()->undo();
+
+    //  int N = m_imageListModel.rowCount();
+//  int row = N - 1;
+//  if (m_current_index.row() != 0) {
+//    row = (m_current_index.row() - 1) % N;
+//  }
+//  const QModelIndex next_index = m_imageListModel.indexAtRow(row);
+//  ui->listViewImgNames->setCurrentIndex(next_index);
+//  on_listViewImgNames_clicked(next_index);
 }
 
 void MainWindow::on_actionAdd_New_Polygon_triggered() {
