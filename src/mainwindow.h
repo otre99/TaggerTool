@@ -31,7 +31,8 @@ class MainWindow : public QMainWindow {
   void selectionChangedOnImageCanvas();
   void on_actionShow_Hide_Labels_triggered();
   void on_actionNew_Point_triggered();
-  void onNeedSaveChange();
+  void on_NeedSaveChangeUndo(bool enable);
+  void on_NeedSaveChange();
   void on_listViewImgNames_clicked(const QModelIndex &index);
   void on_actionAdd_New_Line_triggered();
   void on_actionNext_triggered();
@@ -51,6 +52,10 @@ class MainWindow : public QMainWindow {
   void on_toolButtonAddItemLabels_clicked();
   void on_toolButtonAddTags_clicked();
   void on_toolButtonAddImgLabels_clicked();
+  void on_actionLoad_project_triggered();
+  void on_actionSave_project_triggered();
+  void loadImagesAndAnnotations(const QString &annImg,
+                                const QString &annFolder);
 
  private:
   void setUp();
@@ -65,6 +70,7 @@ class MainWindow : public QMainWindow {
   ImageCanvas m_imageCanvas;
   ImgStringListModel m_imageListModel;
   QModelIndex m_current_index{};
+  bool m_needToSaveNotUndo;
 };
 
 #endif  // MAINWINDOW_H

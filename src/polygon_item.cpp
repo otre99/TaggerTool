@@ -12,6 +12,7 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
+#include "undo_cmds.h"
 
 PolygonItem::PolygonItem(const QPolygonF &poly, const QString &label,
                          QGraphicsItem *parent, bool ready)
@@ -108,13 +109,11 @@ void PolygonItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
     QPolygonF poly = polygon();
     poly[m_currentNodeIndx_] = cpos;
     setPolygon(poly);
-    emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
   }
-  if (isSelected())
-    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
 }
 
 void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+  m_currentCorner = kInvalid;
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
@@ -130,7 +129,8 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (corner == kNode) {
       if (poly.count() > 3) {
         poly.remove(m_currentNodeIndx_);
-        setPolygon(poly);
+        Helper::imageCanvas()->undoStack()->push(
+            new ChangePolygonShapeCommand(polygon(), poly, this, nullptr));
       }
     } else {
       qreal th = pen().widthF();
@@ -146,7 +146,8 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
           const double len = Helper::pointLen(p1 - p2);
           if (Helper::pointLen(newPt - midPt) <= len / 2.0) {
             poly.insert(i + 1, newPt);
-            setPolygon(poly);
+            Helper::imageCanvas()->undoStack()->push(
+                new ChangePolygonShapeCommand(polygon(), poly, this, nullptr));
             break;
           }
         }
@@ -154,6 +155,8 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     }
   } else {
     m_currentCorner = positionInside(event->pos());
+    m_oldPolygon = polygon();
+    m_oldPos = pos();
     if (m_currentCorner == kCenter || !m_moveEnable) {
       QGraphicsPolygonItem::mousePressEvent(event);
     } else {
@@ -169,8 +172,18 @@ void PolygonItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
 void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsPolygonItem::mouseReleaseEvent(event);
-  if (isSelected())
-    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
+
+  if (m_currentCorner != kInvalid) {
+    if (m_oldPos != pos()) {
+      Helper::imageCanvas()->undoStack()->push(
+          new MoveItemCommand(m_oldPos, pos(), this));
+    }
+
+    if (m_oldPolygon != polygon()) {
+      Helper::imageCanvas()->undoStack()->push(
+          new ChangePolygonShapeCommand(m_oldPolygon, polygon(), this));
+    }
+  }
   m_currentCorner = kInvalid;
   update();
 }
@@ -213,19 +226,6 @@ QRectF PolygonItem::boundingRect() const {
   return br.adjusted(-dw, -dh, dw, dh);
 }
 
-QVariant PolygonItem::itemChange(QGraphicsItem::GraphicsItemChange change,
-                                 const QVariant &value) {
-  if (scene() == nullptr) return value;
-  switch (change) {
-    case QGraphicsItem::ItemPositionChange:
-      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-      break;
-    default:
-      break;
-  }
-  return value;
-}
-
 // private
 PolygonItem::CORNER PolygonItem::positionInside(const QPointF &pos) {
   const QPolygonF poly = polygon();
@@ -238,4 +238,8 @@ PolygonItem::CORNER PolygonItem::positionInside(const QPointF &pos) {
     }
   }
   return kCenter;
+}
+
+QPolygonF PolygonItem::getPolygonCoords() const {
+  return mapToScene(polygon());
 }

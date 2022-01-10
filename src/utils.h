@@ -7,9 +7,12 @@
 #include <QGraphicsItem>
 #include <QStringList>
 
+class ImageCanvas;
+
 class Helper {
   static QFont m_fontLabel;
   static QMap<QString, QColor> m_labelToColor;
+  static ImageCanvas *m_scene;
 
  public:
   static bool m_labelsUpdated;
@@ -30,6 +33,8 @@ class Helper {
   static void InitFonts(const QFont &baseFont);
   static void InitSupportedImageFormats();
   static void setScale(const double &scale);
+  static void setImageCanvas(ImageCanvas *scene);
+  static ImageCanvas *imageCanvas() { return m_scene; }
   static const QFont &fontLabel();
   static double penWidth();
 

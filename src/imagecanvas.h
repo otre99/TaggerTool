@@ -15,7 +15,7 @@
 class ImageCanvas : public QGraphicsScene {
   Q_OBJECT
 
-private:
+ private:
   QPixmap m_currentImage;
   QString m_imageId;
   QString m_bboxLabel;
@@ -34,6 +34,10 @@ private:
   void addAnnotations(const Annotations &ann);
 
   Annotations annotations();
+  /**
+   * @brief Only remove the item from scene,
+   * but it doesn't delete the items
+   */
   void clear();
   QSize imageSize();
   QString imageId();
@@ -58,15 +62,14 @@ private:
   void keyPressEvent(QKeyEvent *keyEvent) override;
 
   bool showGrid() const { return m_showGrid; }
-  QUndoStack *undoStack() {return &m_undoStack;}
+  QUndoStack *undoStack() { return &m_undoStack; }
 
  public slots:
   void setShowGrid(bool show);
   void removeItemCmd(QGraphicsItem *item);
 
  signals:
-  void bboxItemToEditor(QGraphicsItem *iten, int reason);
-  void needSaveChanges();
+  // void needSaveChanges();
   void deferredRemoveItem(QGraphicsItem *item);
 
  private:
@@ -74,7 +77,6 @@ private:
   bool m_showGrid{true};
   QPolygonF m_currentPolygon{};
   QUndoStack m_undoStack;
-
 };
 
 #endif  // IMAGECANVAS_H

@@ -17,13 +17,12 @@ extern Helper globalHelper;
 
 BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,
                                  QGraphicsItem *parent, bool ready)
-    : QGraphicsRectItem(parent) {
+    : QGraphicsRectItem(rectf, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
-  setCoordinates(rectf);
-//  setPos(rectf.topLeft());
-//  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
+  //  setPos(rectf.topLeft());
+  //  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
 
   __setLocked(this, !ready);
   if (ready) {
@@ -117,12 +116,10 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
   if (m_currentCorner == kCenter || !m_moveEnable)
     QGraphicsRectItem::mouseMoveEvent(event);
   else {
-    QPointF cpos = mapToScene(event->pos());
+    QPointF cpos = event->pos();
     QPointF dl = cpos - m_lastPt;
 
-    QRectF srect = scene()->sceneRect();
-    QRectF newrect(this->pos(), this->rect().size());
-
+    QRectF newrect = rect();
     CORNER new_corner = m_currentCorner;
     bool sw;
     bool sh;
@@ -192,22 +189,20 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
                                          newrect.bottomRight(), sw, sh);
         if (sw) new_corner = kRightCenter;
         break;
+      default:
+        break;
     }
-
     m_currentCorner = new_corner;
-    newrect &= srect;
     if (newrect.isValid()) {
-      setPos(newrect.topLeft());
-      setRect(0, 0, newrect.width(), newrect.height());
+      setRect(newrect);
       m_lastPt = cpos;
-      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
+      // emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
     }
   }
-  if (isSelected())
-    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
 }
 
 void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+  m_currentCorner = kInvalid;
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
@@ -218,13 +213,13 @@ void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     __showEditDialog(this, event->screenPos());
   } else {
     m_currentCorner = positionInside(event->pos());
-    m_oldCoords = boundingBoxCoordinates();
-
+    m_oldCoords = rect();
+    m_oldPos = pos();
     if (m_currentCorner == kCenter || !m_moveEnable) {
       QGraphicsRectItem::mousePressEvent(event);
     } else {
       update();
-      m_lastPt = mapToScene(event->pos());
+      m_lastPt = event->pos();
     }
   }
 }
@@ -236,21 +231,21 @@ void BoundingBoxItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
 void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsRectItem::mouseReleaseEvent(event);
-  if (isSelected())
-    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
+  // if (isSelected())
+  // emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
 
-
-  auto newCoords = boundingBoxCoordinates();
-  if (m_oldCoords != newCoords){
-    if (m_currentCorner==kCenter){
-        auto canvas = dynamic_cast<ImageCanvas*>(this->scene());
-        auto cmd  = new MoveBBoxCommand(m_oldCoords, newCoords,this);
-        canvas->undoStack()->push(cmd);
-    } else if (m_currentCorner!=kInvalid){
-        auto canvas = dynamic_cast<ImageCanvas*>(this->scene());
-        auto cmd  = new SizeChangeBBoxCommand(m_oldCoords, newCoords,this);
-        canvas->undoStack()->push(cmd);
+  auto newCoords = rect();
+  if (m_oldCoords != newCoords || m_oldPos != pos()) {
+    if (m_currentCorner == kCenter) {
+      auto canvas = dynamic_cast<ImageCanvas *>(this->scene());
+      auto cmd = new MoveItemCommand(m_oldPos, pos(), this);
+      canvas->undoStack()->push(cmd);
+    } else if (m_currentCorner != kInvalid) {
+      auto canvas = dynamic_cast<ImageCanvas *>(this->scene());
+      auto cmd = new SizeChangeBBoxCommand(m_oldCoords, newCoords, this);
+      canvas->undoStack()->push(cmd);
     }
+
   } else {
     update();
   }
@@ -312,8 +307,6 @@ void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
     // setCursor(Qt::ArrowCursor);
   } else
     QGraphicsItem::keyPressEvent(event);
-  if (isSelected())
-    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
 }
 
 QPainterPath BoundingBoxItem::shape() const {
@@ -359,30 +352,9 @@ QRectF BoundingBoxItem::boundingRect() const {
   return br.adjusted(0, -m_labelHeight, dw, 0);
 }
 
-QVariant BoundingBoxItem::itemChange(QGraphicsItem::GraphicsItemChange change,
-                                     const QVariant &value) {
-  if (scene() == nullptr) return value;
-  switch (change) {
-    case QGraphicsItem::ItemPositionChange:
-      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-      break;
-    default:
-      break;
-  }
-  return value;
-}
-
 // set/get
 QRectF BoundingBoxItem::boundingBoxCoordinates() {
   return mapRectToScene(rect());
-}
-
-void BoundingBoxItem::setCoordinates(const QRectF &coords) {
-    setPos(coords.topLeft());
-    setRect(QRectF(0, 0, coords.width(), coords.height()));
-
-    //  setPos(rectf.topLeft());
-    //  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
 }
 
 // private

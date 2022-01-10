@@ -36,11 +36,14 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   void keyPressEvent(QKeyEvent *event) override;
   QPainterPath shape() const override;
   QRectF boundingRect() const override;
-  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
-                      const QVariant &value) override;
+
+  // get/set
+  QPolygonF getPolygonCoords() const;
 
  private:
   CORNER positionInside(const QPointF &pos);
+  QPolygonF m_oldPolygon;
+  QPointF m_oldPos;
 };
 
 #endif  // POLYGON_ITEM_H

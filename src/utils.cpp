@@ -42,7 +42,6 @@ const QColor Helper::kUnlockedBBoxColor = {0, 0, 128, 64};
 const QColor Helper::kLockedBBoxColor = {128, 128, 128, 64};
 const QColor Helper::kMarginBBoxColor = {128, 0, 0, 64};
 const QColor Helper::kLabelColor = {200, 200, 200, 64};
-
 const double Helper::kMinPenW = 0.250;
 const double Helper::kMaxPenW = 100.0;
 
@@ -55,6 +54,7 @@ double Helper::kLineWidth = 2.0;
 QStringList Helper::kImgExts = {};
 
 QMap<QString, QColor> Helper::m_labelToColor{};
+ImageCanvas *Helper::m_scene = nullptr;
 bool Helper::m_labelsUpdated = false;
 QFont Helper::m_fontLabel;
 
@@ -80,6 +80,7 @@ void Helper::setScale(const double &scale) {
   Helper::m_fontLabel.setPixelSize(
       qMax(2.0, Helper::kFontPixelSize * kInvScaleFactor));
 }
+void Helper::setImageCanvas(ImageCanvas *scene) { m_scene = scene; }
 
 const QFont &Helper::fontLabel() { return Helper::m_fontLabel; }
 

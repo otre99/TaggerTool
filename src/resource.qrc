@@ -15,5 +15,7 @@
         <file>icons/emblem-added.svg</file>
         <file>icons/emblem-remove.svg</file>
         <file>icons/zoom-fit-best.svg</file>
+        <file>icons/edit-redo.svg</file>
+        <file>icons/edit-undo.svg</file>
     </qresource>
 </RCC>

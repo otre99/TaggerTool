@@ -35,14 +35,15 @@ class LineItem : public QGraphicsLineItem, public CustomItem {
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
   void keyPressEvent(QKeyEvent *event) override;
   QRectF boundingRect() const override;
-  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
-                      const QVariant &value) override;
+
   // get/set
   QPointF p1() const { return mapToScene(line().p1()); }
   QPointF p2() const { return mapToScene(line().p2()); }
 
  private:
   CORNER positionInside(const QPointF &pos);
+  QPointF m_oldPos;
+  QLineF m_oldLine;
 };
 
 #endif  // LINE_ITEM_H
