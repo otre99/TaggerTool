@@ -31,6 +31,7 @@ set(PROJECT_SOURCES
     editdialog.cpp editdialog.h editdialog.ui
     loadimganndialog.cpp loadimganndialog.h loadimganndialog.ui
     dialoglabels.cpp dialoglabels.h dialoglabels.ui
+    undo_cmds.h  undo_cmds.cpp
     resource.qrc
     )
 

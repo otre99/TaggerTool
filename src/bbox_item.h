@@ -45,19 +45,18 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   void keyPressEvent(QKeyEvent *event) override;
   QPainterPath shape() const override;
   QRectF boundingRect() const override;
-  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
-                      const QVariant &value) override;
 
   // get/set
   QRectF boundingBoxCoordinates();
-  void setCoordinates(const QRectF &coords);
 
  private:
   QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw,
                                 bool &sh);
   CORNER positionInside(const QPointF &pos);
 
+  QPointF m_oldPos;
   QPointF m_lastPt;
+  QRectF m_oldCoords;
 };
 
 #endif  // BBOX_ITEM_H

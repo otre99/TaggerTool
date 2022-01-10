@@ -24,11 +24,14 @@ class PointItem : public QGraphicsEllipseItem, public CustomItem {
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
   QRectF boundingRect() const override;
-  QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
-                      const QVariant &value) override;
+
   // get/set
   QPointF center() const;
+
+ private:
+  QPointF m_oldPos;
 };
 
 #endif  // POINT_ITEM_H

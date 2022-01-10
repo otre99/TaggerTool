@@ -8,6 +8,7 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
+#include "undo_cmds.h"
 #include "utils.h"
 
 void CustomItem::__setLabel(QAbstractGraphicsShapeItem *item, QString label) {
@@ -56,8 +57,9 @@ void CustomItem::__showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
     }
 
     if (dlg.label() != m_label) {
-      setLabel(dlg.label());
-      emit canvas->needSaveChanges();
+      Helper::imageCanvas()->undoStack()->push(
+          new ChangeLabelCommand(m_label, dlg.label(), item));
+      // emit canvas->needSaveChanges();
     }
   }
 }

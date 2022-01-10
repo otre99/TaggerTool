@@ -12,6 +12,7 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
+#include "undo_cmds.h"
 
 LineItem::LineItem(const QPointF &p1, const QPointF &p2, const QString &label,
                    QGraphicsItem *parent, bool ready)
@@ -112,10 +113,10 @@ void LineItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
       auto p = line().p1();
       setLine(p.x(), p.y(), cpos.x(), cpos.y());
     }
-    emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
+    // emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
   }
-  if (isSelected())
-    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
+  //  if (isSelected())
+  //    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
 }
 
 void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
@@ -135,6 +136,8 @@ void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
       update();
     }
   }
+  m_oldLine = line();
+  m_oldPos = pos();
 }
 
 void LineItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
@@ -144,8 +147,17 @@ void LineItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
 void LineItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsLineItem::mouseReleaseEvent(event);
-  if (isSelected())
-    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
+
+  if (m_oldLine != line()) {
+    Helper::imageCanvas()->undoStack()->push(
+        new ChangeLineSizeCommand(m_oldLine, line(), this, nullptr));
+  }
+
+  if (m_oldPos != pos()) {
+    Helper::imageCanvas()->undoStack()->push(
+        new MoveItemCommand(m_oldPos, pos(), this, nullptr));
+  }
+
   m_currentCorner = kInvalid;
   update();
 }
@@ -166,19 +178,6 @@ QRectF LineItem::boundingRect() const {
   }
   qreal w = pen().widthF() / 2.0;
   return br.adjusted(-w / 2, -dh - w, dw + w, w);
-}
-
-QVariant LineItem::itemChange(QGraphicsItem::GraphicsItemChange change,
-                              const QVariant &value) {
-  if (scene() == nullptr) return value;
-  switch (change) {
-    case QGraphicsItem::ItemPositionChange:
-      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-      break;
-    default:
-      break;
-  }
-  return value;
 }
 
 // private

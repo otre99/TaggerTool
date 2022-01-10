@@ -9,6 +9,7 @@
 #include "line_item.h"
 #include "point_item.h"
 #include "polygon_item.h"
+#include "undo_cmds.h"
 
 ImageCanvas::ImageCanvas(QObject *parent)
     : QGraphicsScene(parent), m_waitingForObj(false), m_drawObjStarted(false) {
@@ -106,24 +107,25 @@ void ImageCanvas::reset(const QImage &img, const QString &img_id) {
   clear();
   m_imageId = img_id;
   update();
+  m_undoStack.clear();
 }
 
 void ImageCanvas::addAnnotations(const Annotations &ann) {
+  m_undoStack.beginMacro("Load Annotations");
   for (auto &bbox : ann.bboxes) {
     QRectF frect =
         QRectF{{bbox.x1, bbox.y1}, QPointF{bbox.x2, bbox.y2}} & sceneRect();
     if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
-    auto item = new BoundingBoxItem(frect, bbox.label);
-    item->setShowLabel(m_showLabels);
-    addItem(item);
+
+    m_undoStack.push(new AddBBoxCommand(frect, bbox.label, false));
   }
   for (auto &pt : ann.points) {
-    auto item = new PointItem({pt.x, pt.y}, pt.label);
-    addItem(item);
+    m_undoStack.push(
+        new AddPointCommand({pt.x, pt.y}, pt.label, false, nullptr));
   }
   for (auto &l : ann.lines) {
-    auto item = new LineItem({l.x1, l.y1}, {l.x2, l.y2}, l.label);
-    addItem(item);
+    m_undoStack.push(new AddLineCommand({l.x1, l.y1}, {l.x2, l.y2}, l.label,
+                                        false, nullptr));
   }
 
   for (auto &poly : ann.polygons) {
@@ -132,9 +134,10 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
     for (int i = 0; i < n; ++i) {
       p.append({poly.xArray[i], poly.yArray[i]});
     }
-    auto item = new PolygonItem(p, poly.label);
-    addItem(item);
+    m_undoStack.push(new AddPolygonCommand(p, poly.label, false, nullptr));
   }
+  m_undoStack.endMacro();
+  m_undoStack.setClean();
 }
 
 void ImageCanvas::clear() {
@@ -142,9 +145,7 @@ void ImageCanvas::clear() {
   for (auto *item : all_items) {
     auto *to_del = dynamic_cast<CustomItem *>(item);
     if (to_del) {
-      // removeItemCmd(item);
       removeItem(item);
-      delete item;
     }
   }
 }
@@ -199,7 +200,8 @@ Annotations ImageCanvas::annotations() {
 
       if (item->type() == Helper::kPolygon) {
         auto poly_item = dynamic_cast<PolygonItem *>(item);
-        const QPolygonF pdata = poly_item->mapToScene(poly_item->polygon());
+        const QPolygonF pdata =
+            poly_item->getPolygonCoords();  // mapToScene(poly_item->polygon());
 
         Polygon poly;
         poly.label = poly_item->label();
@@ -237,11 +239,9 @@ void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 
     if (m_waitingForTypeObj == Helper::kPoint) {
       views().first()->viewport()->setCursor(Qt::ArrowCursor);
-      auto *item =
-          new PointItem(mouseEvent->scenePos(), m_bboxLabel, nullptr, true);
-      addItem(item);
+      undoStack()->push(new AddPointCommand(mouseEvent->scenePos(), m_bboxLabel,
+                                            true, nullptr));
       m_waitingForObj = false;
-      emit needSaveChanges();
     }
   }
   QGraphicsScene::mousePressEvent(mouseEvent);
@@ -260,18 +260,14 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
     views().first()->viewport()->setCursor(Qt::ArrowCursor);
     if (m_waitingForTypeObj == Helper::kBBox && (m_begPt != m_endPt)) {
       auto bbox = Helper::buildRectFromTwoPoints(m_begPt, m_endPt);
-      auto *item = new BoundingBoxItem(bbox, m_bboxLabel, nullptr, true);
-      item->setShowLabel(m_showLabels);
-      addItem(item);
-      emit needSaveChanges();
+      auto cmd = new AddBBoxCommand(bbox, m_bboxLabel, true, nullptr);
+      m_undoStack.push(cmd);
       m_drawObjStarted = false;
     }
 
     if (m_waitingForTypeObj == Helper::kLine && (m_begPt != m_endPt)) {
-      auto *item = new LineItem(m_begPt, m_endPt, m_bboxLabel, nullptr, true);
-      item->setShowLabel(m_showLabels);
-      addItem(item);
-      emit needSaveChanges();
+      undoStack()->push(
+          new AddLineCommand(m_begPt, m_endPt, m_bboxLabel, true));
       m_drawObjStarted = false;
     }
 
@@ -284,11 +280,8 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
         if (d < Helper::kPointRadius * Helper::kInvScaleFactor) {
           if (n > 3) {
             m_currentPolygon.removeLast();
-            auto *item =
-                new PolygonItem(m_currentPolygon, m_bboxLabel, nullptr, true);
-            item->setShowLabel(m_showLabels);
-            addItem(item);
-            emit needSaveChanges();
+            Helper::imageCanvas()->undoStack()->push(new AddPolygonCommand(
+                m_currentPolygon, m_bboxLabel, true, nullptr));
           }
           m_drawObjStarted = false;
           m_waitingForObj = false;
@@ -353,7 +346,5 @@ void ImageCanvas::setShowGrid(bool show) {
 }
 
 void ImageCanvas::removeItemCmd(QGraphicsItem *item) {
-  removeItem(item);
-  delete item;
-  emit needSaveChanges();
+  m_undoStack.push(new RemoveItemCommand(item));
 }

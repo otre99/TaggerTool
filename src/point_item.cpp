@@ -11,6 +11,7 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
+#include "undo_cmds.h"
 #include "utils.h"
 
 PointItem::PointItem(const QPointF &center, const QString &label,
@@ -80,6 +81,16 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   } else {
     QGraphicsEllipseItem::mousePressEvent(event);
   }
+  m_oldPos = pos();
+}
+
+void PointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
+  QGraphicsEllipseItem::mouseReleaseEvent(event);
+  auto newPos = pos();
+  if (newPos != m_oldPos) {
+    Helper::imageCanvas()->undoStack()->push(
+        new MoveItemCommand(m_oldPos, newPos, this, nullptr));
+  }
 }
 
 QRectF PointItem::boundingRect() const {
@@ -90,19 +101,6 @@ QRectF PointItem::boundingRect() const {
   }
   qreal o = pen().widthF() / 2.0;
   return rect().adjusted(-o, -o - m_labelHeight, dw + o, o);
-}
-
-QVariant PointItem::itemChange(QGraphicsItem::GraphicsItemChange change,
-                               const QVariant &value) {
-  if (scene() == nullptr) return value;
-  switch (change) {
-    case QGraphicsItem::ItemPositionChange:
-      emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
-      break;
-    default:
-      break;
-  }
-  return value;
 }
 
 // get/set
