@@ -88,12 +88,33 @@ void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
   p.setCosmetic(true);
   painter->setPen(p);
   if (m_showGrid) {
-    painter->drawLine(
-        QPoint{m_currentImage.width() / 2, 0},
-        QPoint{m_currentImage.width() / 2, m_currentImage.height()});
-    painter->drawLine(
-        QPoint{0, m_currentImage.height() / 2},
-        QPoint{m_currentImage.width(), m_currentImage.height() / 2});
+      // upper + left
+
+    qreal w = m_currentImage.width();
+    qreal h = m_currentImage.height();
+    const int n=3;
+    for (int i=1; i<n+1; ++i){
+        painter->drawLine(QPointF{i*w/(n+1), 0}, QPointF{i*w/(n+1), h});
+        painter->drawLine(QPointF{0, i*h/(n+1)}, QPointF{w, i*h/(n+1)});
+    }
+    painter->drawLine(QPointF{0, 0.5*0.75*h}, QPointF{w, 0.5*0.75*h});
+
+
+
+//    // mid
+//    painter->drawLine(
+//        QPoint{m_currentImage.width() / 2, 0},
+//        QPoint{m_currentImage.width() / 2, m_currentImage.height()});
+//    painter->drawLine(
+//        QPoint{0, m_currentImage.height() / 2},
+//        QPoint{m_currentImage.width(), m_currentImage.height() / 2});
+//    // bootom + left
+//    painter->drawLine(
+//        QPoint{m_currentImage.width() / 4, 0},
+//        QPoint{m_currentImage.width() / 4, m_currentImage.height()});
+//    painter->drawLine(
+//        QPoint{0, m_currentImage.height() / 4},
+//        QPoint{m_currentImage.width(), m_currentImage.height() / 4});
   }
 }
 

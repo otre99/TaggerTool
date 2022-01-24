@@ -324,7 +324,8 @@ void MainWindow::on_toolButtonAddItemLabels_clicked() {
   DialogLabels dlb(this, "ITEM'S LABELS");
   dlb.setLabels(getLabelsFromComboBox(ui->comboBoxActiveLabel));
   if (dlb.exec() == QDialog::Accepted) {
-    Helper::registerNewLabels(dlb.getLabels());
+      Helper::clearLabels();
+      Helper::registerNewLabels(dlb.getLabels());
   }
 }
 
@@ -396,6 +397,8 @@ void MainWindow::on_actionSave_project_triggered() {
 
 void MainWindow::loadImagesAndAnnotations(const QString &annImg,
                                           const QString &annFolder) {
+  // clean labels
+  Helper::clearLabels();
   m_annImgManager.reset(annImg, annFolder);
   m_imageListModel.setStringList(m_annImgManager.imageIds());
   ui->saveLocalChanges->setEnabled(false);
