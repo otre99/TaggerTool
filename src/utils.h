@@ -39,6 +39,7 @@ class Helper {
   static double penWidth();
 
   static void registerNewLabels(const QStringList &labels);
+  static void clearLabels();
   static QStringList currentLabels() { return Helper::m_labelToColor.keys(); }
   static QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2);
   static QColor colorFromLabel(const QString &label);
