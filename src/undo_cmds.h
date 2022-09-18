@@ -57,10 +57,42 @@ class AddPolygonCommand : public QUndoCommand {
 };
 
 // ChangePolygonCommand
-class ChangePolygonShapeCommand : public QUndoCommand {
+class ChangePolygonCommand : public QUndoCommand {
  public:
-  ChangePolygonShapeCommand(const QPolygonF &oldPoly, const QPolygonF &newPoly,
-                            PolygonItem *item, QUndoCommand *parent = 0);
+  ChangePolygonCommand(const QPolygonF &oldPoly, const QPolygonF &newPoly,
+                       PolygonItem *item, QUndoCommand *parent = 0);
+  void undo() override;
+  void redo() override;
+
+ private:
+  QPolygonF m_oldPoly, m_newPoly;
+  ;
+  PolygonItem *m_item;
+  QString m_label;
+};
+
+/////////////////////////////////////////////////////////////////
+/////////////////////  LineStrip  ///////////////////////////////
+/////////////////////////////////////////////////////////////////
+// AddPolygonCommand
+class AddLineStripCommand : public QUndoCommand {
+ public:
+  AddLineStripCommand(const QPolygonF &poly, const QString &label, bool ready,
+                      QUndoCommand *parent = 0);
+  ~AddLineStripCommand();
+
+  void undo() override;
+  void redo() override;
+
+ private:
+  PolygonItem *m_item;
+};
+
+// ChangeLineStripCommand
+class ChangeLineStripCommand : public QUndoCommand {
+ public:
+  ChangeLineStripCommand(const QPolygonF &oldPoly, const QPolygonF &newPoly,
+                         PolygonItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
@@ -143,7 +175,7 @@ class RemoveItemCommand : public QUndoCommand {
   QGraphicsItem *m_item;
 };
 
-// RemoveItemCommand
+// ChangeLabelCommand
 class ChangeLabelCommand : public QUndoCommand {
  public:
   ChangeLabelCommand(const QString &oldLabel, const QString &newLabel,

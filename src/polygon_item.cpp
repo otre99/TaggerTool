@@ -10,12 +10,11 @@
 #include <QPainter>
 #include <cmath>
 
-#include "editdialog.h"
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 
 PolygonItem::PolygonItem(const QPolygonF &poly, const QString &label,
-                         QGraphicsItem *parent, bool ready)
+                         QGraphicsItem *parent, bool ready, bool closed_poly)
     : QGraphicsPolygonItem(poly, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
@@ -30,6 +29,7 @@ PolygonItem::PolygonItem(const QPolygonF &poly, const QString &label,
   p.setWidthF(Helper::penWidth());
   setPen(p);
   setAcceptHoverEvents(true);
+  m_closed_poly = closed_poly;
 }
 
 // CustomItem
@@ -60,18 +60,29 @@ void PolygonItem::paint(QPainter *painter,
     pp.setWidth(Helper::kLineWidth);
     pp.setCosmetic(true);
     painter->setPen(pp);
-    painter->drawPolygon(poly);
+    if (m_closed_poly) {
+      painter->drawPolygon(poly);
+    } else {
+      painter->drawPolyline(poly);
+    }
     painter->setPen(p);
-  }
-  if (m_moveEnable) {
+  } else {
     painter->save();
     auto pp = p;
-    pp.setWidthF(qMin(1.0, p.widthF()));
-    pp.setStyle(Qt::DotLine);
-    pp.setColor(Qt::black);
-    painter->setPen(pp);
-    painter->drawPolygon(poly);
-    painter->restore();
+    if (m_closed_poly) {
+      pp.setWidthF(qMin(1.0, p.widthF()));
+      pp.setStyle(Qt::DotLine);
+      pp.setColor(Qt::black);
+      painter->setPen(pp);
+      painter->drawPolygon(poly);
+      painter->restore();
+    } else {
+      pp.setStyle(Qt::DotLine);
+      pp.setColor(Qt::black);
+      painter->setPen(pp);
+      painter->drawPolyline(poly);
+      painter->restore();
+    }
 
     int index = 0;
     painter->setPen(Qt::NoPen);
@@ -127,10 +138,10 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     auto corner = positionInside(event->pos());
     QPolygonF poly = polygon();
     if (corner == kNode) {
-      if (poly.count() > 3) {
+      if (poly.count() > (m_closed_poly ? 3 : 2)) {
         poly.remove(m_currentNodeIndx_);
         Helper::imageCanvas()->undoStack()->push(
-            new ChangePolygonShapeCommand(polygon(), poly, this, nullptr));
+            MakeChangeCommand(polygon(), poly));
       }
     } else {
       qreal th = pen().widthF();
@@ -147,7 +158,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
           if (Helper::pointLen(newPt - midPt) <= len / 2.0) {
             poly.insert(i + 1, newPt);
             Helper::imageCanvas()->undoStack()->push(
-                new ChangePolygonShapeCommand(polygon(), poly, this, nullptr));
+                MakeChangeCommand(polygon(), poly));
             break;
           }
         }
@@ -181,7 +192,7 @@ void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
 
     if (m_oldPolygon != polygon()) {
       Helper::imageCanvas()->undoStack()->push(
-          new ChangePolygonShapeCommand(m_oldPolygon, polygon(), this));
+          MakeChangeCommand(m_oldPolygon, polygon()));
     }
   }
   m_currentCorner = kInvalid;
@@ -196,10 +207,21 @@ QPainterPath PolygonItem::shape() const {
   QPainterPath path;
   const QPolygonF poly = polygon();
   const QPen p = pen();
-  path.addPolygon(poly);
+
+  if (m_closed_poly) {
+    path.addPolygon(poly);
+  } else {
+    path.moveTo(poly[0]);
+    for (int i = 1; i < poly.size(); ++i) {
+      path.lineTo(poly[i]);
+      path.moveTo(poly[i]);
+    }
+  }
   for (const auto &pt : poly) {
     path.addEllipse(pt, p.widthF() / 2, p.widthF() / 2);
   }
+  if (m_closed_poly) return path;
+
   QPainterPathStroker spath;
   spath.setCapStyle(p.capStyle());
   spath.setJoinStyle(p.joinStyle());
@@ -238,6 +260,14 @@ PolygonItem::CORNER PolygonItem::positionInside(const QPointF &pos) {
     }
   }
   return kCenter;
+}
+
+QUndoCommand *PolygonItem::MakeChangeCommand(const QPolygonF &oldPoly,
+                                             const QPolygonF &newPoly) {
+  if (m_closed_poly) {
+    return new ChangePolygonCommand(oldPoly, newPoly, this, nullptr);
+  }
+  return new ChangeLineStripCommand(oldPoly, newPoly, this, nullptr);
 }
 
 QPolygonF PolygonItem::getPolygonCoords() const {

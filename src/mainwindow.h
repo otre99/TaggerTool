@@ -57,7 +57,9 @@ class MainWindow : public QMainWindow {
   void loadImagesAndAnnotations(const QString &annImg,
                                 const QString &annFolder);
 
- private:
+  void on_actionAdd_New_LineStrip_triggered();
+
+  private:
   void setUp();
   void displayImageInfo();
   void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);

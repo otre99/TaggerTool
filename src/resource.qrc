@@ -17,5 +17,6 @@
         <file>icons/zoom-fit-best.svg</file>
         <file>icons/edit-redo.svg</file>
         <file>icons/edit-undo.svg</file>
+        <file>icons/draw-line-strip.svg</file>
     </qresource>
 </RCC>

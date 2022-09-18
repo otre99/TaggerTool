@@ -7,6 +7,7 @@
 #include "utils.h"
 
 class ImageCanvas;
+class QUndoCommand;
 
 class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   friend class ImageCanvas;
@@ -15,7 +16,8 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
 
  public:
   PolygonItem(const QPolygonF &poly, const QString &label = QString(),
-              QGraphicsItem *parent = nullptr, bool ready = false);
+              QGraphicsItem *parent = nullptr, bool ready = false,
+              bool closed_poly = true);
   // CustomItem
   void helperParametersChanged() override;
   void setLocked(bool what) override { __setLocked(this, what); }
@@ -26,7 +28,9 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   }
 
   // QGraphicsItem
-  int type() const override { return Helper::kPolygon; }
+  int type() const override {
+    return m_closed_poly ? Helper::kPolygon : Helper::kLineStrip;
+  }
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -44,6 +48,9 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   CORNER positionInside(const QPointF &pos);
   QPolygonF m_oldPolygon;
   QPointF m_oldPos;
+  bool m_closed_poly;
+
+  QUndoCommand *MakeChangeCommand(const QPolygonF &oldPoly, const QPolygonF &newPoly);
 };
 
 #endif  // POLYGON_ITEM_H

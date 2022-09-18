@@ -50,6 +50,7 @@ class ImageCanvas : public QGraphicsScene {
   void prepareForNewPoint(const QString &label = QString());
   void prepareForNewLine(const QString &label = QString());
   void prepareForNewPolygon(const QString &label = QString());
+  void prepareForNewLineStrip(const QString &label = QString());
 
   bool addingNewObj() { return m_waitingForObj; }
   void showLabels(bool show);

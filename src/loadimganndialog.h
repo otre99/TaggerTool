@@ -23,6 +23,7 @@ class LoadImgAnnDialog : public QDialog {
 
  private:
   Ui::LoadImgAnnDialog *ui;
+  QString GetParentDir(const QString &dir_path) const;
 };
 
 #endif  // LOADIMGANNDIALOG_H

@@ -324,8 +324,8 @@ void MainWindow::on_toolButtonAddItemLabels_clicked() {
   DialogLabels dlb(this, "ITEM'S LABELS");
   dlb.setLabels(getLabelsFromComboBox(ui->comboBoxActiveLabel));
   if (dlb.exec() == QDialog::Accepted) {
-      Helper::clearLabels();
-      Helper::registerNewLabels(dlb.getLabels());
+    Helper::clearLabels();
+    Helper::registerNewLabels(dlb.getLabels());
   }
 }
 
@@ -456,3 +456,9 @@ void MainWindow::on_actionLoad_project_triggered() {
   const QString annFolder = root[QString("ann_folder")].toString();
   loadImagesAndAnnotations(imgFolder, annFolder);
 }
+
+void MainWindow::on_actionAdd_New_LineStrip_triggered()
+{
+  m_imageCanvas.prepareForNewLineStrip(ui->comboBoxActiveLabel->currentText());
+}
+

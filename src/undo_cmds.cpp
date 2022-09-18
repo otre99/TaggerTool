@@ -62,19 +62,54 @@ AddPolygonCommand::~AddPolygonCommand() {
   }
 }
 
-// MovePolygonCommand
-ChangePolygonShapeCommand::ChangePolygonShapeCommand(const QPolygonF &oldPoly,
-                                                     const QPolygonF &newPoly,
-                                                     PolygonItem *item,
-                                                     QUndoCommand *parent)
+// ChangePolygonCommand
+ChangePolygonCommand::ChangePolygonCommand(const QPolygonF &oldPoly,
+                                           const QPolygonF &newPoly,
+                                           PolygonItem *item,
+                                           QUndoCommand *parent)
     : QUndoCommand("ChangePolygon", parent),
       m_newPoly(newPoly),
       m_oldPoly(oldPoly),
       m_item(item) {}
 
-void ChangePolygonShapeCommand::undo() { m_item->setPolygon(m_oldPoly); }
+void ChangePolygonCommand::undo() { m_item->setPolygon(m_oldPoly); }
 
-void ChangePolygonShapeCommand::redo() { m_item->setPolygon(m_newPoly); }
+void ChangePolygonCommand::redo() { m_item->setPolygon(m_newPoly); }
+
+/////////////////////////////////////////////////////////////////
+//////////////////  LineStrip  //////////////////////////////////
+/////////////////////////////////////////////////////////////////
+// AddPolygonCommand
+AddLineStripCommand::AddLineStripCommand(const QPolygonF &poly,
+                                         const QString &label, bool ready,
+                                         QUndoCommand *parent)
+    : QUndoCommand("AddLineStrip", parent) {
+  m_item = new PolygonItem(poly, label, nullptr, ready, false);
+}
+
+void AddLineStripCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+
+void AddLineStripCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
+
+AddLineStripCommand::~AddLineStripCommand() {
+  if (!m_item->scene()) {
+    delete m_item;
+  }
+}
+
+// MovePolygonCommand
+ChangeLineStripCommand::ChangeLineStripCommand(const QPolygonF &oldPoly,
+                                               const QPolygonF &newPoly,
+                                               PolygonItem *item,
+                                               QUndoCommand *parent)
+    : QUndoCommand("ChangeLineStrip", parent),
+      m_newPoly(newPoly),
+      m_oldPoly(oldPoly),
+      m_item(item) {}
+
+void ChangeLineStripCommand::undo() { m_item->setPolygon(m_oldPoly); }
+
+void ChangeLineStripCommand::redo() { m_item->setPolygon(m_newPoly); }
 
 /////////////////////////////////////////////////////////////////
 ///////////////////  PointItem //////////////////////////////////
@@ -149,6 +184,8 @@ MoveItemCommand::MoveItemCommand(const QPointF &oldPos, const QPointF &newPost,
       break;
     case Helper::kPolygon:
       setText("MovePolygon");
+    case Helper::kLineStrip:
+      setText("MoveLineStrip");
       break;
   }
 }
@@ -202,6 +239,9 @@ ChangeLabelCommand::ChangeLabelCommand(const QString &oldLabel,
     case Helper::kPolygon:
       setText("ChangeLabelPolygon");
       break;
+    case Helper::kLineStrip:
+      setText("ChangeLineStrip");
+      break;
   }
 }
 
@@ -218,6 +258,7 @@ void ChangeLabelCommand::setLabel(const QString &lb) {
       dynamic_cast<PointItem *>(m_item)->setLabel(lb);
       break;
     case Helper::kPolygon:
+    case Helper::kLineStrip:
       dynamic_cast<PolygonItem *>(m_item)->setLabel(lb);
       break;
     case Helper::kLine:

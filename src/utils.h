@@ -26,7 +26,8 @@ class Helper {
     kBBox = QGraphicsItem::UserType + 1,
     kLine,
     kPoint,
-    kPolygon
+    kPolygon,
+    kLineStrip
   };
 
   Helper() = default;

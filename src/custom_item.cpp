@@ -52,7 +52,7 @@ void CustomItem::__showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
     ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
 
     if (dlg.removeItem()) {
-      canvas->deferredRemoveItem(item);
+      emit canvas->deferredRemoveItem(item);
       return;
     }
 

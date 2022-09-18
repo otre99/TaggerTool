@@ -8,12 +8,11 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
-
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
     custom_item.h custom_item.cpp
@@ -21,6 +20,7 @@ set(PROJECT_SOURCES
     bbox_item.cpp bbox_item.h
     line_item.cpp line_item.h
     polygon_item.cpp polygon_item.h
+    #open_polygon_item.cpp open_polygon_item.h
     mainwindow.cpp mainwindow.h mainwindow.ui
     annimgmanager.cpp annimgmanager.h
     imagecanvas.cpp imagecanvas.h
@@ -33,37 +33,45 @@ set(PROJECT_SOURCES
     dialoglabels.cpp dialoglabels.h dialoglabels.ui
     undo_cmds.h  undo_cmds.cpp
     resource.qrc
-    )
+)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(${CMAKE_PROJECT_NAME} MANUAL_FINALIZATION ${PROJECT_SOURCES})
+    qt_add_executable(TaggerTool
+        MANUAL_FINALIZATION
+        ${PROJECT_SOURCES}
+    )
 # Define target properties for Android with Qt 6 as:
-#    set_property(TARGET untitled1 APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+#    set_property(TARGET TaggerTool APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(${CMAKE_PROJECT_NAME} SHARED
+        add_library(TaggerTool SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(${CMAKE_PROJECT_NAME}
+        add_executable(TaggerTool
             ${PROJECT_SOURCES}
         )
     endif()
 endif()
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(TaggerTool PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
+set_target_properties(TaggerTool PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE TRUE
 )
 
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(${CMAKE_PROJECT_NAME})
-endif()
+install(TARGETS TaggerTool
+    BUNDLE DESTINATION .
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt_finalize_executable(TaggerTool)
+endif()

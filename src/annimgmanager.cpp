@@ -109,6 +109,24 @@ void AnnImgManager::_saveAnnotations(const QString &path,
   }
   root[QString("polygons")] = array_polygons;
 
+  // line_strips
+  QJsonArray array_line_strips;
+  for (auto &poly : ann.line_strips) {
+    QJsonObject obj;
+    obj[QString("label")] = poly.label;
+
+    QJsonArray xArray, yArray;
+    const int n = poly.xArray.size();
+    for (int i = 0; i < n; ++i) {
+      xArray.append(poly.xArray[i]);
+      yArray.append(poly.yArray[i]);
+    }
+    obj[QString("x_coords")] = xArray;
+    obj[QString("y_coords")] = yArray;
+    array_line_strips.append(obj);
+  }
+  root[QString("line_strips")] = array_line_strips;
+
   // description
   root[QString("label")] = ann.label;
 
@@ -195,6 +213,22 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
       poly.yArray.push_back(yArray[i].toDouble());
     }
     ann.polygons.push_back(poly);
+  }
+
+  // line_strips
+  const QJsonArray line_strips = root[QString("line_strips")].toArray();
+  for (const auto &obj : line_strips) {
+    Polygon poly;
+    poly.label = obj[QString("label")].toString();
+
+    QJsonArray xArray = obj[QString("x_coords")].toArray();
+    QJsonArray yArray = obj[QString("y_coords")].toArray();
+    const int n = xArray.count();
+    for (int i = 0; i < n; ++i) {
+      poly.xArray.push_back(xArray[i].toDouble());
+      poly.yArray.push_back(yArray[i].toDouble());
+    }
+    ann.line_strips.push_back(poly);
   }
 
   // image label

@@ -9,7 +9,6 @@
 #include <QPainter>
 #include <QPen>
 
-#include "editdialog.h"
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 #include "utils.h"

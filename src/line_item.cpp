@@ -10,7 +10,6 @@
 #include <QPainter>
 #include <cmath>
 
-#include "editdialog.h"
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 
@@ -68,9 +67,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->setPen(pp);
     painter->drawLine(line());
     painter->setPen(p);
-  }
-
-  if (m_moveEnable) {
+  } else {
     painter->save();
     auto pp = p;
     pp.setStyle(Qt::DotLine);

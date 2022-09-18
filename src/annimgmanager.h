@@ -31,6 +31,7 @@ struct Annotations {
   QVector<Point> points{};
   QVector<BBox> bboxes{};
   QVector<Polygon> polygons{};
+  QVector<Polygon> line_strips{};
   QString label;
   QString description{};
   QStringList tags{};

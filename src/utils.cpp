@@ -93,10 +93,7 @@ void Helper::registerNewLabels(const QStringList &labels) {
     (void)colorFromLabel(lb);
   }
 }
-void Helper::clearLabels()
-{
-    m_labelToColor.clear();
-}
+void Helper::clearLabels() { m_labelToColor.clear(); }
 
 QRectF Helper::buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2) {
   double rw = qAbs(p2.x() - p1.x());

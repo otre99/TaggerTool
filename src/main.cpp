@@ -1,7 +1,6 @@
 #include <QApplication>
 #include <QDebug>
 
-#include "annimgmanager.h"
 #include "mainwindow.h"
 
 int main(int argc, char *argv[]) {
