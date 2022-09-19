@@ -9,8 +9,10 @@ EditDialog::EditDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::EditDialog) {
   ui->setupUi(this);
 
+
   ui->labelsComboBox->addItems(Helper::currentLabels());
   ui->labelsComboBox->completer()->setCaseSensitivity(Qt::CaseSensitive);
+  ui->labelsComboBox->setEditable(false);
 }
 
 EditDialog::~EditDialog() { delete ui; }

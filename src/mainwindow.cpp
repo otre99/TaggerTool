@@ -42,7 +42,7 @@ void MainWindow::setUp() {
           &MainWindow::on_NeedSaveChangeUndo);
 
   connect(&m_timer, &QTimer::timeout, this, &MainWindow::on_timeout);
-  m_timer.start(1000);
+  m_timer.start(500);
 
   auto undoAction = m_imageCanvas.undoStack()->createUndoAction(this);
   undoAction->setIcon(QIcon(":/icons/icons/edit-undo.svg"));
@@ -398,7 +398,6 @@ void MainWindow::on_actionSave_project_triggered() {
 void MainWindow::loadImagesAndAnnotations(const QString &annImg,
                                           const QString &annFolder) {
   // clean labels
-  Helper::clearLabels();
   m_annImgManager.reset(annImg, annFolder);
   m_imageListModel.setStringList(m_annImgManager.imageIds());
   ui->saveLocalChanges->setEnabled(false);
@@ -441,8 +440,8 @@ void MainWindow::on_actionLoad_project_triggered() {
     lbs << lb.toString();
   }
   ui->comboBoxActiveLabel->clear();
+  Helper::clearLabels();
   Helper::registerNewLabels(lbs);
-  // ui->comboBoxActiveLabel->addItems(lbs);
 
   // img labels
   lbs.clear();
@@ -457,8 +456,6 @@ void MainWindow::on_actionLoad_project_triggered() {
   loadImagesAndAnnotations(imgFolder, annFolder);
 }
 
-void MainWindow::on_actionAdd_New_LineStrip_triggered()
-{
+void MainWindow::on_actionAdd_New_LineStrip_triggered() {
   m_imageCanvas.prepareForNewLineStrip(ui->comboBoxActiveLabel->currentText());
 }
-

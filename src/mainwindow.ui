@@ -45,7 +45,7 @@
      <x>0</x>
      <y>0</y>
      <width>1165</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -433,6 +433,9 @@
    <property name="text">
     <string>Save local changes</string>
    </property>
+   <property name="toolTip">
+    <string>Save local changes (S)</string>
+   </property>
    <property name="shortcut">
     <string>S</string>
    </property>
@@ -445,6 +448,9 @@
    <property name="text">
     <string>New BBox</string>
    </property>
+   <property name="toolTip">
+    <string>New BBox (A)</string>
+   </property>
    <property name="shortcut">
     <string>A</string>
    </property>
@@ -456,6 +462,9 @@
    </property>
    <property name="text">
     <string>Show </string>
+   </property>
+   <property name="toolTip">
+    <string>Show/Hide annotations (H)</string>
    </property>
    <property name="shortcut">
     <string>H</string>
@@ -472,6 +481,12 @@
    <property name="text">
     <string>Show/Hide Labels</string>
    </property>
+   <property name="toolTip">
+    <string>Show/Hide Labels (L)</string>
+   </property>
+   <property name="shortcut">
+    <string>L</string>
+   </property>
   </action>
   <action name="actionNew_Point">
    <property name="icon">
@@ -480,6 +495,9 @@
    </property>
    <property name="text">
     <string>New Point</string>
+   </property>
+   <property name="toolTip">
+    <string>New Point (Z)</string>
    </property>
    <property name="shortcut">
     <string>Z</string>
@@ -492,6 +510,9 @@
    </property>
    <property name="text">
     <string>Add New Line</string>
+   </property>
+   <property name="toolTip">
+    <string>New Line (Q)</string>
    </property>
    <property name="shortcut">
     <string>Q</string>
@@ -535,6 +556,9 @@
    <property name="text">
     <string>Add New Polygon</string>
    </property>
+   <property name="toolTip">
+    <string>New Polygon (W)</string>
+   </property>
    <property name="shortcut">
     <string>W</string>
    </property>
@@ -560,7 +584,7 @@
     <string>Grid</string>
    </property>
    <property name="toolTip">
-    <string>Show Grid</string>
+    <string>Show Grid (G)</string>
    </property>
    <property name="shortcut">
     <string>G</string>
@@ -579,10 +603,16 @@
    <property name="text">
     <string>Load project</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionSave_project">
    <property name="text">
     <string>Save project</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionAdd_New_LineStrip">
@@ -592,6 +622,9 @@
    </property>
    <property name="text">
     <string>Add New LineStrip</string>
+   </property>
+   <property name="toolTip">
+    <string>New LineStrip (X)</string>
    </property>
    <property name="shortcut">
     <string>X</string>

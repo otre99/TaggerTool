@@ -50,7 +50,8 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   QPointF m_oldPos;
   bool m_closed_poly;
 
-  QUndoCommand *MakeChangeCommand(const QPolygonF &oldPoly, const QPolygonF &newPoly);
+  QUndoCommand *makeChangeCommand(const QPolygonF &oldPoly,
+                                  const QPolygonF &newPoly);
 };
 
 #endif  // POLYGON_ITEM_H

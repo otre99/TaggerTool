@@ -45,6 +45,11 @@ void PolygonItem::helperParametersChanged() {
 void PolygonItem::paint(QPainter *painter,
                         const QStyleOptionGraphicsItem *option,
                         QWidget *widget) {
+
+//    auto cl = QColor(Qt::blue);
+//    cl.setAlpha(200);
+//    painter->fillPath(shape(), cl);
+
   (void)widget;
   QPen p = pen();
   painter->setPen(p);
@@ -90,10 +95,10 @@ void PolygonItem::paint(QPainter *painter,
     color.setAlpha(150);
     painter->setBrush(color);
 
-    qreal w = p.widthF();
+    qreal radius = p.widthF();
     for (auto pt : poly) {
       Helper::drawCircleOrSquared(
-          painter, pt, w,
+          painter, pt, radius,
           (m_currentCorner != kNode || index != m_currentNodeIndx_));
       ++index;
     }
@@ -133,7 +138,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     setLocked(m_moveEnable);
   } else if (event->button() == Qt::RightButton && m_moveEnable) {
     __showEditDialog(this, event->screenPos());
-  } else if (event->modifiers() == Qt::AltModifier &&
+  } else if ((event->modifiers() & (Qt::AltModifier | Qt::MetaModifier)) &&
              event->button() == Qt::LeftButton) {
     auto corner = positionInside(event->pos());
     QPolygonF poly = polygon();
@@ -141,7 +146,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
       if (poly.count() > (m_closed_poly ? 3 : 2)) {
         poly.remove(m_currentNodeIndx_);
         Helper::imageCanvas()->undoStack()->push(
-            MakeChangeCommand(polygon(), poly));
+            makeChangeCommand(polygon(), poly));
       }
     } else {
       qreal th = pen().widthF();
@@ -158,7 +163,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
           if (Helper::pointLen(newPt - midPt) <= len / 2.0) {
             poly.insert(i + 1, newPt);
             Helper::imageCanvas()->undoStack()->push(
-                MakeChangeCommand(polygon(), poly));
+                makeChangeCommand(polygon(), poly));
             break;
           }
         }
@@ -192,7 +197,7 @@ void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
 
     if (m_oldPolygon != polygon()) {
       Helper::imageCanvas()->undoStack()->push(
-          MakeChangeCommand(m_oldPolygon, polygon()));
+          makeChangeCommand(m_oldPolygon, polygon()));
     }
   }
   m_currentCorner = kInvalid;
@@ -206,7 +211,7 @@ void PolygonItem::keyPressEvent(QKeyEvent *event) {
 QPainterPath PolygonItem::shape() const {
   QPainterPath path;
   const QPolygonF poly = polygon();
-  const QPen p = pen();
+  QPen p = pen();
 
   if (m_closed_poly) {
     path.addPolygon(poly);
@@ -216,11 +221,12 @@ QPainterPath PolygonItem::shape() const {
       path.lineTo(poly[i]);
       path.moveTo(poly[i]);
     }
+    //path.lineTo(poly[0]);
   }
+
   for (const auto &pt : poly) {
-    path.addEllipse(pt, p.widthF() / 2, p.widthF() / 2);
+      path.addEllipse(pt, p.widthF(), p.widthF());
   }
-  if (m_closed_poly) return path;
 
   QPainterPathStroker spath;
   spath.setCapStyle(p.capStyle());
@@ -262,7 +268,7 @@ PolygonItem::CORNER PolygonItem::positionInside(const QPointF &pos) {
   return kCenter;
 }
 
-QUndoCommand *PolygonItem::MakeChangeCommand(const QPolygonF &oldPoly,
+QUndoCommand *PolygonItem::makeChangeCommand(const QPolygonF &oldPoly,
                                              const QPolygonF &newPoly) {
   if (m_closed_poly) {
     return new ChangePolygonCommand(oldPoly, newPoly, this, nullptr);

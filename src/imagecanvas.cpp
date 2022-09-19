@@ -105,21 +105,6 @@ void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
                         QPointF{w, i * h / (n + 1)});
     }
     painter->drawLine(QPointF{0, 0.5 * 0.75 * h}, QPointF{w, 0.5 * 0.75 * h});
-
-    //    // mid
-    //    painter->drawLine(
-    //        QPoint{m_currentImage.width() / 2, 0},
-    //        QPoint{m_currentImage.width() / 2, m_currentImage.height()});
-    //    painter->drawLine(
-    //        QPoint{0, m_currentImage.height() / 2},
-    //        QPoint{m_currentImage.width(), m_currentImage.height() / 2});
-    //    // bootom + left
-    //    painter->drawLine(
-    //        QPoint{m_currentImage.width() / 4, 0},
-    //        QPoint{m_currentImage.width() / 4, m_currentImage.height()});
-    //    painter->drawLine(
-    //        QPoint{0, m_currentImage.height() / 4},
-    //        QPoint{m_currentImage.width(), m_currentImage.height() / 4});
   }
 }
 

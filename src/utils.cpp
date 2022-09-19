@@ -132,11 +132,12 @@ QPointF Helper::pointLineIntersection(const QVector2D &lp1,
   return {xp.x() / xp.z(), xp.y() / xp.z()};
 }
 
-void Helper::drawCircleOrSquared(QPainter *painter, const QPointF &ct, qreal w,
-                                 bool circle) {
+void Helper::drawCircleOrSquared(QPainter *painter, const QPointF &ct,
+                                 qreal radius, bool circle) {
   if (circle) {
-    painter->drawEllipse(ct, w, w);
+    painter->drawEllipse(ct, radius, radius);
   } else {
-    painter->drawRect({ct - QPointF(w, w), QSizeF{2 * w, 2 * w}});
+    painter->drawRect(
+        {ct - QPointF(radius, radius), QSizeF{2 * radius, 2 * radius}});
   }
 }

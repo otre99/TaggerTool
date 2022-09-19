@@ -51,7 +51,6 @@ class Helper {
                                        const QVector2D &lp2, const QPointF &p);
   static void drawCircleOrSquared(QPainter *painter, const QPointF &ct, qreal w,
                                   bool circle);
-
   static const QRgb kLabelColorsArray[80];
   static const QColor kUnlockedBBoxColor;
   static const QColor kLockedBBoxColor;

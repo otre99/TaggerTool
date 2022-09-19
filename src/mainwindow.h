@@ -59,7 +59,7 @@ class MainWindow : public QMainWindow {
 
   void on_actionAdd_New_LineStrip_triggered();
 
-  private:
+ private:
   void setUp();
   void displayImageInfo();
   void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);
