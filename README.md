@@ -1,15 +1,12 @@
-# TaggerTool (still under construction)
-This is a very simple tool for adding / editing visual annotations on images. Supports BoundingBoxes, Polygons, Points and Lines
+# TaggerTool 
+This is a very simple tool for adding / editing visual annotations on images. Supports BoundingBoxes, Polygons, LineStrips, Points and Lines
 
-### How to use?
-    
-    1-> Open the folder containing the annotations 
-    2-> Open the folder containing the images 
-
-### How to compile?
-
-Tested with Qt6.2 
+## How to use?
 
 
-### Gallery
-[]
+
+## How to compile?
+Use QtCreator to compile. 
+
+
+
