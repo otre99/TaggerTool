@@ -15,9 +15,9 @@ This is a very simple tool for adding / editing visual annotations on images. Su
 * *Shift + left click* : enable/disable item 
 * *Meta + left click* or *Alt + left click*: add or remove polygons nodes
 
-### See this simple demo: 
-[![See simple demo](assets/demo01.png)](https://www.youtube.com/watch?v=QozIy9p6gbM)
+### See this simple [demo](https://www.youtube.com/watch?v=QozIy9p6gbM): 
 
+![](assets/demo01.png)
 
 ## How to compile?
 Use QtCreator to compile. 
