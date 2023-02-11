@@ -12,6 +12,253 @@
 
 #include "utils.h"
 
+// Line impl
+QJsonObject Line::serializeJson() const {
+  QJsonObject obj;
+  obj[QString("label")] = label;
+  obj[QString("x1")] = x1;
+  obj[QString("y1")] = y1;
+  obj[QString("x2")] = x2;
+  obj[QString("y2")] = y2;
+  return obj;
+}
+void Line::fromJson(const QJsonObject &obj) {
+  label = obj[QString("label")].toString();
+  x1 = obj[QString("x1")].toDouble();
+  y1 = obj[QString("y1")].toDouble();
+  x2 = obj[QString("x2")].toDouble();
+  y2 = obj[QString("y2")].toDouble();
+}
+
+Line::Line(float x1, float y1, float x2, float y2, const QString &lb)
+    : x1{x1}, y1{y1}, x2{x2}, y2{y2} {
+  label = lb;
+}
+
+Line::Line(const QPointF &pt1, const QPointF &pt2, const QString &lb)
+    : x1(pt1.x()), y1(pt1.y()), x2(pt2.x()), y2(pt2.y()) {
+  label = lb;
+}
+
+QPointF Line::pt1() const { return {x1, y1}; }
+QPointF Line::pt2() const { return {x2, y2}; }
+
+// BBox impl
+QJsonObject BBox::serializeJson() const {
+  QJsonObject obj;
+  obj[QString("label")] = label;
+  obj[QString("x1")] = x1;
+  obj[QString("y1")] = y1;
+  obj[QString("x2")] = x2;
+  obj[QString("y2")] = y2;
+  obj[QString("occluded")] = occluded;
+  obj[QString("truncated")] = truncated;
+  return obj;
+}
+void BBox::fromJson(const QJsonObject &obj) {
+  label = obj[QString("label")].toString();
+  x1 = obj[QString("x1")].toDouble();
+  y1 = obj[QString("y1")].toDouble();
+  x2 = obj[QString("x2")].toDouble();
+  y2 = obj[QString("y2")].toDouble();
+  occluded = obj[QString("occluded")].toBool(false);
+  truncated = obj[QString("truncated")].toBool(false);
+}
+
+BBox::BBox(float x1, float y1, float x2, float y2, const QString &lb,
+           bool occluded, bool truncated)
+    : x1{x1}, y1{y1}, x2{x2}, y2{y2}, occluded{occluded}, truncated{truncated} {
+  label = lb;
+}
+BBox::BBox(const QRectF &r, const QString &lb, bool occluded, bool truncated)
+    : x1(r.left()), y1(r.top()), x2(r.right()),
+      y2(r.bottom()), occluded{occluded}, truncated{truncated} {
+  label = lb;
+}
+
+QPointF BBox::pt1() const { return {x1, y1}; }
+
+QPointF BBox::pt2() const { return {x2, y2}; }
+
+// Point impl
+Point::Point(float x, float y, const QString &lb) : x{x}, y{y} { label = lb; }
+Point::Point(const QPointF &pt, const QString &lb) : x(pt.x()), y(pt.y()) {
+  label = lb;
+}
+
+QPointF Point::pt() const { return {x, y}; }
+
+QJsonObject Point::serializeJson() const {
+  QJsonObject obj;
+  obj[QString("label")] = label;
+  obj[QString("x")] = x;
+  obj[QString("y")] = y;
+  return obj;
+}
+void Point::fromJson(const QJsonObject &obj) {
+  label = obj[QString("label")].toString();
+  x = obj[QString("x")].toDouble();
+  y = obj[QString("y")].toDouble();
+}
+
+// Polygon impl
+QJsonObject Polygon::serializeJson() const {
+  QJsonObject obj;
+  obj[QString("label")] = label;
+
+  QJsonArray jsonXArray, jsonYArray;
+  const int n = this->xArray.size();
+  for (int i = 0; i < n; ++i) {
+    jsonXArray.append(xArray[i]);
+    jsonYArray.append(yArray[i]);
+  }
+  obj[QString("x_coords")] = jsonXArray;
+  obj[QString("y_coords")] = jsonYArray;
+  return obj;
+}
+void Polygon::fromJson(const QJsonObject &obj) {
+  label = obj[QString("label")].toString();
+
+  QJsonArray jsonXArray = obj[QString("x_coords")].toArray();
+  QJsonArray jsonYArray = obj[QString("y_coords")].toArray();
+  const int n = jsonXArray.count();
+  for (int i = 0; i < n; ++i) {
+    this->xArray.push_back(jsonXArray[i].toDouble());
+    this->yArray.push_back(jsonYArray[i].toDouble());
+  }
+}
+
+Polygon::Polygon(const QVector<float> &xArr, const QVector<float> &yArr,
+                 const QString &lb)
+    : xArray(xArr), yArray(yArr) {
+  label = lb;
+}
+Polygon::Polygon(const QPolygonF &poly, const QString &lb) {
+  label = lb;
+  for (const auto &p : poly) {
+    xArray.push_back(p.x());
+    yArray.push_back(p.y());
+  }
+}
+
+QPolygonF Polygon::getPolygon() const {
+  QPolygonF poly;
+  for (size_t i = 0; i < xArray.size(); ++i) {
+    poly.append({xArray[i], yArray[i]});
+  }
+  return poly;
+}
+
+// Annotation impl
+QJsonObject Annotations::serializeJson() const {
+  QJsonObject root;
+  root.insert(QString("image_name"), image_name);
+  root.insert(QString("image_w"), img_w);
+  root.insert(QString("image_h"), img_h);
+
+  // lines
+  QJsonArray array_lines;
+  for (const auto &line : lines)
+    array_lines.append(line.serializeJson());
+  root[QString("lines")] = array_lines;
+
+  // boxes
+  QJsonArray array_boxes;
+  for (const auto &bbox : bboxes)
+    array_boxes.append(bbox.serializeJson());
+  root[QString("bboxes")] = array_boxes;
+
+  // points
+  QJsonArray array_points;
+  for (const auto &pt : points)
+    array_points.append(pt.serializeJson());
+  root[QString("points")] = array_points;
+
+  // polygons
+  QJsonArray array_polygons;
+  for (const auto &poly : polygons)
+    array_polygons.append(poly.serializeJson());
+  root[QString("polygons")] = array_polygons;
+
+  // line_strips
+  QJsonArray array_line_strips;
+  for (auto &poly : line_strips)
+    array_line_strips.append(poly.serializeJson());
+  root[QString("line_strips")] = array_line_strips;
+
+  // description
+  root[QString("label")] = label;
+
+  // description
+  root[QString("description")] = description;
+
+  // tags
+  QJsonArray array_tags;
+  for (auto &tag : tags) {
+    array_tags.append(tag);
+  }
+  root[QString("tags")] = array_tags;
+  return root;
+}
+
+void Annotations::fromJson(const QJsonObject &root) {
+  image_name = root[QString("image_name")].toString();
+  img_w = root[QString("image_w")].toInt();
+  img_h = root[QString("image_h")].toInt();
+
+  // lines
+  const QJsonArray jsonLines = root[QString("lines")].toArray();
+  for (const auto &obj : jsonLines) {
+    Line line;
+    line.fromJson(obj.toObject());
+    this->lines.push_back(line);
+  }
+
+  // bboxes
+  const QJsonArray jsonBBoxes = root[QString("bboxes")].toArray();
+  for (const auto &obj : jsonBBoxes) {
+    BBox bbox;
+    bbox.fromJson(obj.toObject());
+    this->bboxes.push_back(bbox);
+  }
+
+  // points
+  const QJsonArray jsonPoints = root[QString("points")].toArray();
+  for (const auto &obj : jsonPoints) {
+    Point pt;
+    pt.fromJson(obj.toObject());
+    this->points.push_back(pt);
+  }
+
+  // polygons
+  const QJsonArray jsonPoly = root[QString("polygons")].toArray();
+  for (const auto &obj : jsonPoly) {
+    Polygon poly;
+    poly.fromJson(obj.toObject());
+    this->polygons.push_back(poly);
+  }
+
+  // line_strips
+  const QJsonArray line_strips = root[QString("line_strips")].toArray();
+  for (const auto &obj : line_strips) {
+    Polygon poly;
+    poly.fromJson(obj.toObject());
+    this->line_strips.push_back(poly);
+  }
+
+  // image label
+  this->label = root[QString("label")].toString();
+
+  // description
+  this->description = root[QString("description")].toString();
+
+  // tags
+  const QJsonArray tags = root[QString("tags")].toArray();
+  for (const auto &tag : tags) {
+    this->tags.append(tag.toString());
+  }
+}
+
 AnnImgManager::AnnImgManager() = default;
 
 void AnnImgManager::reset(const QString &images_folder_path,
@@ -49,97 +296,7 @@ void AnnImgManager::saveAnnotations(const QString &image_id,
 
 void AnnImgManager::_saveAnnotations(const QString &path,
                                      const Annotations &ann) {
-  QJsonObject root;
-  root.insert(QString("image_name"), ann.image_name);
-  root.insert(QString("image_w"), ann.img_w);
-  root.insert(QString("image_h"), ann.img_h);
-
-  // lines
-  QJsonArray array_lines;
-  for (auto &line : ann.lines) {
-    QJsonObject obj;
-    obj[QString("label")] = line.label;
-    obj[QString("x1")] = line.x1;
-    obj[QString("y1")] = line.y1;
-    obj[QString("x2")] = line.x2;
-    obj[QString("y2")] = line.y2;
-    array_lines.append(obj);
-  }
-  root[QString("lines")] = array_lines;
-
-  // boxes
-  QJsonArray array_boxes;
-  for (auto &bbox : ann.bboxes) {
-    QJsonObject obj;
-    obj[QString("label")] = bbox.label;
-    obj[QString("x1")] = bbox.x1;
-    obj[QString("y1")] = bbox.y1;
-    obj[QString("x2")] = bbox.x2;
-    obj[QString("y2")] = bbox.y2;
-    array_boxes.append(obj);
-  }
-  root[QString("bboxes")] = array_boxes;
-
-  // points
-  QJsonArray array_points;
-  for (auto &pt : ann.points) {
-    QJsonObject obj;
-    obj[QString("label")] = pt.label;
-    obj[QString("x")] = pt.x;
-    obj[QString("y")] = pt.y;
-    array_points.append(obj);
-  }
-  root[QString("points")] = array_points;
-
-  // polygons
-  QJsonArray array_polygons;
-  for (auto &poly : ann.polygons) {
-    QJsonObject obj;
-    obj[QString("label")] = poly.label;
-
-    QJsonArray xArray, yArray;
-    const int n = poly.xArray.size();
-    for (int i = 0; i < n; ++i) {
-      xArray.append(poly.xArray[i]);
-      yArray.append(poly.yArray[i]);
-    }
-    obj[QString("x_coords")] = xArray;
-    obj[QString("y_coords")] = yArray;
-    array_polygons.append(obj);
-  }
-  root[QString("polygons")] = array_polygons;
-
-  // line_strips
-  QJsonArray array_line_strips;
-  for (auto &poly : ann.line_strips) {
-    QJsonObject obj;
-    obj[QString("label")] = poly.label;
-
-    QJsonArray xArray, yArray;
-    const int n = poly.xArray.size();
-    for (int i = 0; i < n; ++i) {
-      xArray.append(poly.xArray[i]);
-      yArray.append(poly.yArray[i]);
-    }
-    obj[QString("x_coords")] = xArray;
-    obj[QString("y_coords")] = yArray;
-    array_line_strips.append(obj);
-  }
-  root[QString("line_strips")] = array_line_strips;
-
-  // description
-  root[QString("label")] = ann.label;
-
-  // description
-  root[QString("description")] = ann.description;
-
-  // tags
-  QJsonArray array_tags;
-  for (auto &tag : ann.tags) {
-    array_tags.append(tag);
-  }
-  root[QString("tags")] = array_tags;
-
+  const QJsonObject root = ann.serializeJson();
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(path);
   if (!ofile.open(QFile::WriteOnly)) {
@@ -160,93 +317,12 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
 
   QJsonDocument doc = QJsonDocument::fromJson(json);
   QJsonObject root = doc.object();
-
-  ann.image_name = root[QString("image_name")].toString();
-  ann.img_w = root[QString("image_w")].toInt();
-  ann.img_h = root[QString("image_h")].toInt();
-
-  // lines
-  const QJsonArray lines = root[QString("lines")].toArray();
-  for (const auto &obj : lines) {
-    Line line;
-    line.label = obj[QString("label")].toString();
-    line.x1 = obj[QString("x1")].toDouble();
-    line.y1 = obj[QString("y1")].toDouble();
-    line.x2 = obj[QString("x2")].toDouble();
-    line.y2 = obj[QString("y2")].toDouble();
-    ann.lines.push_back(line);
-  }
-
-  // bboxes
-  const QJsonArray bboxes = root[QString("bboxes")].toArray();
-  for (const auto &obj : bboxes) {
-    BBox bbox;
-    bbox.label = obj[QString("label")].toString();
-    bbox.x1 = obj[QString("x1")].toDouble();
-    bbox.y1 = obj[QString("y1")].toDouble();
-    bbox.x2 = obj[QString("x2")].toDouble();
-    bbox.y2 = obj[QString("y2")].toDouble();
-    ann.bboxes.push_back(bbox);
-  }
-
-  // points
-  const QJsonArray points = root[QString("points")].toArray();
-  for (const auto &obj : points) {
-    Point pt;
-    pt.label = obj[QString("label")].toString();
-    pt.x = obj[QString("x")].toDouble();
-    pt.y = obj[QString("y")].toDouble();
-    ann.points.push_back(pt);
-  }
-
-  // polygons
-  const QJsonArray polygons = root[QString("polygons")].toArray();
-  for (const auto &obj : polygons) {
-    Polygon poly;
-    poly.label = obj[QString("label")].toString();
-
-    QJsonArray xArray = obj[QString("x_coords")].toArray();
-    QJsonArray yArray = obj[QString("y_coords")].toArray();
-    const int n = xArray.count();
-    for (int i = 0; i < n; ++i) {
-      poly.xArray.push_back(xArray[i].toDouble());
-      poly.yArray.push_back(yArray[i].toDouble());
-    }
-    ann.polygons.push_back(poly);
-  }
-
-  // line_strips
-  const QJsonArray line_strips = root[QString("line_strips")].toArray();
-  for (const auto &obj : line_strips) {
-    Polygon poly;
-    poly.label = obj[QString("label")].toString();
-
-    QJsonArray xArray = obj[QString("x_coords")].toArray();
-    QJsonArray yArray = obj[QString("y_coords")].toArray();
-    const int n = xArray.count();
-    for (int i = 0; i < n; ++i) {
-      poly.xArray.push_back(xArray[i].toDouble());
-      poly.yArray.push_back(yArray[i].toDouble());
-    }
-    ann.line_strips.push_back(poly);
-  }
-
-  // image label
-  ann.label = root[QString("label")].toString();
-
-  // description
-  ann.description = root[QString("description")].toString();
-
-  // tags
-  const QJsonArray tags = root[QString("tags")].toArray();
-  for (const auto &tag : tags) {
-    ann.tags.append(tag.toString());
-  }
+  ann.fromJson(root);
   return ann;
 }
 
 QString AnnImgManager::basename(const QString &filePath) const {
-  int i = filePath.count() - 1;
+  int i = filePath.size() - 1;
   while (filePath[i] != QChar('.')) {
     --i;
   }

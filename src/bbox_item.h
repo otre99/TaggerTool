@@ -21,7 +21,7 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
     kInvalid
   } m_currentCorner;
 
- public:
+public:
   BoundingBoxItem(const QRectF &rectf, const QString &label = QString(),
                   QGraphicsItem *parent = nullptr, bool ready = false);
 
@@ -49,7 +49,7 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   // get/set
   QRectF boundingBoxCoordinates();
 
- private:
+private:
   QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw,
                                 bool &sh);
   CORNER positionInside(const QPointF &pos);
@@ -59,4 +59,4 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
   QRectF m_oldCoords;
 };
 
-#endif  // BBOX_ITEM_H
+#endif // BBOX_ITEM_H

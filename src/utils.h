@@ -14,7 +14,7 @@ class Helper {
   static QMap<QString, QColor> m_labelToColor;
   static ImageCanvas *m_scene;
 
- public:
+public:
   static bool m_labelsUpdated;
   static double kPointRadius;
   static int kFontPixelSize;
@@ -61,4 +61,4 @@ class Helper {
   static const int kImageMarging;
   static const double kBorderSize;
 };
-#endif  // UTILS_H
+#endif // UTILS_H

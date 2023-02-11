@@ -182,7 +182,9 @@ LineItem::CORNER LineItem::positionInside(const QPointF &pos) {
   qreal d1 = Helper::pointLen(line().p1() - pos);
   qreal d2 = Helper::pointLen(line().p2() - pos);
   qreal th = pen().widthF() / 2.0;
-  if (d1 < th) return kP1;
-  if (d2 < th) return kP2;
+  if (d1 < th)
+    return kP1;
+  if (d2 < th)
+    return kP2;
   return kCenter;
 }

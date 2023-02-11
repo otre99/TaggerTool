@@ -46,9 +46,9 @@ void PolygonItem::paint(QPainter *painter,
                         const QStyleOptionGraphicsItem *option,
                         QWidget *widget) {
 
-//    auto cl = QColor(Qt::blue);
-//    cl.setAlpha(200);
-//    painter->fillPath(shape(), cl);
+  //    auto cl = QColor(Qt::blue);
+  //    cl.setAlpha(200);
+  //    painter->fillPath(shape(), cl);
 
   (void)widget;
   QPen p = pen();
@@ -221,11 +221,11 @@ QPainterPath PolygonItem::shape() const {
       path.lineTo(poly[i]);
       path.moveTo(poly[i]);
     }
-    //path.lineTo(poly[0]);
+    // path.lineTo(poly[0]);
   }
 
   for (const auto &pt : poly) {
-      path.addEllipse(pt, p.widthF(), p.widthF());
+    path.addEllipse(pt, p.widthF(), p.widthF());
   }
 
   QPainterPathStroker spath;

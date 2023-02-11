@@ -103,7 +103,8 @@ QRectF Helper::buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2) {
 }
 
 QColor Helper::colorFromLabel(const QString &label) {
-  if (label.isEmpty()) return Qt::black;
+  if (label.isEmpty())
+    return Qt::black;
 
   if (Helper::m_labelToColor.contains(label)) {
     return Helper::m_labelToColor[label];

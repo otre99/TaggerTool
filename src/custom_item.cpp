@@ -35,7 +35,8 @@ void CustomItem::__setLocked(QGraphicsItem *item, bool lk) {
 void CustomItem::__swapStackOrder(QGraphicsItem *item,
                                   const QList<QGraphicsItem *> &l) {
   if (l.count() > 1) {
-    for (int i = 1; i < l.count(); ++i) item->stackBefore(l[i]);
+    for (int i = 1; i < l.count(); ++i)
+      item->stackBefore(l[i]);
     auto *citem = dynamic_cast<CustomItem *>(l[1]);
     if (citem) {
       citem->setLocked(false);

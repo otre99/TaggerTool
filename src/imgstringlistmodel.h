@@ -7,7 +7,7 @@
 
 class ImgStringListModel : public QStringListModel {
   Q_OBJECT
- public:
+public:
   ImgStringListModel(QObject *parent = nullptr);
   QString originalText(const QModelIndex &index);
   QVariant data(const QModelIndex &index,
@@ -15,4 +15,4 @@ class ImgStringListModel : public QStringListModel {
   QModelIndex indexAtRow(int row);
 };
 
-#endif  // MYSTRINGLISTMODEL_H
+#endif // MYSTRINGLISTMODEL_H

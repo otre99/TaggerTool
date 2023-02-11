@@ -10,18 +10,18 @@ class DialogLabels;
 class DialogLabels : public QDialog {
   Q_OBJECT
 
- public:
+public:
   explicit DialogLabels(QWidget *parent = nullptr, const QString title = {});
   ~DialogLabels();
   QStringList getLabels() const;
   void setLabels(const QStringList &labels);
 
- private slots:
+private slots:
   void on_tBAdd_clicked();
   void on_tBRemove_clicked();
 
- private:
+private:
   Ui::DialogLabels *ui;
 };
 
-#endif  // DIALOGLABELS_H
+#endif // DIALOGLABELS_H

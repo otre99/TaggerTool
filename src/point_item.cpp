@@ -46,7 +46,7 @@ void PointItem::helperParametersChanged() {
 // QGraphicsItem
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                       QWidget *widget) {
-  QRectF brect = rect();  // boundingRect();
+  QRectF brect = rect(); // boundingRect();
   if (!m_moveEnable) {
     painter->setPen(Qt::NoPen);
     painter->setBrush(pen().brush());

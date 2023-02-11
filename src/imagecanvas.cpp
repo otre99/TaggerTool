@@ -39,7 +39,8 @@ void ImageCanvas::helperParametersChanged() {
 
 void ImageCanvas::prepareForNewBBox(QString label) {
   m_waitingForObj = true;
-  if (label != QString()) m_bboxLabel = label;
+  if (label != QString())
+    m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kBBox;
 }
@@ -80,13 +81,15 @@ void ImageCanvas::showBoundingBoxes() {
 void ImageCanvas::showLabels(bool show) {
   for (auto item : items()) {
     auto it = dynamic_cast<CustomItem *>(item);
-    if (it) it->setShowLabel(show);
+    if (it)
+      it->setShowLabel(show);
   }
   m_showLabels = show;
 }
 
 void ImageCanvas::drawBackground(QPainter *painter, const QRectF &rect) {
-  if (!m_currentImage.isNull()) painter->drawPixmap(0, 0, m_currentImage);
+  if (!m_currentImage.isNull())
+    painter->drawPixmap(0, 0, m_currentImage);
 
   QPen p = painter->pen();
   p.setColor(Qt::black);
@@ -124,37 +127,29 @@ void ImageCanvas::reset(const QImage &img, const QString &img_id) {
 void ImageCanvas::addAnnotations(const Annotations &ann) {
   m_undoStack.beginMacro("Load Annotations");
   for (auto &bbox : ann.bboxes) {
-    QRectF frect =
-        QRectF{{bbox.x1, bbox.y1}, QPointF{bbox.x2, bbox.y2}} & sceneRect();
-    if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
+    QRectF frect = QRectF{bbox.pt1(), bbox.pt2()} & sceneRect();
+    if (frect.isNull() || frect.isEmpty() || !frect.isValid())
+      continue;
 
-    m_undoStack.push(new AddBBoxCommand(frect, bbox.label, false));
+    m_undoStack.push(new AddBBoxCommand(frect, bbox.getLabel(), false));
   }
   for (auto &pt : ann.points) {
     m_undoStack.push(
-        new AddPointCommand({pt.x, pt.y}, pt.label, false, nullptr));
+        new AddPointCommand(pt.pt(), pt.getLabel(), false, nullptr));
   }
   for (auto &l : ann.lines) {
-    m_undoStack.push(new AddLineCommand({l.x1, l.y1}, {l.x2, l.y2}, l.label,
-                                        false, nullptr));
+    m_undoStack.push(
+        new AddLineCommand(l.pt1(), l.pt2(), l.getLabel(), false, nullptr));
   }
 
-  for (auto &poly : ann.polygons) {
-    QPolygonF p;
-    const int n = poly.xArray.size();
-    for (int i = 0; i < n; ++i) {
-      p.append({poly.xArray[i], poly.yArray[i]});
-    }
-    m_undoStack.push(new AddPolygonCommand(p, poly.label, false, nullptr));
+  for (auto &p : ann.polygons) {
+    m_undoStack.push(
+        new AddPolygonCommand(p.getPolygon(), p.getLabel(), false, nullptr));
   }
 
   for (auto &lst : ann.line_strips) {
-    QPolygonF p;
-    const int n = lst.xArray.size();
-    for (int i = 0; i < n; ++i) {
-      p.append({lst.xArray[i], lst.yArray[i]});
-    }
-    m_undoStack.push(new AddLineStripCommand(p, lst.label, false, nullptr));
+    m_undoStack.push(new AddLineStripCommand(lst.getPolygon(), lst.getLabel(),
+                                             false, nullptr));
   }
 
   m_undoStack.endMacro();
@@ -183,58 +178,39 @@ Annotations ImageCanvas::annotations() {
     if (bbox) {
       if (item->type() == Helper::kBBox) {
         BBox bbox;
-        auto bbox_item = dynamic_cast<BoundingBoxItem *>(item);
+        auto bbox_item = reinterpret_cast<BoundingBoxItem *>(item);
         const QRectF frect = bbox_item->boundingBoxCoordinates();
-        bbox.x1 = frect.topLeft().x();
-        bbox.y1 = frect.topLeft().y();
-        bbox.x2 = frect.bottomRight().x();
-        bbox.y2 = frect.bottomRight().y();
-        bbox.label = bbox_item->label();
-        ann.bboxes.push_back(bbox);
+        ann.bboxes.emplaceBack(frect, bbox_item->label());
         continue;
       }
 
       if (item->type() == Helper::kLine) {
         Line line;
-        auto line_item = dynamic_cast<LineItem *>(item);
+        auto line_item = reinterpret_cast<LineItem *>(item);
+
         const QPointF p1 = line_item->p1();
         const QPointF p2 = line_item->p2();
-        line.x1 = p1.x();
-        line.y1 = p1.y();
-        line.x2 = p2.x();
-        line.y2 = p2.y();
-        line.label = line_item->label();
-        ann.lines.append(line);
+        ann.lines.emplaceBack(p1, p2, line_item->label());
         continue;
       }
 
       if (item->type() == Helper::kPoint) {
-        Point pt;
-        auto pt_item = dynamic_cast<PointItem *>(item);
+        auto pt_item = reinterpret_cast<PointItem *>(item);
         const QPointF ct = pt_item->center();
-        pt.x = ct.x();
-        pt.y = ct.y();
-        pt.label = pt_item->label();
-        ann.points.push_back(pt);
+        ann.points.emplaceBack(ct, pt_item->label());
         continue;
       }
 
       if (item->type() == Helper::kPolygon ||
           item->type() == Helper::kLineStrip) {
-        auto poly_item = dynamic_cast<PolygonItem *>(item);
-        const QPolygonF pdata =
-            poly_item->getPolygonCoords();  // mapToScene(poly_item->polygon());
+        auto poly_item = reinterpret_cast<PolygonItem *>(item);
+        const QPolygonF polygon =
+            poly_item->getPolygonCoords(); // mapToScene(poly_item->polygon());
 
-        Polygon poly;
-        poly.label = poly_item->label();
-        for (const auto &pt : pdata) {
-          poly.xArray.push_back(pt.x());
-          poly.yArray.push_back(pt.y());
-        }
         if (item->type() == Helper::kPolygon) {
-          ann.polygons.push_back(poly);
+          ann.polygons.emplaceBack(polygon, poly_item->label());
         } else {
-          ann.line_strips.push_back(poly);
+          ann.line_strips.emplaceBack(polygon, poly_item->label());
         }
         continue;
       }

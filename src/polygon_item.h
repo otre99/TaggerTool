@@ -14,7 +14,7 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   enum CORNER { kCenter = -1, kNode, kInvalid } m_currentCorner{kInvalid};
   int m_currentNodeIndx_;
 
- public:
+public:
   PolygonItem(const QPolygonF &poly, const QString &label = QString(),
               QGraphicsItem *parent = nullptr, bool ready = false,
               bool closed_poly = true);
@@ -44,7 +44,7 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   // get/set
   QPolygonF getPolygonCoords() const;
 
- private:
+private:
   CORNER positionInside(const QPointF &pos);
   QPolygonF m_oldPolygon;
   QPointF m_oldPos;
@@ -54,4 +54,4 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
                                   const QPolygonF &newPoly);
 };
 
-#endif  // POLYGON_ITEM_H
+#endif // POLYGON_ITEM_H

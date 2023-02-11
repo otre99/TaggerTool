@@ -8,17 +8,17 @@
 
 class GraphicsView : public QGraphicsView {
   Q_OBJECT
- public:
+public:
   GraphicsView(QWidget *parent = nullptr);
 
- protected:
+protected:
   void wheelEvent(QWheelEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
 
- private:
+private:
   int m_originX;
   int m_originY;
 };
 
-#endif  // GRAPHICSVIEW_H
+#endif // GRAPHICSVIEW_H

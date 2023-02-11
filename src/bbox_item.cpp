@@ -50,7 +50,7 @@ void BoundingBoxItem::paint(QPainter *painter,
   QPen p = pen();
   painter->setPen(p);
 
-  QRectF brect = rect();  // boundingRect();
+  QRectF brect = rect(); // boundingRect();
   if (m_moveEnable) {
     painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
   } else {
@@ -124,72 +124,76 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
     bool sh;
 
     switch (m_currentCorner) {
-      case kTopLeft:
-        newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
-                                         newrect.bottomRight(), sw, sh);
-        if (sw && sh)
-          new_corner = kBottomRight;
-        else if (sw)
-          new_corner = kTopRight;
-        else if (sh)
-          new_corner = kBottomLeft;
-        break;
-      case kTopRight:
-        newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
-                                         newrect.bottomLeft(), sw, sh);
-        if (!sw && sh)
-          new_corner = kBottomLeft;
-        else if (!sw)
-          new_corner = kTopLeft;
-        else if (sh)
-          new_corner = kBottomRight;
-        break;
-      case kBottomRight:
-        newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
-                                         newrect.topLeft(), sw, sh);
-        if (!sw && !sh)
-          new_corner = kTopLeft;
-        else if (!sw)
-          new_corner = kBottomLeft;
-        else if (!sh)
-          new_corner = kTopRight;
-        break;
-      case kBottomLeft:
-        newrect = buildRectFromTwoPoints(newrect.bottomLeft() + dl,
-                                         newrect.topRight(), sw, sh);
-        if (sw && !sh)
-          new_corner = kTopRight;
-        else if (sw)
-          new_corner = kBottomRight;
-        else if (!sh)
-          new_corner = kTopLeft;
-        break;
-      case kTopCenter:
-        dl.setX(0);
-        newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
-                                         newrect.bottomRight(), sw, sh);
-        if (sh) new_corner = kBottomCenter;
-        break;
-      case kBottomCenter:
-        dl.setX(0);
-        newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
-                                         newrect.topLeft(), sw, sh);
-        if (!sh) new_corner = kTopCenter;
-        break;
-      case kRightCenter:
-        dl.setY(0);
-        newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
-                                         newrect.bottomLeft(), sw, sh);
-        if (!sw) new_corner = kLeftCenter;
-        break;
-      case kLeftCenter:
-        dl.setY(0);
-        newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
-                                         newrect.bottomRight(), sw, sh);
-        if (sw) new_corner = kRightCenter;
-        break;
-      default:
-        break;
+    case kTopLeft:
+      newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
+                                       newrect.bottomRight(), sw, sh);
+      if (sw && sh)
+        new_corner = kBottomRight;
+      else if (sw)
+        new_corner = kTopRight;
+      else if (sh)
+        new_corner = kBottomLeft;
+      break;
+    case kTopRight:
+      newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
+                                       newrect.bottomLeft(), sw, sh);
+      if (!sw && sh)
+        new_corner = kBottomLeft;
+      else if (!sw)
+        new_corner = kTopLeft;
+      else if (sh)
+        new_corner = kBottomRight;
+      break;
+    case kBottomRight:
+      newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
+                                       newrect.topLeft(), sw, sh);
+      if (!sw && !sh)
+        new_corner = kTopLeft;
+      else if (!sw)
+        new_corner = kBottomLeft;
+      else if (!sh)
+        new_corner = kTopRight;
+      break;
+    case kBottomLeft:
+      newrect = buildRectFromTwoPoints(newrect.bottomLeft() + dl,
+                                       newrect.topRight(), sw, sh);
+      if (sw && !sh)
+        new_corner = kTopRight;
+      else if (sw)
+        new_corner = kBottomRight;
+      else if (!sh)
+        new_corner = kTopLeft;
+      break;
+    case kTopCenter:
+      dl.setX(0);
+      newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
+                                       newrect.bottomRight(), sw, sh);
+      if (sh)
+        new_corner = kBottomCenter;
+      break;
+    case kBottomCenter:
+      dl.setX(0);
+      newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
+                                       newrect.topLeft(), sw, sh);
+      if (!sh)
+        new_corner = kTopCenter;
+      break;
+    case kRightCenter:
+      dl.setY(0);
+      newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
+                                       newrect.bottomLeft(), sw, sh);
+      if (!sw)
+        new_corner = kLeftCenter;
+      break;
+    case kLeftCenter:
+      dl.setY(0);
+      newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
+                                       newrect.bottomRight(), sw, sh);
+      if (sw)
+        new_corner = kRightCenter;
+      break;
+    default:
+      break;
     }
     m_currentCorner = new_corner;
     if (newrect.isValid()) {
@@ -266,33 +270,33 @@ void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
 
     if (event->modifiers() & Qt::ControlModifier) {
       switch (event->key()) {
-        case Qt::Key_Left:
-          dx2 = -sx;
-          break;
-        case Qt::Key_Right:
-          dx2 = +sx;
-          break;
-        case Qt::Key_Up:
-          dy2 = -sy;
-          break;
-        case Qt::Key_Down:
-          dy2 = sy;
-          break;
+      case Qt::Key_Left:
+        dx2 = -sx;
+        break;
+      case Qt::Key_Right:
+        dx2 = +sx;
+        break;
+      case Qt::Key_Up:
+        dy2 = -sy;
+        break;
+      case Qt::Key_Down:
+        dy2 = sy;
+        break;
       }
     } else {
       switch (event->key()) {
-        case Qt::Key_Left:
-          dx1 = -sx;
-          break;
-        case Qt::Key_Right:
-          dx1 = +sx;
-          break;
-        case Qt::Key_Up:
-          dy1 = -sy;
-          break;
-        case Qt::Key_Down:
-          dy1 = sy;
-          break;
+      case Qt::Key_Left:
+        dx1 = -sx;
+        break;
+      case Qt::Key_Right:
+        dx1 = +sx;
+        break;
+      case Qt::Key_Up:
+        dy1 = -sy;
+        break;
+      case Qt::Key_Down:
+        dy1 = sy;
+        break;
       }
     }
     newrect.adjust(dx1, dy1, dx2, dy2);
@@ -370,7 +374,7 @@ QRectF BoundingBoxItem::buildRectFromTwoPoints(const QPointF &p1,
 
 BoundingBoxItem::CORNER BoundingBoxItem::positionInside(const QPointF &pos) {
   CORNER result = kCenter;
-  const QRectF brect = rect();  // boundingRect();
+  const QRectF brect = rect(); // boundingRect();
 
   qreal w2 = brect.left() + brect.width() / 2;
   qreal h2 = brect.top() + brect.height() / 2;

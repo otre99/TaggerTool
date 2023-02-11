@@ -18,12 +18,12 @@ class QComboBox;
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
- public:
+public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
   void resizeEvent(QResizeEvent *event) override;
 
- private slots:
+private slots:
   void on_addNewBbox_triggered();
   void on_pbLoadImgAnn_clicked();
   void on_saveLocalChanges_triggered();
@@ -59,7 +59,7 @@ class MainWindow : public QMainWindow {
 
   void on_actionAdd_New_LineStrip_triggered();
 
- private:
+private:
   void setUp();
   void displayImageInfo();
   void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);
@@ -75,4 +75,4 @@ class MainWindow : public QMainWindow {
   bool m_needToSaveNotUndo;
 };
 
-#endif  // MAINWINDOW_H
+#endif // MAINWINDOW_H

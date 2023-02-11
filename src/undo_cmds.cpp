@@ -32,10 +32,8 @@ SizeChangeBBoxCommand::SizeChangeBBoxCommand(const QRectF &oldRect,
                                              const QRectF &newRect,
                                              BoundingBoxItem *item,
                                              QUndoCommand *parent)
-    : QUndoCommand("SizeChangeBBox", parent),
-      m_oldRect(oldRect),
-      m_newRect(newRect),
-      m_item(item) {}
+    : QUndoCommand("SizeChangeBBox", parent), m_oldRect(oldRect),
+      m_newRect(newRect), m_item(item) {}
 
 void SizeChangeBBoxCommand::undo() { m_item->setRect(m_oldRect); }
 
@@ -67,10 +65,8 @@ ChangePolygonCommand::ChangePolygonCommand(const QPolygonF &oldPoly,
                                            const QPolygonF &newPoly,
                                            PolygonItem *item,
                                            QUndoCommand *parent)
-    : QUndoCommand("ChangePolygon", parent),
-      m_newPoly(newPoly),
-      m_oldPoly(oldPoly),
-      m_item(item) {}
+    : QUndoCommand("ChangePolygon", parent), m_newPoly(newPoly),
+      m_oldPoly(oldPoly), m_item(item) {}
 
 void ChangePolygonCommand::undo() { m_item->setPolygon(m_oldPoly); }
 
@@ -102,10 +98,8 @@ ChangeLineStripCommand::ChangeLineStripCommand(const QPolygonF &oldPoly,
                                                const QPolygonF &newPoly,
                                                PolygonItem *item,
                                                QUndoCommand *parent)
-    : QUndoCommand("ChangeLineStrip", parent),
-      m_newPoly(newPoly),
-      m_oldPoly(oldPoly),
-      m_item(item) {}
+    : QUndoCommand("ChangeLineStrip", parent), m_newPoly(newPoly),
+      m_oldPoly(oldPoly), m_item(item) {}
 
 void ChangeLineStripCommand::undo() { m_item->setPolygon(m_oldPoly); }
 
@@ -156,9 +150,7 @@ ChangeLineSizeCommand::ChangeLineSizeCommand(const QLineF &oldLine,
                                              const QLineF &newLine,
                                              LineItem *item,
                                              QUndoCommand *parent)
-    : QUndoCommand("ChangeLine", parent),
-      m_item(item),
-      m_oldLine(oldLine),
+    : QUndoCommand("ChangeLine", parent), m_item(item), m_oldLine(oldLine),
       m_newLine(newLine) {}
 
 void ChangeLineSizeCommand::undo() { m_item->setLine(m_oldLine); }
@@ -173,20 +165,20 @@ MoveItemCommand::MoveItemCommand(const QPointF &oldPos, const QPointF &newPost,
                                  QGraphicsItem *item, QUndoCommand *parent)
     : QUndoCommand(parent), m_oldPos(oldPos), m_newPost(newPost), m_item(item) {
   switch (item->type()) {
-    case Helper::kBBox:
-      setText("MoveBBox");
-      break;
-    case Helper::kLine:
-      setText("MoveLine");
-      break;
-    case Helper::kPoint:
-      setText("MovePoint");
-      break;
-    case Helper::kPolygon:
-      setText("MovePolygon");
-    case Helper::kLineStrip:
-      setText("MoveLineStrip");
-      break;
+  case Helper::kBBox:
+    setText("MoveBBox");
+    break;
+  case Helper::kLine:
+    setText("MoveLine");
+    break;
+  case Helper::kPoint:
+    setText("MovePoint");
+    break;
+  case Helper::kPolygon:
+    setText("MovePolygon");
+  case Helper::kLineStrip:
+    setText("MoveLineStrip");
+    break;
   }
 }
 
@@ -198,18 +190,18 @@ void MoveItemCommand::redo() { m_item->setPos(m_newPost); }
 RemoveItemCommand::RemoveItemCommand(QGraphicsItem *item, QUndoCommand *parent)
     : QUndoCommand(parent), m_item(item) {
   switch (m_item->type()) {
-    case Helper::kBBox:
-      setText("RemoveBBox");
-      break;
-    case Helper::kLine:
-      setText("RemoveLine");
-      break;
-    case Helper::kPoint:
-      setText("RemovePoint");
-      break;
-    case Helper::kPolygon:
-      setText("RemovePolygon");
-      break;
+  case Helper::kBBox:
+    setText("RemoveBBox");
+    break;
+  case Helper::kLine:
+    setText("RemoveLine");
+    break;
+  case Helper::kPoint:
+    setText("RemovePoint");
+    break;
+  case Helper::kPolygon:
+    setText("RemovePolygon");
+    break;
   }
 }
 
@@ -227,21 +219,21 @@ ChangeLabelCommand::ChangeLabelCommand(const QString &oldLabel,
                                        QUndoCommand *parent)
     : QUndoCommand(parent), m_oldLb(oldLabel), m_newLb(newLabel), m_item(item) {
   switch (m_item->type()) {
-    case Helper::kBBox:
-      setText("ChangeLabelBBox");
-      break;
-    case Helper::kLine:
-      setText("ChangeLabelLine");
-      break;
-    case Helper::kPoint:
-      setText("ChangeLabelPoint");
-      break;
-    case Helper::kPolygon:
-      setText("ChangeLabelPolygon");
-      break;
-    case Helper::kLineStrip:
-      setText("ChangeLineStrip");
-      break;
+  case Helper::kBBox:
+    setText("ChangeLabelBBox");
+    break;
+  case Helper::kLine:
+    setText("ChangeLabelLine");
+    break;
+  case Helper::kPoint:
+    setText("ChangeLabelPoint");
+    break;
+  case Helper::kPolygon:
+    setText("ChangeLabelPolygon");
+    break;
+  case Helper::kLineStrip:
+    setText("ChangeLineStrip");
+    break;
   }
 }
 
@@ -251,18 +243,18 @@ void ChangeLabelCommand::redo() { setLabel(m_newLb); }
 
 void ChangeLabelCommand::setLabel(const QString &lb) {
   switch (m_item->type()) {
-    case Helper::kBBox:
-      dynamic_cast<BoundingBoxItem *>(m_item)->setLabel(lb);
-      break;
-    case Helper::kPoint:
-      dynamic_cast<PointItem *>(m_item)->setLabel(lb);
-      break;
-    case Helper::kPolygon:
-    case Helper::kLineStrip:
-      dynamic_cast<PolygonItem *>(m_item)->setLabel(lb);
-      break;
-    case Helper::kLine:
-      dynamic_cast<LineItem *>(m_item)->setLabel(lb);
-      break;
+  case Helper::kBBox:
+    dynamic_cast<BoundingBoxItem *>(m_item)->setLabel(lb);
+    break;
+  case Helper::kPoint:
+    dynamic_cast<PointItem *>(m_item)->setLabel(lb);
+    break;
+  case Helper::kPolygon:
+  case Helper::kLineStrip:
+    dynamic_cast<PolygonItem *>(m_item)->setLabel(lb);
+    break;
+  case Helper::kLine:
+    dynamic_cast<LineItem *>(m_item)->setLabel(lb);
+    break;
   }
 }

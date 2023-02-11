@@ -6,7 +6,7 @@
 #include "utils.h"
 
 class PointItem : public QGraphicsEllipseItem, public CustomItem {
- public:
+public:
   PointItem(const QPointF &center, const QString &label = QString(),
             QGraphicsItem *parent = nullptr, bool ready = false);
 
@@ -30,8 +30,8 @@ class PointItem : public QGraphicsEllipseItem, public CustomItem {
   // get/set
   QPointF center() const;
 
- private:
+private:
   QPointF m_oldPos;
 };
 
-#endif  // POINT_ITEM_H
+#endif // POINT_ITEM_H

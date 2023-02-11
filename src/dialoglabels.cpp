@@ -29,7 +29,8 @@ void DialogLabels::setLabels(const QStringList &labels) {
 
 void DialogLabels::on_tBAdd_clicked() {
   QString currTag = ui->lineEditLb->text();
-  if (currTag.isEmpty()) return;
+  if (currTag.isEmpty())
+    return;
 
   auto item = new QListWidgetItem();
   item->setFlags(item->flags() | Qt::ItemIsEditable);

@@ -7,7 +7,7 @@ class QAbstractGraphicsShapeItem;
 class QGraphicsItem;
 
 class CustomItem {
- public:
+public:
   virtual void setLabel(const QString &lb) = 0;
   virtual QString label() const { return m_label; };
   virtual void setLocked(bool what) = 0;
@@ -15,7 +15,7 @@ class CustomItem {
   virtual void setShowLabel(bool show) {}
   virtual bool isLocked() const { return !m_moveEnable; }
 
- protected:
+protected:
   QString m_label;
   bool m_moveEnable{false};
   bool m_showLabel{true};
@@ -29,4 +29,4 @@ class CustomItem {
   void __showEditDialog(QGraphicsItem *item, const QPoint screenPos);
 };
 
-#endif  // CUSTOM_ITEM_H
+#endif // CUSTOM_ITEM_H

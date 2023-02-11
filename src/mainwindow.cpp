@@ -71,12 +71,14 @@ void MainWindow::addNewUniqueItem(QComboBox *cbox, const QString &label,
   int i;
   for (i = 0; i < n; ++i) {
     if (cbox->itemText(i) == label) {
-      if (selected) cbox->setCurrentIndex(i);
+      if (selected)
+        cbox->setCurrentIndex(i);
       return;
     }
   }
   cbox->addItem(label);
-  if (selected) cbox->setCurrentIndex(i);
+  if (selected)
+    cbox->setCurrentIndex(i);
 }
 
 QStringList MainWindow::getLabelsFromComboBox(QComboBox *cbox) {
@@ -114,7 +116,8 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 
   dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
                           m_annImgManager.annFolder());
-  if (dlg.exec() != QDialog::Accepted) return;
+  if (dlg.exec() != QDialog::Accepted)
+    return;
 
   loadImagesAndAnnotations(dlg.imgFolder(), dlg.annFolder());
 }
@@ -154,7 +157,8 @@ void MainWindow::on_actionNew_Point_triggered() {
 }
 
 void MainWindow::on_NeedSaveChangeUndo(bool enable) {
-  if (m_needToSaveNotUndo) return;
+  if (m_needToSaveNotUndo)
+    return;
   ui->saveLocalChanges->setEnabled(!enable);
 }
 
@@ -163,7 +167,8 @@ void MainWindow::on_NeedSaveChange() {
 }
 
 void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
-  if (index == m_current_index) return;
+  if (index == m_current_index)
+    return;
   if (ui->saveLocalChanges->isEnabled()) {
     if (ui->checkBoxAutoSave->isChecked()) {
       on_saveLocalChanges_triggered();
@@ -173,17 +178,17 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
           QMessageBox::StandardButtons(
               {QMessageBox::Save, QMessageBox::Ignore, QMessageBox::Cancel}));
       switch (ex) {
-        case QMessageBox::Save:
-          on_saveLocalChanges_triggered();
-          break;
-        case QMessageBox::Cancel:
-          ui->listViewImgNames->setCurrentIndex(m_current_index);
-          return;
-          break;
-        case QMessageBox::Ignore:
-          break;
-        default:
-          break;
+      case QMessageBox::Save:
+        on_saveLocalChanges_triggered();
+        break;
+      case QMessageBox::Cancel:
+        ui->listViewImgNames->setCurrentIndex(m_current_index);
+        return;
+        break;
+      case QMessageBox::Ignore:
+        break;
+      default:
+        break;
       }
     }
   }
@@ -270,7 +275,8 @@ void MainWindow::on_timeout() {
 
 void MainWindow::on_tBAdd_clicked() {
   QString currTag = ui->comboBoxTag->currentText();
-  if (currTag.isEmpty()) return;
+  if (currTag.isEmpty())
+    return;
 
   auto item = new QListWidgetItem();
   item->setFlags(item->flags() | Qt::ItemIsEditable);
@@ -356,7 +362,8 @@ void MainWindow::on_toolButtonAddImgLabels_clicked() {
 void MainWindow::on_actionSave_project_triggered() {
   const QString filePath =
       QFileDialog::getSaveFileName(this, "Save project file");
-  if (filePath.isEmpty()) return;
+  if (filePath.isEmpty())
+    return;
 
   QJsonObject root;
   root.insert(QString("ann_folder"), m_annImgManager.annFolder());
@@ -366,7 +373,8 @@ void MainWindow::on_actionSave_project_triggered() {
   QJsonArray array_lbs;
   for (int i = 0; i < ui->comboBoxTag->count(); ++i) {
     QString tag = ui->comboBoxTag->itemText(i);
-    if (!tag.isEmpty()) array_lbs.append(tag);
+    if (!tag.isEmpty())
+      array_lbs.append(tag);
   }
   root[QString("tags")] = array_lbs;
 
@@ -374,7 +382,8 @@ void MainWindow::on_actionSave_project_triggered() {
   array_lbs = {};
   for (int i = 0; i < ui->comboBoxActiveLabel->count(); ++i) {
     QString tag = ui->comboBoxActiveLabel->itemText(i);
-    if (!tag.isEmpty()) array_lbs.append(tag);
+    if (!tag.isEmpty())
+      array_lbs.append(tag);
   }
   root[QString("obj_labels")] = array_lbs;
 
@@ -382,7 +391,8 @@ void MainWindow::on_actionSave_project_triggered() {
   array_lbs = {};
   for (int i = 0; i < ui->comboBoxImgLabel->count(); ++i) {
     QString tag = ui->comboBoxImgLabel->itemText(i);
-    if (!tag.isEmpty()) array_lbs.append(tag);
+    if (!tag.isEmpty())
+      array_lbs.append(tag);
   }
   root[QString("img_labels")] = array_lbs;
 
@@ -413,7 +423,8 @@ void MainWindow::loadImagesAndAnnotations(const QString &annImg,
 void MainWindow::on_actionLoad_project_triggered() {
   const QString filePath =
       QFileDialog::getOpenFileName(this, "Load project file");
-  if (filePath.isEmpty()) return;
+  if (filePath.isEmpty())
+    return;
 
   QFile ifile(filePath);
   if (!ifile.open(QFile::ReadOnly)) {

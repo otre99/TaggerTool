@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+qt_standard_project_setup()
 
 set(PROJECT_SOURCES
     custom_item.h custom_item.cpp
@@ -75,3 +76,24 @@ install(TARGETS TaggerTool
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(TaggerTool)
 endif()
+
+# Generate the deployment script for the target MyApp.
+qt_generate_deploy_app_script(
+    TARGET TaggerTool
+    OUTPUT_SCRIPT deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+)
+
+# Call the deployment script on "cmake --install".
+install(SCRIPT ${deploy_script})
+
+
+set(CPACK_PACKAGE_NAME TaggerTool)
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple tagger tool for computer vision annotations")
+set(CPACK_PACKAGE_VENDOR "RCCR")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+set(CPACK_VERBATIM_VARIABLES ON)
+set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/TaggerTool")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Roberto Carlos Cruz Rodriguez <roberto.cruz.rdg@gmail.com>")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libstdc++6, libgcc-s1")
+include(CPack)
