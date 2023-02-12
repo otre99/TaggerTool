@@ -53,6 +53,7 @@ QJsonObject BBox::serializeJson() const {
   obj[QString("y2")] = y2;
   obj[QString("occluded")] = occluded;
   obj[QString("truncated")] = truncated;
+  obj[QString("crowded")] = crowded;
   return obj;
 }
 void BBox::fromJson(const QJsonObject &obj) {
@@ -63,22 +64,27 @@ void BBox::fromJson(const QJsonObject &obj) {
   y2 = obj[QString("y2")].toDouble();
   occluded = obj[QString("occluded")].toBool(false);
   truncated = obj[QString("truncated")].toBool(false);
+  crowded = obj[QString("crowded")].toBool(false);
 }
 
 BBox::BBox(float x1, float y1, float x2, float y2, const QString &lb,
-           bool occluded, bool truncated)
-    : x1{x1}, y1{y1}, x2{x2}, y2{y2}, occluded{occluded}, truncated{truncated} {
+           bool occluded, bool truncated, bool crowded)
+    : x1{x1}, y1{y1}, x2{x2}, y2{y2}, occluded{occluded}, truncated{truncated}, crowded{crowded} {
   label = lb;
 }
-BBox::BBox(const QRectF &r, const QString &lb, bool occluded, bool truncated)
+BBox::BBox(const QRectF &r, const QString &lb, bool occluded, bool truncated, bool crowded)
     : x1(r.left()), y1(r.top()), x2(r.right()),
-      y2(r.bottom()), occluded{occluded}, truncated{truncated} {
+      y2(r.bottom()), occluded{occluded}, truncated{truncated}, crowded{crowded} {
   label = lb;
 }
 
 QPointF BBox::pt1() const { return {x1, y1}; }
 
 QPointF BBox::pt2() const { return {x2, y2}; }
+
+bool BBox::getOccluded() const { return occluded; }
+bool BBox::getTruncated() const { return truncated; }
+bool BBox::getCrowded() const { return crowded; }
 
 // Point impl
 Point::Point(float x, float y, const QString &lb) : x{x}, y{y} { label = lb; }

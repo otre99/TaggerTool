@@ -15,7 +15,6 @@ public:
   ~DialogLabels();
   QStringList getLabels() const;
   void setLabels(const QStringList &labels);
-
 private slots:
   void on_tBAdd_clicked();
   void on_tBRemove_clicked();

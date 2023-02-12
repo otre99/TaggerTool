@@ -56,7 +56,6 @@ private slots:
   void on_actionSave_project_triggered();
   void loadImagesAndAnnotations(const QString &annImg,
                                 const QString &annFolder);
-
   void on_actionAdd_New_LineStrip_triggered();
 
 private:

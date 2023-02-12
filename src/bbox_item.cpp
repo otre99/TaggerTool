@@ -1,5 +1,5 @@
 #include "bbox_item.h"
-
+#include "editdialog.h"
 #include <QCursor>
 #include <QDebug>
 #include <QGraphicsScene>
@@ -43,6 +43,41 @@ void BoundingBoxItem::helperParametersChanged() {
   setPen(p);
 }
 
+void BoundingBoxItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
+    EditDialog dlg;
+    dlg.setGeometry(QRect{screenPos, dlg.size()});
+    dlg.setLabel(m_label);
+    dlg.setOccludedTrancatedCrowded(m_occluded, m_truncated, m_crowded);
+    if (dlg.exec() == QDialog::Accepted) {
+      //ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
+      ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
+
+      if (dlg.removeItem()) {
+        emit canvas->deferredRemoveItem(item);
+        return;
+      }
+
+      if (dlg.label() != m_label) {
+        Helper::imageCanvas()->undoStack()->push(
+            new ChangeLabelCommand(m_label, dlg.label(), item));
+        // emit canvas->needSaveChanges();
+      }
+
+      if (dlg.getOccluded()!=m_occluded){
+          Helper::imageCanvas()->undoStack()->push(
+              new OccludedChangeBBoxCommand(m_occluded, !m_occluded, this));
+      }
+      if (dlg.getTruncated()!=m_truncated){
+          Helper::imageCanvas()->undoStack()->push(
+              new TruncatedChangeBBoxCommand(m_truncated, !m_truncated, this));
+      }
+      if (dlg.getCrowded()!=m_crowded){
+          Helper::imageCanvas()->undoStack()->push(
+              new CrowdedChangeBBoxCommand(m_crowded, !m_crowded, this));
+      }
+    }
+}
+
 void BoundingBoxItem::paint(QPainter *painter,
                             const QStyleOptionGraphicsItem *option,
                             QWidget *widget) {
@@ -75,7 +110,7 @@ void BoundingBoxItem::paint(QPainter *painter,
     painter->restore();
 
     painter->setPen(Qt::NoPen);
-    QColor color = pen().color();
+    QColor color = Helper::getCircleColor(); //pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
     qreal w2 = brect.left() + brect.width() / 2;
@@ -213,7 +248,7 @@ void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
   } else if (event->button() == Qt::RightButton && m_moveEnable) {
-    __showEditDialog(this, event->screenPos());
+    showEditDialog(this, event->screenPos());
   } else {
     m_currentCorner = positionInside(event->pos());
     m_oldCoords = rect();

@@ -17,7 +17,8 @@ class LineItem;
 // AddBBoxCommand
 class AddBBoxCommand : public QUndoCommand {
 public:
-  AddBBoxCommand(const QRectF &rect, const QString &label, bool ready,
+  AddBBoxCommand(const QRectF &rect, const QString &label, bool occluded,
+                 bool truncated, bool crowded, bool ready,
                  QUndoCommand *parent = 0);
   ~AddBBoxCommand();
   void undo() override;
@@ -36,6 +37,44 @@ public:
 
 private:
   QRectF m_oldRect, m_newRect;
+  BoundingBoxItem *m_item;
+};
+
+class OccludedChangeBBoxCommand : public QUndoCommand {
+public:
+  OccludedChangeBBoxCommand(const bool oldOccluded, const bool newOccluded,
+                            BoundingBoxItem *item, QUndoCommand *parent = 0);
+  void undo() override;
+  void redo() override;
+  //  int id() const override {return 11;}
+  //  bool mergeWith(const QUndoCommand *command) override;
+
+private:
+  bool m_oldOccluded, m_newOccluded;
+  BoundingBoxItem *m_item;
+};
+
+class TruncatedChangeBBoxCommand : public QUndoCommand {
+public:
+  TruncatedChangeBBoxCommand(const bool oldTruncated, const bool newTruncated,
+                             BoundingBoxItem *item, QUndoCommand *parent = 0);
+  void undo() override;
+  void redo() override;
+
+private:
+  bool m_oldTruncated, m_newTruncated;
+  BoundingBoxItem *m_item;
+};
+
+class CrowdedChangeBBoxCommand : public QUndoCommand {
+public:
+  CrowdedChangeBBoxCommand(const bool oldCrowded, const bool newCrowded,
+                           BoundingBoxItem *item, QUndoCommand *parent = 0);
+  void undo() override;
+  void redo() override;
+
+private:
+  bool m_oldCrowded, m_newCrowded;
   BoundingBoxItem *m_item;
 };
 

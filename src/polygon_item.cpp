@@ -91,7 +91,7 @@ void PolygonItem::paint(QPainter *painter,
 
     int index = 0;
     painter->setPen(Qt::NoPen);
-    QColor color = pen().color();
+    QColor color = Helper::getCircleColor(); //pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
 
@@ -137,7 +137,7 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
   } else if (event->button() == Qt::RightButton && m_moveEnable) {
-    __showEditDialog(this, event->screenPos());
+    showEditDialog(this, event->screenPos());
   } else if ((event->modifiers() & (Qt::AltModifier | Qt::MetaModifier)) &&
              event->button() == Qt::LeftButton) {
     auto corner = positionInside(event->pos());

@@ -7,14 +7,24 @@
 #include "polygon_item.h"
 #include "utils.h"
 
+QString getBoolPropertyChangeText(const QString &pname, bool val1) {
+  const auto arg1 = val1 ? "True" : "False";
+  const auto arg2 = val1 ? "False" : "True";
+  return QString("%1 [%2 --> %3]").arg(pname, arg1, arg2);
+}
+
 /////////////////////////////////////////////////////////////////
 //////////////// BoundingBoxItem ////////////////////////////////
 /////////////////////////////////////////////////////////////////
 // AddBBoxCommand
 AddBBoxCommand::AddBBoxCommand(const QRectF &rect, const QString &label,
+                               bool occluded, bool truncated, bool crowded,
                                bool ready, QUndoCommand *parent)
     : QUndoCommand("AddBBox", parent) {
   m_item = new BoundingBoxItem(rect, label, nullptr, ready);
+  m_item->setOccluded(occluded);
+  m_item->setTruncated(truncated);
+  m_item->setCrowded(crowded);
 }
 
 void AddBBoxCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
@@ -38,6 +48,61 @@ SizeChangeBBoxCommand::SizeChangeBBoxCommand(const QRectF &oldRect,
 void SizeChangeBBoxCommand::undo() { m_item->setRect(m_oldRect); }
 
 void SizeChangeBBoxCommand::redo() { m_item->setRect(m_newRect); }
+
+// OccludedChangeBBoxCommand
+OccludedChangeBBoxCommand::OccludedChangeBBoxCommand(const bool oldOccluded,
+                                                     const bool newOccluded,
+                                                     BoundingBoxItem *item,
+                                                     QUndoCommand *parent)
+    : QUndoCommand(getBoolPropertyChangeText("OccludedChange", oldOccluded),
+                   parent),
+      m_oldOccluded(oldOccluded), m_newOccluded(newOccluded), m_item(item) {}
+
+void OccludedChangeBBoxCommand::undo() { m_item->setOccluded(m_oldOccluded); }
+
+void OccludedChangeBBoxCommand::redo() { m_item->setOccluded(m_newOccluded); }
+
+// bool OccludedChangeBBoxCommand::mergeWith(const QUndoCommand *command) {
+//     if (command->id()!=id())
+//         return false;
+
+//    const auto ptr = static_cast<const OccludedChangeBBoxCommand *>(command);
+//    m_oldOccluded = ptr->m_oldOccluded;
+//    m_newOccluded = ptr->m_newOccluded;
+//    updateCommandText();
+//    return true;
+//}
+
+// TruncatedChangeBBoxCommand
+TruncatedChangeBBoxCommand::TruncatedChangeBBoxCommand(const bool oldTruncated,
+                                                       const bool newTruncated,
+                                                       BoundingBoxItem *item,
+                                                       QUndoCommand *parent)
+    : QUndoCommand(getBoolPropertyChangeText("TruncatedChange", oldTruncated),
+                   parent),
+      m_oldTruncated(oldTruncated), m_newTruncated(newTruncated), m_item(item) {
+}
+
+void TruncatedChangeBBoxCommand::undo() {
+  m_item->setTruncated(m_oldTruncated);
+}
+
+void TruncatedChangeBBoxCommand::redo() {
+  m_item->setTruncated(m_newTruncated);
+}
+
+// CrowdedChangeBBoxCommand
+CrowdedChangeBBoxCommand::CrowdedChangeBBoxCommand(const bool oldCrowded,
+                                                   const bool newCrowded,
+                                                   BoundingBoxItem *item,
+                                                   QUndoCommand *parent)
+    : QUndoCommand(getBoolPropertyChangeText("CrowdedChange", oldCrowded),
+                   parent),
+      m_oldCrowded(oldCrowded), m_newCrowded(newCrowded), m_item(item) {}
+
+void CrowdedChangeBBoxCommand::undo() { m_item->setCrowded(m_oldCrowded); }
+
+void CrowdedChangeBBoxCommand::redo() { m_item->setCrowded(m_newCrowded); }
 
 /////////////////////////////////////////////////////////////////
 ////////////////// PolygonItem //////////////////////////////////

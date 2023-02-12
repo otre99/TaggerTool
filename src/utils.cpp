@@ -57,6 +57,7 @@ QMap<QString, QColor> Helper::m_labelToColor{};
 ImageCanvas *Helper::m_scene = nullptr;
 bool Helper::m_labelsUpdated = false;
 QFont Helper::m_fontLabel;
+QColor Helper::circleColor{Qt::red};
 
 void Helper::InitFonts(const QFont &baseFont) {
   Helper::m_fontLabel = baseFont;
@@ -86,6 +87,10 @@ const QFont &Helper::fontLabel() { return Helper::m_fontLabel; }
 
 double Helper::penWidth() {
   return qMin(kMaxPenW, qMax(kMinPenW, kPointRadius * kInvScaleFactor));
+}
+
+QColor Helper::getCircleColor() {
+    return Helper::circleColor;
 }
 
 void Helper::registerNewLabels(const QStringList &labels) {

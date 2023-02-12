@@ -15,7 +15,10 @@ public:
   QString label() const;
   void setLabel(const QString &lb);
   bool removeItem() const { return m_removedItem; }
-
+  void setOccludedTrancatedCrowded(bool occluded, bool truncated, bool crowded);
+  bool getOccluded() const;
+  bool getTruncated() const;
+  bool getCrowded() const;
 private slots:
   void on_toolButtonRemoveItem_clicked();
 

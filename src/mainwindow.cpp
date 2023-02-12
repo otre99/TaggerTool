@@ -256,7 +256,8 @@ void MainWindow::on_actionzoom100_triggered() {
 }
 
 void MainWindow::on_actionGrid_triggered(bool checked) {
-  m_imageCanvas.setShowGrid(!m_imageCanvas.showGrid());
+    qDebug() << checked ;
+  m_imageCanvas.setShowGrid(checked);
 }
 
 void MainWindow::on_timeout() {

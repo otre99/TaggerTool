@@ -14,6 +14,7 @@ public:
   virtual void helperParametersChanged() = 0;
   virtual void setShowLabel(bool show) {}
   virtual bool isLocked() const { return !m_moveEnable; }
+  virtual void showEditDialog(QGraphicsItem *item, const QPoint screenPos);
 
 protected:
   QString m_label;
@@ -26,7 +27,6 @@ protected:
   void __calculateLabelSize(const QString &label);
   void __setLocked(QGraphicsItem *item, bool lk);
   void __swapStackOrder(QGraphicsItem *item, const QList<QGraphicsItem *> &l);
-  void __showEditDialog(QGraphicsItem *item, const QPoint screenPos);
 };
 
 #endif // CUSTOM_ITEM_H

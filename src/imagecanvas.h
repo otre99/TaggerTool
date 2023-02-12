@@ -75,7 +75,7 @@ signals:
 
 private:
   bool m_showLabels{true};
-  bool m_showGrid{true};
+  bool m_showGrid{false};
   QPolygonF m_currentPolygon{};
   QUndoStack m_undoStack;
 };

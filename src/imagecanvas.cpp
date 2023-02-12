@@ -131,7 +131,9 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
     if (frect.isNull() || frect.isEmpty() || !frect.isValid())
       continue;
 
-    m_undoStack.push(new AddBBoxCommand(frect, bbox.getLabel(), false));
+    m_undoStack.push(new AddBBoxCommand(frect, bbox.getLabel(),
+                                        bbox.getOccluded(), bbox.getTruncated(),
+                                        bbox.getCrowded(), false));
   }
   for (auto &pt : ann.points) {
     m_undoStack.push(
@@ -178,15 +180,17 @@ Annotations ImageCanvas::annotations() {
     if (bbox) {
       if (item->type() == Helper::kBBox) {
         BBox bbox;
-        auto bbox_item = reinterpret_cast<BoundingBoxItem *>(item);
+        auto bbox_item = static_cast<BoundingBoxItem *>(item);
         const QRectF frect = bbox_item->boundingBoxCoordinates();
-        ann.bboxes.emplaceBack(frect, bbox_item->label());
+        ann.bboxes.emplaceBack(
+            frect, bbox_item->label(), bbox_item->getOccluded(),
+            bbox_item->getTruncated(), bbox_item->getCrowded());
         continue;
       }
 
       if (item->type() == Helper::kLine) {
         Line line;
-        auto line_item = reinterpret_cast<LineItem *>(item);
+        auto line_item = static_cast<LineItem *>(item);
 
         const QPointF p1 = line_item->p1();
         const QPointF p2 = line_item->p2();
@@ -195,7 +199,7 @@ Annotations ImageCanvas::annotations() {
       }
 
       if (item->type() == Helper::kPoint) {
-        auto pt_item = reinterpret_cast<PointItem *>(item);
+        auto pt_item = static_cast<PointItem *>(item);
         const QPointF ct = pt_item->center();
         ann.points.emplaceBack(ct, pt_item->label());
         continue;
@@ -203,7 +207,7 @@ Annotations ImageCanvas::annotations() {
 
       if (item->type() == Helper::kPolygon ||
           item->type() == Helper::kLineStrip) {
-        auto poly_item = reinterpret_cast<PolygonItem *>(item);
+        auto poly_item = static_cast<PolygonItem *>(item);
         const QPolygonF polygon =
             poly_item->getPolygonCoords(); // mapToScene(poly_item->polygon());
 
@@ -263,7 +267,8 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
     views().first()->viewport()->setCursor(Qt::ArrowCursor);
     if (m_waitingForTypeObj == Helper::kBBox && (m_begPt != m_endPt)) {
       auto bbox = Helper::buildRectFromTwoPoints(m_begPt, m_endPt);
-      auto cmd = new AddBBoxCommand(bbox, m_bboxLabel, true, nullptr);
+      auto cmd = new AddBBoxCommand(bbox, m_bboxLabel, false, false, false,
+                                    true, nullptr);
       m_undoStack.push(cmd);
       m_drawObjStarted = false;
     }

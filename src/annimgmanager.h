@@ -31,15 +31,19 @@ class BBox : public Annotation {
   float x1, y1, x2, y2;
   bool occluded{false};
   bool truncated{false};
+  bool crowded{false};
 
 public:
   BBox() = default;
   BBox(float x1, float y1, float x2, float y2, const QString &lb,
-       bool occluded = false, bool truncated = false);
+       bool occluded = false, bool truncated = false, bool crowded=false);
   BBox(const QRectF &r, const QString &lb, bool occluded = false,
-       bool truncated = false);
+       bool truncated = false, bool crowded=false);
   QPointF pt1() const;
   QPointF pt2() const;
+  bool getOccluded() const;
+  bool getTruncated() const;
+  bool getCrowded() const;
   virtual QJsonObject serializeJson() const override;
   virtual void fromJson(const QJsonObject &obj) override;
 };

@@ -77,7 +77,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->restore();
 
     painter->setPen(Qt::NoPen);
-    QColor color = pen().color();
+    QColor color = Helper::getCircleColor(); //pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
 
@@ -124,7 +124,7 @@ void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
   } else if (event->button() == Qt::RightButton && m_moveEnable) {
-    __showEditDialog(this, event->screenPos());
+    showEditDialog(this, event->screenPos());
   } else {
     m_currentCorner = positionInside(event->pos());
     if (m_currentCorner == kCenter || !m_moveEnable) {

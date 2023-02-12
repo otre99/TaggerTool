@@ -13,6 +13,7 @@ class Helper {
   static QFont m_fontLabel;
   static QMap<QString, QColor> m_labelToColor;
   static ImageCanvas *m_scene;
+  static QColor circleColor;
 
 public:
   static bool m_labelsUpdated;
@@ -38,6 +39,7 @@ public:
   static ImageCanvas *imageCanvas() { return m_scene; }
   static const QFont &fontLabel();
   static double penWidth();
+  static QColor getCircleColor();
 
   static void registerNewLabels(const QStringList &labels);
   static void clearLabels();

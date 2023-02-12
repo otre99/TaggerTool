@@ -34,6 +34,17 @@ public:
     update();
   }
 
+  void setOccluded(bool occluded) { m_occluded = occluded; }
+  void setTruncated(bool occluded) { m_truncated = occluded; }
+  void setCrowded(bool crowded) { m_crowded = crowded; }
+
+  bool getOccluded() const { return m_occluded; }
+  bool getTruncated() const { return m_truncated; }
+  bool getCrowded() const { return m_crowded; }
+
+  virtual void showEditDialog(QGraphicsItem *item,
+                              const QPoint screenPos) override;
+
   // QGraphicsItem
   int type() const override { return Helper::kBBox; }
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
@@ -57,6 +68,7 @@ private:
   QPointF m_oldPos;
   QPointF m_lastPt;
   QRectF m_oldCoords;
+  bool m_occluded{false}, m_truncated{false}, m_crowded{false};
 };
 
 #endif // BBOX_ITEM_H

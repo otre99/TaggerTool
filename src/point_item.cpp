@@ -76,7 +76,7 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
              event->button() == Qt::LeftButton) {
     setLocked(m_moveEnable);
   } else if (event->button() == Qt::RightButton && m_moveEnable) {
-    __showEditDialog(this, event->screenPos());
+    showEditDialog(this, event->screenPos());
   } else {
     QGraphicsEllipseItem::mousePressEvent(event);
   }

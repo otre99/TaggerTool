@@ -11,6 +11,27 @@
 #include "undo_cmds.h"
 #include "utils.h"
 
+void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
+  EditDialog dlg;
+  dlg.setGeometry(QRect{screenPos, dlg.size()});
+  dlg.setLabel(m_label);
+  if (dlg.exec() == QDialog::Accepted) {
+    //ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
+    ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
+
+    if (dlg.removeItem()) {
+      emit canvas->deferredRemoveItem(item);
+      return;
+    }
+
+    if (dlg.label() != m_label) {
+      Helper::imageCanvas()->undoStack()->push(
+          new ChangeLabelCommand(m_label, dlg.label(), item));
+      // emit canvas->needSaveChanges();
+    }
+  }
+}
+
 void CustomItem::__setLabel(QAbstractGraphicsShapeItem *item, QString label) {
   m_label = label;
   auto p = item->pen();
@@ -45,22 +66,4 @@ void CustomItem::__swapStackOrder(QGraphicsItem *item,
   }
 }
 
-void CustomItem::__showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
-  EditDialog dlg;
-  dlg.setGeometry(QRect{screenPos, dlg.size()});
-  dlg.setLabel(m_label);
-  if (dlg.exec() == QDialog::Accepted) {
-    ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
 
-    if (dlg.removeItem()) {
-      emit canvas->deferredRemoveItem(item);
-      return;
-    }
-
-    if (dlg.label() != m_label) {
-      Helper::imageCanvas()->undoStack()->push(
-          new ChangeLabelCommand(m_label, dlg.label(), item));
-      // emit canvas->needSaveChanges();
-    }
-  }
-}
