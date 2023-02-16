@@ -2,6 +2,7 @@
 #define ANNIMGMANAGER_H
 #include <QDir>
 #include <QImageReader>
+#include <QCache>
 
 class Annotation {
 public:
@@ -111,11 +112,13 @@ public:
   QString annFilePath(const QString &img_id);
   QString imgFilePath(const QString &img_id);
   QStringList imageIds() const { return m_imageIdsList; }
+  size_t annotationsCount() const {return m_imageIdsList.size();}
 
 private:
   void _saveAnnotations(const QString &path, const Annotations &ann);
   Annotations _loadAnnotation(const QString &path);
   QString basename(const QString &filePath) const;
+  QCache<QString, Annotation> m_annCache_;
 };
 
 #endif // ANNIMGMANAGER_H

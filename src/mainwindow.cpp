@@ -6,13 +6,16 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QMessageBox>
+#include <QProgressDialog>
 #include <QRegularExpression>
 #include <QUndoView>
 #include <QWheelEvent>
 
+#include "dialogexporter.h"
 #include "dialoglabels.h"
 #include "loadimganndialog.h"
 #include "ui_mainwindow.h"
+
 #include "utils.h"
 
 extern Helper globalHelper;
@@ -56,6 +59,8 @@ void MainWindow::setUp() {
 
   ui->undoView->setStack(m_imageCanvas.undoStack());
   ui->saveLocalChanges->setEnabled(false);
+
+  m_heavyTaskThread.start(QThread::HighestPriority);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -114,10 +119,10 @@ void MainWindow::on_addNewBbox_triggered() {
 void MainWindow::on_pbLoadImgAnn_clicked() {
   LoadImgAnnDialog dlg;
 
-  dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
-                          m_annImgManager.annFolder());
-  if (dlg.exec() != QDialog::Accepted)
-    return;
+  //  dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
+  //                          m_annImgManager.annFolder());
+  //  if (dlg.exec() != QDialog::Accepted)
+  //    return;
 
   loadImagesAndAnnotations(dlg.imgFolder(), dlg.annFolder());
 }
@@ -256,7 +261,7 @@ void MainWindow::on_actionzoom100_triggered() {
 }
 
 void MainWindow::on_actionGrid_triggered(bool checked) {
-    qDebug() << checked ;
+  qDebug() << checked;
   m_imageCanvas.setShowGrid(checked);
 }
 
@@ -470,4 +475,22 @@ void MainWindow::on_actionLoad_project_triggered() {
 
 void MainWindow::on_actionAdd_New_LineStrip_triggered() {
   m_imageCanvas.prepareForNewLineStrip(ui->comboBoxActiveLabel->currentText());
+}
+
+void MainWindow::on_actionExport_Annotations_triggered() {
+  if (m_annImgManager.annotationsCount() == 0) {
+    QMessageBox::warning(this, "Export Annotations", "Nothing to export!");
+    return;
+  }
+
+  m_heavyTaskThread.annImgManager = &m_annImgManager;
+  DialogExporter exportedDlg(this, &m_heavyTaskThread);
+  connect(&m_heavyTaskThread, &HeavyTaskThread::taskStarted, &exportedDlg,
+          &DialogExporter::taskStarted);
+  connect(&m_heavyTaskThread, &HeavyTaskThread::progress, &exportedDlg,
+          &DialogExporter::updateProgress);
+  connect(&m_heavyTaskThread, &HeavyTaskThread::taskFinished, &exportedDlg,
+          &DialogExporter::taskFinished);
+  m_heavyTaskThread.startTask(HeavyTaskThread::CollectAnnotations);
+  exportedDlg.exec();
 }

@@ -54,6 +54,7 @@
     </property>
     <addaction name="actionLoad_project"/>
     <addaction name="actionSave_project"/>
+    <addaction name="actionExport_Annotations"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -631,6 +632,11 @@
    </property>
    <property name="shortcut">
     <string>X</string>
+   </property>
+  </action>
+  <action name="actionExport_Annotations">
+   <property name="text">
+    <string>Export Annotations</string>
    </property>
   </action>
  </widget>

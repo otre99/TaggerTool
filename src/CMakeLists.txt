@@ -33,6 +33,8 @@ set(PROJECT_SOURCES
     loadimganndialog.cpp loadimganndialog.h loadimganndialog.ui
     dialoglabels.cpp dialoglabels.h dialoglabels.ui
     undo_cmds.h  undo_cmds.cpp
+    dialogexporter.h dialogexporter.cpp dialogexporter.ui
+    heavytaskthread.h heavytaskthread.cpp
     resource.qrc
 )
 

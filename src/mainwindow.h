@@ -6,6 +6,7 @@
 #include <QTimer>
 
 #include "annimgmanager.h"
+#include "heavytaskthread.h"
 #include "imagecanvas.h"
 #include "imgstringlistmodel.h"
 
@@ -58,6 +59,8 @@ private slots:
                                 const QString &annFolder);
   void on_actionAdd_New_LineStrip_triggered();
 
+  void on_actionExport_Annotations_triggered();
+
 private:
   void setUp();
   void displayImageInfo();
@@ -72,6 +75,7 @@ private:
   ImgStringListModel m_imageListModel;
   QModelIndex m_current_index{};
   bool m_needToSaveNotUndo;
+  HeavyTaskThread m_heavyTaskThread;
 };
 
 #endif // MAINWINDOW_H

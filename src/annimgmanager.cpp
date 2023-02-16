@@ -276,6 +276,8 @@ void AnnImgManager::reset(const QString &images_folder_path,
     m_imageIdsList = m_imagesDir.entryList(Helper::kImgExts, QDir::Files);
   else
     m_imageIdsList = image_ids;
+
+  m_annCache_.clear();
 }
 
 Annotations AnnImgManager::annotations(const QString &image_id) {
