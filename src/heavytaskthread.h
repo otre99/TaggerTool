@@ -14,14 +14,15 @@ class HeavyTaskThread : public QThread {
 public:
   enum TaskName {
     CollectAnnotations,
+    ExportCOCOAnnotations,
   } m_currentTask;
 
   HeavyTaskThread();
   ~HeavyTaskThread();
   void run() override;
   void startTask(TaskName taskname);
-  bool isTaskRunning() const { return m_taskIsRunning; }
-  void KillTaskAndWait();
+  bool isTaskRunning() const;
+  void killTaskAndWait();
 signals:
   void progress(int);
   void taskFinished(bool);
@@ -39,12 +40,13 @@ private:
 
   void updateProgress(size_t index);
   bool collectAllAnnotationsTask();
+  bool exportCOCOAnnotationsTask();
 
 public:
   // CollectAnnotations
   AnnImgManager *annImgManager{nullptr};
-  QVector<Annotations> collectedAnnotations{};
   QSet<QString> uniqueLabels;
+  QString outputDirOrFile;
 };
 
 #endif // HEAVYTASKTHREAD_H

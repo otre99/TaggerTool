@@ -128,7 +128,7 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 }
 
 void MainWindow::on_saveLocalChanges_triggered() {
-  auto ann = m_imageCanvas.annotations();
+  Annotations ann = m_imageCanvas.annotations();
 
   // image label, description and tags
   ann.label = ui->comboBoxImgLabel->currentText();
@@ -199,8 +199,8 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   }
 
   const QString image_id = m_imageListModel.originalText(index);
-  auto image = m_annImgManager.image(image_id);
-  auto ann = m_annImgManager.annotations(image_id);
+  const QImage &image = m_annImgManager.image(image_id);
+  const Annotations &ann = m_annImgManager.annotations(image_id);
   m_imageCanvas.reset(image, image_id);
   m_imageCanvas.addAnnotations(ann);
 
@@ -491,6 +491,7 @@ void MainWindow::on_actionExport_Annotations_triggered() {
           &DialogExporter::updateProgress);
   connect(&m_heavyTaskThread, &HeavyTaskThread::taskFinished, &exportedDlg,
           &DialogExporter::taskFinished);
+
   m_heavyTaskThread.startTask(HeavyTaskThread::CollectAnnotations);
   exportedDlg.exec();
 }

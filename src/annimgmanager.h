@@ -106,7 +106,7 @@ public:
   QString annFolder() const { return m_annotationsDir.absolutePath(); }
   QString imgFolder() const { return m_imagesDir.absolutePath(); }
 
-  Annotations annotations(const QString &image_id);
+  const Annotations &annotations(const QString &image_id);
   QSize imageSize(const QString &image_id);
   QImage image(const QString &image_id);
   QString annFilePath(const QString &img_id);
@@ -118,7 +118,7 @@ private:
   void _saveAnnotations(const QString &path, const Annotations &ann);
   Annotations _loadAnnotation(const QString &path);
   QString basename(const QString &filePath) const;
-  QCache<QString, Annotation> m_annCache_;
+  QCache<QString, Annotations> m_annCache;
 };
 
 #endif // ANNIMGMANAGER_H

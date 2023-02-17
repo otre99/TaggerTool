@@ -277,14 +277,20 @@ void AnnImgManager::reset(const QString &images_folder_path,
   else
     m_imageIdsList = image_ids;
 
-  m_annCache_.clear();
+  m_annCache.clear();
+  m_annCache.setMaxCost(m_imageIdsList.size());
 }
 
-Annotations AnnImgManager::annotations(const QString &image_id) {
+const Annotations &AnnImgManager::annotations(const QString &image_id) {
   QFileInfo info(image_id);
   const QString ann_file_path =
       m_annotationsDir.absoluteFilePath(info.completeBaseName() + ".json");
-  return _loadAnnotation(ann_file_path);
+
+  if (!m_annCache.contains(image_id)){
+    const Annotations ann = _loadAnnotation(ann_file_path);
+    m_annCache.insert(image_id, new Annotations(ann));
+  }
+  return *m_annCache[image_id];
 }
 
 QString AnnImgManager::annFilePath(const QString &image_id) {
@@ -299,11 +305,14 @@ QString AnnImgManager::imgFilePath(const QString &img_id) {
 void AnnImgManager::saveAnnotations(const QString &image_id,
                                     const Annotations &ann) {
   const QString ann_file_path = annFilePath(image_id);
+  m_annCache.insert(image_id, new Annotations(ann));
   _saveAnnotations(ann_file_path, ann);
 }
 
 void AnnImgManager::_saveAnnotations(const QString &path,
                                      const Annotations &ann) {
+
+  qDebug() << "SAVING TO DISK!!!!";
   const QJsonObject root = ann.serializeJson();
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(path);
@@ -315,6 +324,7 @@ void AnnImgManager::_saveAnnotations(const QString &path,
 }
 
 Annotations AnnImgManager::_loadAnnotation(const QString &path) {
+  qDebug() << "LOADING TO DISK!!!!";
   Annotations ann;
   QFile ifile(path);
   if (!ifile.open(QFile::ReadOnly)) {
