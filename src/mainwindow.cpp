@@ -119,10 +119,10 @@ void MainWindow::on_addNewBbox_triggered() {
 void MainWindow::on_pbLoadImgAnn_clicked() {
   LoadImgAnnDialog dlg;
 
-  //  dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
-  //                          m_annImgManager.annFolder());
-  //  if (dlg.exec() != QDialog::Accepted)
-  //    return;
+  dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
+                          m_annImgManager.annFolder());
+  if (dlg.exec() != QDialog::Accepted)
+    return;
 
   loadImagesAndAnnotations(dlg.imgFolder(), dlg.annFolder());
 }
@@ -174,6 +174,7 @@ void MainWindow::on_NeedSaveChange() {
 void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   if (index == m_current_index)
     return;
+
   if (ui->saveLocalChanges->isEnabled()) {
     if (ui->checkBoxAutoSave->isChecked()) {
       on_saveLocalChanges_triggered();
@@ -261,7 +262,6 @@ void MainWindow::on_actionzoom100_triggered() {
 }
 
 void MainWindow::on_actionGrid_triggered(bool checked) {
-  qDebug() << checked;
   m_imageCanvas.setShowGrid(checked);
 }
 
@@ -372,8 +372,8 @@ void MainWindow::on_actionSave_project_triggered() {
     return;
 
   QJsonObject root;
-  root.insert(QString("ann_folder"), m_annImgManager.annFolder());
-  root.insert(QString("img_folder"), m_annImgManager.imgFolder());
+  root.insert("ann_folder", m_annImgManager.annFolder());
+  root.insert("img_folder", m_annImgManager.imgFolder());
 
   // tags
   QJsonArray array_lbs;
@@ -382,7 +382,7 @@ void MainWindow::on_actionSave_project_triggered() {
     if (!tag.isEmpty())
       array_lbs.append(tag);
   }
-  root[QString("tags")] = array_lbs;
+  root["tags"] = array_lbs;
 
   // obj labes
   array_lbs = {};
@@ -391,7 +391,7 @@ void MainWindow::on_actionSave_project_triggered() {
     if (!tag.isEmpty())
       array_lbs.append(tag);
   }
-  root[QString("obj_labels")] = array_lbs;
+  root["obj_labels"] = array_lbs;
 
   // img labes
   array_lbs = {};
@@ -400,7 +400,7 @@ void MainWindow::on_actionSave_project_triggered() {
     if (!tag.isEmpty())
       array_lbs.append(tag);
   }
-  root[QString("img_labels")] = array_lbs;
+  root["img_labels"] = array_lbs;
 
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(filePath);
@@ -415,6 +415,14 @@ void MainWindow::loadImagesAndAnnotations(const QString &annImg,
                                           const QString &annFolder) {
   // clean labels
   m_annImgManager.reset(annImg, annFolder);
+  if (m_annImgManager.annotationsCount() == 0) {
+    QMessageBox::information(
+        this, "Not valid images folder",
+        "Not images found in folder: " + m_annImgManager.imgFolder() +
+            "\nPlease, select another folder.");
+    return;
+  }
+
   m_imageListModel.setStringList(m_annImgManager.imageIds());
   ui->saveLocalChanges->setEnabled(false);
 
@@ -444,7 +452,7 @@ void MainWindow::on_actionLoad_project_triggered() {
 
   // tags
   QStringList lbs;
-  for (const auto &lb : root["tags"].toArray()) {
+  for (auto &&lb : root["tags"].toArray()) {
     lbs << lb.toString();
   }
   ui->comboBoxTag->clear();
@@ -453,7 +461,7 @@ void MainWindow::on_actionLoad_project_triggered() {
 
   // object labels
   lbs.clear();
-  for (const auto &lb : root["obj_labels"].toArray()) {
+  for (auto &&lb : root["obj_labels"].toArray()) {
     lbs << lb.toString();
   }
   ui->comboBoxActiveLabel->clear();
@@ -462,14 +470,14 @@ void MainWindow::on_actionLoad_project_triggered() {
 
   // img labels
   lbs.clear();
-  for (const auto &lb : root["img_labels"].toArray()) {
+  for (auto &&lb : root["img_labels"].toArray()) {
     lbs << lb.toString();
   }
   ui->comboBoxImgLabel->clear();
   ui->comboBoxImgLabel->addItems(lbs);
 
-  const QString imgFolder = root[QString("img_folder")].toString();
-  const QString annFolder = root[QString("ann_folder")].toString();
+  const QString imgFolder = root["img_folder"].toString();
+  const QString annFolder = root["ann_folder"].toString();
   loadImagesAndAnnotations(imgFolder, annFolder);
 }
 

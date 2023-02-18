@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>327</width>
+    <width>426</width>
     <height>484</height>
    </rect>
   </property>
@@ -62,17 +62,25 @@
       <string/>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <property name="spacing">
+       <number>2</number>
+      </property>
       <item row="1" column="1">
        <widget class="QPushButton" name="pBExportPascal">
         <property name="text">
          <string>Export to Pascal format</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="pBExportCoco">
-        <property name="text">
-         <string>Export to COCO format</string>
         </property>
        </widget>
       </item>
@@ -121,6 +129,20 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="pBExportCoco">
+        <property name="text">
+         <string>Export to COCO format</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="checkBoxCompact">
+        <property name="text">
+         <string>Compact</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

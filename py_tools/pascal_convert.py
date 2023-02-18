@@ -1,18 +1,18 @@
 import json
 import argparse
 import os
-from collections import defaultdict
 import xml.etree.ElementTree as ET
+
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Convert annotations in COCO format to TaggerTool native format")
+        description="Convert annotations in PASCAL format to TaggerTool native format")
     parser.add_argument('--pascal_ann_folder', type=str,
                         help="Pascal annotation folder")
     parser.add_argument('--dst_folder', type=str,
                         help="Destination forlder")
-    parser.add_argument('--only_bboxes', action='store_true',
-                        help='Process only bboxes')
+    # parser.add_argument('--only_bboxes', action='store_true',
+    #                     help='Process only bboxes')
     parser.add_argument('--selected_labels', nargs='+',
                         help='Process only certain labels', default=[])
     return parser
@@ -60,20 +60,25 @@ def read_pascal_xml_content(xml_file: str, valid_labels: set = set()):
 
     return {
         "bboxes": bboxes,
-        "filename":filename, 
-        "width": width, 
-        "height": height, 
+        "filename": filename,
+        "width": width,
+        "height": height,
         "format": image_format
     }
 
+
 def load_pascal_annotations(ann_foler: str):
     flist = os.listdir(ann_foler)
-    annotations=[]
+    annotations = []
+    i=0
     for fname in flist:
         annotations.append(
             read_pascal_xml_content(xml_file=os.path.join(ann_foler, fname))
         )
+        print(i, len(flist))
+        i+=1
     return annotations
+
 
 def empty_tagger_tool_ann():
     return {
@@ -112,14 +117,15 @@ def main(FLAGS):
         output_ann['image_w'] = pascal_ann['width']
         output_ann['image_h'] = pascal_ann['height']
 
-        selected_labels = set(FLAGS.selected_labels)        
+        selected_labels = set(FLAGS.selected_labels)
         for pascal_box in pascal_ann['bboxes']:
 
             label = pascal_box['label']
             if len(selected_labels) > 0 and label not in selected_labels:
                 continue
 
-            x1, y1, x2, y2 = pascal_box['bbox']
+            x1, y1 = pascal_box['x1'], pascal_box['y1']
+            x2, y2 = pascal_box['x2'], pascal_box['y2']
             output_ann['bboxes'].append(
                 {
                     "label": label,
@@ -133,8 +139,8 @@ def main(FLAGS):
                 }
             )
 
-            if FLAGS.only_bboxes:
-                continue
+            #if FLAGS.only_bboxes:
+            #    continue
             # TODO(otre99)
 
         with open(os.path.join(dst_folder, base_name+'.json'), 'wt') as ofile:

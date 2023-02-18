@@ -84,15 +84,17 @@ def main(FLAGS):
             if FLAGS.only_bboxes:
                 continue
 
-            segms = coco_ann['segmentation']
-            for seg in segms:
-                output_ann['polygons'].append(
-                    {
-                        'label': label,
-                        'x_coords': seg[::2],
-                        'y_coords': seg[1::2]
-                    }
-                )
+            segms = coco_ann['segmentation'] if 'segmentation' in coco_ann.keys(
+            ) else None
+            if segms:
+                for seg in segms:
+                    output_ann['polygons'].append(
+                        {
+                            'label': label,
+                            'x_coords': seg[::2],
+                            'y_coords': seg[1::2]
+                        }
+                    )
 
         with open(os.path.join(dst_folder, base_name+'.json'), 'wt') as ofile:
             json.dump(obj=output_ann, fp=ofile)
