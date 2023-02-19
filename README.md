@@ -51,13 +51,13 @@ Use scripts [coco_convert.py](py_tools/coco_convert.py) and [pascal_convert.py](
 ## How to use?
 
 ### Some shortcuts:
-* *a* : add new **BBox** 
-* *w* : add new **Polygon**
-* *q* : add new **Line** 
-* *x* : add new **LineStrip**
-* *z* : add new **Point** 
-* *g* : show/hide grid 
-* *l* : show/hide labels 
+* **a** : add new **BBox** 
+* **w** : add new **Polygon**
+* **q** : add new **Line** 
+* **x** : add new **LineStrip**
+* **z** : add new **Point** 
+* **g** : show/hide grid 
+* **l** : show/hide labels 
 * **Ctrl +** mouse scroll wheel* : zoom in/out image  
 * **Shift +** left click* : enable/disable item 
 * **Meta + left click** or **Alt + left click**: add or remove polygons nodes
