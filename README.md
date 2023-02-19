@@ -48,12 +48,6 @@ TaggerTool uses JSON format for annotations. To each `image_name.jpg` correspond
 ``` 
 Use scripts [coco_convert.py](py_tools/coco_convert.py) and [pascal_convert.py](py_tools/pascal_convert.py) to convert annotation from [COCO](https://cocodataset.org/#home) and [PASCAL](http://host.robots.ox.ac.uk/pascal/VOC/) formats. You can export annotations to COCO and PASCAL formats directly from TaggerTool
 
-
-## Pascal and Coco formats
-
-
-
-
 ## How to use?
 
 ### Some shortcuts:
@@ -67,6 +61,7 @@ Use scripts [coco_convert.py](py_tools/coco_convert.py) and [pascal_convert.py](
 * **Ctrl +** mouse scroll wheel* : zoom in/out image  
 * **Shift +** left click* : enable/disable item 
 * **Meta + left click** or **Alt + left click**: add or remove polygons nodes
+* **Ctrl + E**: open Exporter dialog  
 
 ### See this simple [demo](https://www.youtube.com/watch?v=QozIy9p6gbM): 
 

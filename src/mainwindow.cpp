@@ -61,6 +61,8 @@ void MainWindow::setUp() {
   ui->saveLocalChanges->setEnabled(false);
 
   m_heavyTaskThread.start(QThread::HighestPriority);
+
+  ui->statusBar->addWidget(m_displayLabel = new QLabel);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -117,14 +119,17 @@ void MainWindow::on_addNewBbox_triggered() {
 }
 
 void MainWindow::on_pbLoadImgAnn_clicked() {
+  ui->listViewImgNames->setEnabled(false);
   LoadImgAnnDialog dlg;
-
   dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
                           m_annImgManager.annFolder());
-  if (dlg.exec() != QDialog::Accepted)
+  if (dlg.exec() != QDialog::Accepted) {
+    ui->listViewImgNames->setEnabled(true);
     return;
+  }
 
   loadImagesAndAnnotations(dlg.imgFolder(), dlg.annFolder());
+  ui->listViewImgNames->setEnabled(true);
 }
 
 void MainWindow::on_saveLocalChanges_triggered() {
@@ -432,6 +437,8 @@ void MainWindow::loadImagesAndAnnotations(const QString &annImg,
   on_listViewImgNames_clicked(tmp);
   ui->actionNext->setEnabled(true);
   ui->actionPrevious->setEnabled(true);
+  ui->mainToolBar->setToolTip(m_annImgManager.imgFolder());
+  m_displayLabel->setText("IMAGES FOLDER: " + m_annImgManager.imgFolder());
 }
 
 void MainWindow::on_actionLoad_project_triggered() {

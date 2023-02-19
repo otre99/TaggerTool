@@ -69,12 +69,15 @@ void BBox::fromJson(const QJsonObject &obj) {
 
 BBox::BBox(float x1, float y1, float x2, float y2, const QString &lb,
            bool occluded, bool truncated, bool crowded)
-    : x1{x1}, y1{y1}, x2{x2}, y2{y2}, occluded{occluded}, truncated{truncated}, crowded{crowded} {
+    : x1{x1}, y1{y1}, x2{x2}, y2{y2}, occluded{occluded}, truncated{truncated},
+      crowded{crowded} {
   label = lb;
 }
-BBox::BBox(const QRectF &r, const QString &lb, bool occluded, bool truncated, bool crowded)
+BBox::BBox(const QRectF &r, const QString &lb, bool occluded, bool truncated,
+           bool crowded)
     : x1(r.left()), y1(r.top()), x2(r.right()),
-      y2(r.bottom()), occluded{occluded}, truncated{truncated}, crowded{crowded} {
+      y2(r.bottom()), occluded{occluded}, truncated{truncated}, crowded{
+                                                                    crowded} {
   label = lb;
 }
 
@@ -272,7 +275,7 @@ void AnnImgManager::reset(const QString &images_folder_path,
                           const QStringList &image_ids) {
   m_imagesDir.setPath(images_folder_path);
   m_annotationsDir.setPath(annotations_folder_path);
-  if (image_ids.empty()){
+  if (image_ids.empty()) {
     m_imageIdsList = m_imagesDir.entryList(Helper::kImgExts, QDir::Files);
   } else {
     m_imageIdsList = image_ids;
@@ -287,7 +290,7 @@ const Annotations &AnnImgManager::annotations(const QString &image_id) {
   const QString ann_file_path =
       m_annotationsDir.absoluteFilePath(info.completeBaseName() + ".json");
 
-  if (!m_annCache.contains(image_id)){
+  if (!m_annCache.contains(image_id)) {
     const Annotations ann = _loadAnnotation(ann_file_path);
     m_annCache.insert(image_id, new Annotations(ann));
   }
@@ -313,7 +316,7 @@ void AnnImgManager::saveAnnotations(const QString &image_id,
 void AnnImgManager::_saveAnnotations(const QString &path,
                                      const Annotations &ann) {
 
-  //qDebug() << "SAVING TO DISK!!!!";
+  // qDebug() << "SAVING TO DISK!!!!";
   const QJsonObject root = ann.serializeJson();
   const QByteArray out = QJsonDocument(root).toJson();
   QFile ofile(path);
@@ -325,7 +328,7 @@ void AnnImgManager::_saveAnnotations(const QString &path,
 }
 
 Annotations AnnImgManager::_loadAnnotation(const QString &path) {
-  //qDebug() << "LOADING TO DISK!!!!";
+  // qDebug() << "LOADING TO DISK!!!!";
   Annotations ann;
   QFile ifile(path);
   if (!ifile.open(QFile::ReadOnly)) {

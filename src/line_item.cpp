@@ -77,7 +77,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->restore();
 
     painter->setPen(Qt::NoPen);
-    QColor color = Helper::getCircleColor(); //pen().color();
+    QColor color = Helper::getCircleColor(); // pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
 

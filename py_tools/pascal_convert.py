@@ -66,17 +66,13 @@ def read_pascal_xml_content(xml_file: str, valid_labels: set = set()):
         "format": image_format
     }
 
-
 def load_pascal_annotations(ann_foler: str):
     flist = os.listdir(ann_foler)
     annotations = []
-    i=0
     for fname in flist:
         annotations.append(
             read_pascal_xml_content(xml_file=os.path.join(ann_foler, fname))
         )
-        print(i, len(flist))
-        i+=1
     return annotations
 
 

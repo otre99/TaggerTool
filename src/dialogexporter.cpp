@@ -83,15 +83,15 @@ void DialogExporter::on_pBExportCoco_clicked() {
 }
 
 void DialogExporter::on_pBExportPascal_clicked() {
-    const QString pascalAnnFolder =
-        QFileDialog::getExistingDirectory(this, "Output PASCAL annotation folder");
-    if (pascalAnnFolder.isEmpty())
-      return;
-    getSelectedLabels();
-    m_heavyTaskThread->outputDirOrFile = pascalAnnFolder;
-    m_heavyTaskThread->startTask(HeavyTaskThread::ExportPASCALAnnotations);
-    ui->labelProgressBarText->setText("Exporting to PASCAL forma: ");
-    ui->groupBox->setEnabled(false);
+  const QString pascalAnnFolder = QFileDialog::getExistingDirectory(
+      this, "Output PASCAL annotation folder");
+  if (pascalAnnFolder.isEmpty())
+    return;
+  getSelectedLabels();
+  m_heavyTaskThread->outputDirOrFile = pascalAnnFolder;
+  m_heavyTaskThread->startTask(HeavyTaskThread::ExportPASCALAnnotations);
+  ui->labelProgressBarText->setText("Exporting to PASCAL forma: ");
+  ui->groupBox->setEnabled(false);
 }
 
 void DialogExporter::getSelectedLabels() {

@@ -10,6 +10,8 @@
 #include "imagecanvas.h"
 #include "imgstringlistmodel.h"
 
+class QLabel;
+
 namespace Ui {
 class MainWindow;
 }
@@ -58,7 +60,6 @@ private slots:
   void loadImagesAndAnnotations(const QString &annImg,
                                 const QString &annFolder);
   void on_actionAdd_New_LineStrip_triggered();
-
   void on_actionExport_Annotations_triggered();
 
 private:
@@ -76,6 +77,7 @@ private:
   QModelIndex m_current_index{};
   bool m_needToSaveNotUndo;
   HeavyTaskThread m_heavyTaskThread;
+  QLabel *m_displayLabel;
 };
 
 #endif // MAINWINDOW_H

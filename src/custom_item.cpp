@@ -16,7 +16,7 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
   dlg.setGeometry(QRect{screenPos, dlg.size()});
   dlg.setLabel(m_label);
   if (dlg.exec() == QDialog::Accepted) {
-    //ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
+    // ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
     ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
 
     if (dlg.removeItem()) {
@@ -65,5 +65,3 @@ void CustomItem::__swapStackOrder(QGraphicsItem *item,
     }
   }
 }
-
-

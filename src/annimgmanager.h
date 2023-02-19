@@ -1,8 +1,8 @@
 #ifndef ANNIMGMANAGER_H
 #define ANNIMGMANAGER_H
+#include <QCache>
 #include <QDir>
 #include <QImageReader>
-#include <QCache>
 
 class Annotation {
 public:
@@ -37,9 +37,9 @@ class BBox : public Annotation {
 public:
   BBox() = default;
   BBox(float x1, float y1, float x2, float y2, const QString &lb,
-       bool occluded = false, bool truncated = false, bool crowded=false);
+       bool occluded = false, bool truncated = false, bool crowded = false);
   BBox(const QRectF &r, const QString &lb, bool occluded = false,
-       bool truncated = false, bool crowded=false);
+       bool truncated = false, bool crowded = false);
   QPointF pt1() const;
   QPointF pt2() const;
   bool getOccluded() const;
@@ -112,7 +112,7 @@ public:
   QString annFilePath(const QString &img_id);
   QString imgFilePath(const QString &img_id);
   QStringList imageIds() const { return m_imageIdsList; }
-  size_t annotationsCount() const {return m_imageIdsList.size();}
+  size_t annotationsCount() const { return m_imageIdsList.size(); }
 
 private:
   void _saveAnnotations(const QString &path, const Annotations &ann);

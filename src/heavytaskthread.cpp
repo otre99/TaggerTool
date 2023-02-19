@@ -6,7 +6,19 @@
 #include <QXmlStreamWriter>
 
 namespace {
-bool saveAnnToPascalFormat(const Annotations &ann, const QString &outputFile) {
+bool saveAnnToPascalFormat(const Annotations &ann, const QString &outputFile,
+                           QSet<QString> &selected_labels) {
+  QVector<BBox> bboxes;
+  std::copy_if(ann.bboxes.begin(), ann.bboxes.end(), std::back_inserter(bboxes),
+               [&selected_labels](const BBox &box) -> bool {
+                 return selected_labels.contains(box.getLabel());
+               });
+
+  if (bboxes.isEmpty()) {
+    qDebug() << "Not any bbox to export of image " << ann.image_name;
+    return false;
+  }
+
   QFile ofile(outputFile);
   if (!ofile.open(QFile::WriteOnly)) {
     qDebug() << "Failed exporting annotation to " << outputFile << " file!";
@@ -31,7 +43,7 @@ bool saveAnnToPascalFormat(const Annotations &ann, const QString &outputFile) {
   xmlOut.writeTextElement("width", QString("%1").arg(ann.img_w));
   xmlOut.writeEndElement();
 
-  for (auto &&box : ann.bboxes) {
+  for (auto &&box : bboxes) {
     xmlOut.writeStartElement("object");
 
     // name, difficult, occluded, pose, truncated
@@ -240,13 +252,7 @@ bool HeavyTaskThread::exportPascalAnnotationsTask() {
   QDir outDir(outputDirOrFile);
   for (auto &id : img_ids) {
     const Annotations &ann = annImgManager->annotations(id);
-
-    // bboxes
-    for (const auto &box : ann.bboxes) {
-      if (uniqueLabels.contains(box.getLabel())) {
-        saveAnnToPascalFormat(ann, outDir.filePath(id + ".xml"));
-      }
-    }
+    saveAnnToPascalFormat(ann, outDir.filePath(id + ".xml"), uniqueLabels);
     updateProgress(index++);
     if (m_abort_) {
       uniqueLabels.clear();

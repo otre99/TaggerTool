@@ -16,12 +16,10 @@ public:
   void closeEvent(QCloseEvent *event) override;
   ~DialogExporter();
 
-
 public slots:
   void taskStarted();
   void updateProgress(int p);
   void taskFinished(bool);
-
 
 private slots:
   void on_pBExportCoco_clicked();

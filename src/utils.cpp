@@ -89,9 +89,7 @@ double Helper::penWidth() {
   return qMin(kMaxPenW, qMax(kMinPenW, kPointRadius * kInvScaleFactor));
 }
 
-QColor Helper::getCircleColor() {
-    return Helper::circleColor;
-}
+QColor Helper::getCircleColor() { return Helper::circleColor; }
 
 void Helper::registerNewLabels(const QStringList &labels) {
   for (const auto &lb : labels) {

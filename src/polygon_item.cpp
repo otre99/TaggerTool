@@ -91,7 +91,7 @@ void PolygonItem::paint(QPainter *painter,
 
     int index = 0;
     painter->setPen(Qt::NoPen);
-    QColor color = Helper::getCircleColor(); //pen().color();
+    QColor color = Helper::getCircleColor(); // pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
 
