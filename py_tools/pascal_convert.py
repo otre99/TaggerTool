@@ -127,7 +127,7 @@ def main(FLAGS):
                     "label": label,
                     "occluded": False,
                     "truncated": pascal_box['truncated'],
-                    "crowded": pascal_box['difficult'],
+                    "crowded": False, #pascal_box['difficult'],
                     "x1": x1,
                     "y1": y1,
                     "x2": x2,

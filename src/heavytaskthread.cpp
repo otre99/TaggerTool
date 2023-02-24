@@ -168,7 +168,7 @@ bool HeavyTaskThread::exportCOCOAnnotationsTask() {
 
   int annId = 0;
   int imgId = 0;
-  int labelId = 0;
+  int labelId = 1;
   QJsonArray annList{};
   QJsonArray imgList{};
   QJsonArray catList{};
