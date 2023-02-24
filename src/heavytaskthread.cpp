@@ -128,10 +128,11 @@ void HeavyTaskThread::killTaskAndWait() {
 void HeavyTaskThread::internalStartTask(std::function<bool()> funct) {
   m_taskIsRunning = true;
   m_abort_ = false;
+  errMsg.clear();
   emit taskStarted();
   bool res = funct();
   m_taskIsRunning = false;
-  emit taskFinished(res);
+  emit taskFinished(res, errMsg);
 }
 
 void HeavyTaskThread::updateProgress(size_t index) {
@@ -185,18 +186,9 @@ bool HeavyTaskThread::exportCOCOAnnotationsTask() {
 
   for (auto &id : img_ids) {
     const Annotations &ann = annImgManager->annotations(id);
-    QJsonObject jsonImg;
-    jsonImg["id"] = imgId;
-    jsonImg["width"] = ann.img_w;
-    jsonImg["height"] = ann.img_h;
-    jsonImg["file_name"] = ann.image_name;
-    jsonImg["license"] = "";
-    jsonImg["flickr_url"] = "";
-    jsonImg["coco_url"] = "";
-    jsonImg["date_captured"] = "";
-    imgList.push_back(jsonImg);
 
     // bboxes
+    int bboxes_count = 0;
     for (const auto &box : ann.bboxes) {
       if (uniqueLabels.contains(box.getLabel())) {
 
@@ -217,8 +209,24 @@ bool HeavyTaskThread::exportCOCOAnnotationsTask() {
         // jsonBox["segmentation"] = QJsonArray{};
 
         annList.push_back(jsonBox);
+        ++bboxes_count;
       }
     }
+
+    if (includeImagesWithoutAnnotations_ || bboxes_count > 0) {
+      // image
+      QJsonObject jsonImg;
+      jsonImg["id"] = imgId;
+      jsonImg["width"] = ann.img_w;
+      jsonImg["height"] = ann.img_h;
+      jsonImg["file_name"] = ann.image_name;
+      jsonImg["license"] = "";
+      jsonImg["flickr_url"] = "";
+      jsonImg["coco_url"] = "";
+      jsonImg["date_captured"] = "";
+      imgList.push_back(jsonImg);
+    }
+
     ++imgId;
     updateProgress(index++);
     if (m_abort_) {
@@ -236,8 +244,8 @@ bool HeavyTaskThread::exportCOCOAnnotationsTask() {
       useJsonCompactFmt ? QJsonDocument::Compact : QJsonDocument::Indented);
   QFile ofile(outputDirOrFile);
   if (!ofile.open(QFile::WriteOnly)) {
-    qDebug() << "Failed exporting annotations to " << outputDirOrFile
-             << " file!";
+    errMsg = "Failed exporting annotations to '" + outputDirOrFile + "' file!";
+    qDebug() << errMsg;
     return false;
   }
   ofile.write(out);

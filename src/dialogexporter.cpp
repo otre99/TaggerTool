@@ -53,11 +53,14 @@ void DialogExporter::taskStarted() {
 
 void DialogExporter::updateProgress(int p) { ui->progressBar->setValue(p); }
 
-void DialogExporter::taskFinished(bool ok) {
+void DialogExporter::taskFinished(bool ok, QString errMsg) {
   ui->progressBar->setVisible(false);
   ui->labelProgressBarText->setVisible(false);
-  if (!ok)
-    return;
+  if (!ok){
+      QMessageBox::critical(this, "Error excuting task", errMsg);
+      ui->groupBox->setEnabled(true);
+      return;
+  }
   if (ui->labelProgressBarText->text() == COLLECT_ANNS) {
     for (auto &&lb : qAsConst(m_heavyTaskThread->uniqueLabels)) {
       auto item = new QListWidgetItem();
@@ -89,6 +92,7 @@ void DialogExporter::on_pBExportPascal_clicked() {
     return;
   getSelectedLabels();
   m_heavyTaskThread->outputDirOrFile = pascalAnnFolder;
+  m_heavyTaskThread->includeImagesWithoutAnnotations_ = ui->checkBoxEmptyAnn->isChecked();
   m_heavyTaskThread->startTask(HeavyTaskThread::ExportPASCALAnnotations);
   ui->labelProgressBarText->setText("Exporting to PASCAL forma: ");
   ui->groupBox->setEnabled(false);

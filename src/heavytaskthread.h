@@ -26,7 +26,7 @@ public:
   void killTaskAndWait();
 signals:
   void progress(int);
-  void taskFinished(bool);
+  void taskFinished(bool, QString);
   void taskStarted();
 
 private:
@@ -51,7 +51,9 @@ public:
   AnnImgManager *annImgManager{nullptr};
   QSet<QString> uniqueLabels;
   bool useJsonCompactFmt{false};
+  bool includeImagesWithoutAnnotations_{false};
   QString outputDirOrFile;
+  QString errMsg{};
 };
 
 #endif // HEAVYTASKTHREAD_H
