@@ -75,3 +75,6 @@
 /build_debug/.cmake/api/v1/reply/target-SimpleQtBBox.exe-Debug-f475585285b4ca76d8da.json
 /build_debug/.cmake/api/v1/reply/target-SimpleQtBBox.exe_autogen-Debug-8d2780d744993377ca5e.json
 /src/CMakeLists.txt.user
+/app_bin/*
+/build/*
+/debug/*
