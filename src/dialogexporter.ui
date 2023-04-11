@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>378</width>
+    <width>457</width>
     <height>484</height>
    </rect>
   </property>
@@ -61,91 +61,82 @@
      <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
-       <number>3</number>
-      </property>
-      <property name="spacing">
-       <number>2</number>
-      </property>
-      <item row="0" column="0" rowspan="5">
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="spacing">
-         <number>2</number>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="2" column="1">
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <item>
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Selected labels</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QListWidget" name="listWidget">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>294</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-       </layout>
+        <property name="title">
+         <string>PASCAL</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pBExportPascal">
+           <property name="text">
+            <string>Export to Pascal format</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
-      <item row="0" column="1" colspan="2">
-       <widget class="QPushButton" name="pBExportCoco">
+      <item row="0" column="1" rowspan="2">
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>COCO</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="checkBoxCompact">
+           <property name="text">
+            <string>Compact</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QCheckBox" name="checkBoxEmptyAnn">
+           <property name="text">
+            <string>Empty annotations</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="2">
+          <widget class="QPushButton" name="pBExportCoco">
+           <property name="text">
+            <string>Export to COCO format</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
-         <string>Export to COCO format</string>
+         <string>Selected labels</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="checkBoxCompact">
-        <property name="text">
-         <string>Compact</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QCheckBox" name="checkBoxEmptyAnn">
-        <property name="text">
-         <string>Empty annotations</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QPushButton" name="pBExportPascal">
-        <property name="text">
-         <string>Export to Pascal format</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
+      <item row="3" column="1">
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -157,6 +148,22 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item row="1" column="0" rowspan="3">
+       <widget class="QListWidget" name="listWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>294</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

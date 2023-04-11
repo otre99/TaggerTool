@@ -70,7 +70,9 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   } else {
     painter->save();
     auto pp = p;
-    pp.setStyle(Qt::DotLine);
+    pp.setWidthF(qMin(1.0, p.widthF()));
+    pp.setCosmetic(true);
+    // pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
     painter->drawLine(line());

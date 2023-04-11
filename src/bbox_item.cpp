@@ -103,8 +103,9 @@ void BoundingBoxItem::paint(QPainter *painter,
   if (m_moveEnable) {
     painter->save();
     auto pp = p;
+    pp.setCosmetic(true);
     pp.setWidthF(qMin(1.0, p.widthF()));
-    pp.setStyle(Qt::DotLine);
+    // pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
     painter->drawRect(brect);

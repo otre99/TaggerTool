@@ -23,6 +23,7 @@ private:
   bool m_drawObjStarted;
   QPointF m_begPt;
   QPointF m_endPt;
+  QPointF m_currPt;
   bool m_needSaveChanges;
   Helper::CustomItemType m_waitingForTypeObj;
 

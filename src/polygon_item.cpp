@@ -74,15 +74,16 @@ void PolygonItem::paint(QPainter *painter,
   } else {
     painter->save();
     auto pp = p;
+    pp.setCosmetic(true);
+    pp.setWidthF(qMin(1.0, p.widthF()));
     if (m_closed_poly) {
-      pp.setWidthF(qMin(1.0, p.widthF()));
-      pp.setStyle(Qt::DotLine);
+      // pp.setStyle(Qt::DotLine);
       pp.setColor(Qt::black);
       painter->setPen(pp);
       painter->drawPolygon(poly);
       painter->restore();
     } else {
-      pp.setStyle(Qt::DotLine);
+      //      pp.setStyle(Qt::DotLine);
       pp.setColor(Qt::black);
       painter->setPen(pp);
       painter->drawPolyline(poly);

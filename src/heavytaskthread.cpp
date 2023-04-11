@@ -166,19 +166,18 @@ bool HeavyTaskThread::exportCOCOAnnotationsTask() {
   m_ncount = img_ids.size();
   size_t index = 0;
 
-  int annId = 0;
-  int imgId = 0;
+  int annId = 1;
+  int imgId = 1;
   int labelId = 1;
   QJsonArray annList{};
   QJsonArray imgList{};
   QJsonArray catList{};
 
   QMap<QString, int> label2id;
-  int lbIndex = 0;
   for (const auto &lb : qAsConst(uniqueLabels)) {
-    label2id[lb] = lbIndex;
+    label2id[lb] = labelId;
     QJsonObject jsonCat;
-    jsonCat["id"] = lbIndex++;
+    jsonCat["id"] = labelId++;
     jsonCat["name"] = lb;
     jsonCat["supercategory"] = "";
     catList.push_back(jsonCat);

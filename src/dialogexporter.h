@@ -26,7 +26,6 @@ private slots:
   void on_pBExportPascal_clicked();
 
 private:
-
   Ui::DialogExporter *ui;
   QString m_currProgressBarText;
   HeavyTaskThread *m_heavyTaskThread{nullptr};

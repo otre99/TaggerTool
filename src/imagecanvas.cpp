@@ -43,6 +43,7 @@ void ImageCanvas::prepareForNewBBox(QString label) {
     m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kBBox;
+  views()[0]->setMouseTracking(true);
 }
 
 void ImageCanvas::prepareForNewPoint(const QString &label) {
@@ -50,6 +51,7 @@ void ImageCanvas::prepareForNewPoint(const QString &label) {
   m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kPoint;
+  views()[0]->setMouseTracking(true);
 }
 
 void ImageCanvas::prepareForNewLine(const QString &label) {
@@ -57,6 +59,7 @@ void ImageCanvas::prepareForNewLine(const QString &label) {
   m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kLine;
+  views()[0]->setMouseTracking(true);
 }
 
 void ImageCanvas::prepareForNewPolygon(const QString &label) {
@@ -65,11 +68,13 @@ void ImageCanvas::prepareForNewPolygon(const QString &label) {
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kPolygon;
   m_currentPolygon.clear();
+  views()[0]->setMouseTracking(true);
 }
 
 void ImageCanvas::prepareForNewLineStrip(const QString &label) {
   prepareForNewPolygon(label);
   m_waitingForTypeObj = Helper::kLineStrip;
+  views()[0]->setMouseTracking(true);
 }
 
 void ImageCanvas::showBoundingBoxes() {
@@ -237,10 +242,20 @@ void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 
     if (m_waitingForTypeObj == Helper::kPolygon ||
         m_waitingForTypeObj == Helper::kLineStrip) {
-      if (m_currentPolygon.empty()) {
-        views()[0]->setMouseTracking(true);
-      }
-      m_currentPolygon.append(mouseEvent->scenePos());
+
+      if (mouseEvent->button() == Qt::LeftButton) {
+        m_currentPolygon.append(mouseEvent->scenePos());
+      } /* else if (m_currentPolygon.size() > 1) {
+         const qreal th = Helper::kPointRadius * Helper::kInvScaleFactor;
+         for (int i = 0; i < m_currentPolygon.count(); ++i) {
+           const QPointF p1 = m_currentPolygon[i];
+           const double dist = Helper::pointLen(p1 - m_endPt);
+           if (dist < th) {
+             m_currentPolygon.remove(i);
+             break;
+           }
+         }
+       }*/
       m_drawObjStarted = true;
     }
 
@@ -249,6 +264,8 @@ void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
       undoStack()->push(new AddPointCommand(mouseEvent->scenePos(), m_bboxLabel,
                                             true, nullptr));
       m_waitingForObj = false;
+      views()[0]->setMouseTracking(false);
+      update();
     }
   }
   QGraphicsScene::mousePressEvent(mouseEvent);
@@ -257,6 +274,10 @@ void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 void ImageCanvas::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) {
   if (m_drawObjStarted) {
     m_endPt = mouseEvent->scenePos();
+    update();
+  }
+  if (m_drawObjStarted || m_waitingForObj) {
+    m_currPt = mouseEvent->scenePos();
     update();
   }
   QGraphicsScene::mouseMoveEvent(mouseEvent);
@@ -316,6 +337,22 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 
 void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
   QGraphicsScene::drawForeground(painter, rect);
+
+  if (m_drawObjStarted || m_waitingForObj) {
+    painter->save();
+    auto pp = painter->pen();
+    pp.setWidthF(Helper::kLineWidth);
+    pp.setCosmetic(true);
+    pp.setStyle(Qt::DotLine);
+    pp.setCosmetic(true);
+    painter->setPen(pp);
+    painter->drawLine(QPointF{rect.left(), m_currPt.y()},
+                      QPointF{rect.right(), m_currPt.y()});
+    painter->drawLine(QPointF{m_currPt.x(), rect.top()},
+                      QPointF{m_currPt.x(), rect.bottom()});
+    painter->restore();
+  }
+
   if (m_drawObjStarted) {
     auto p = painter->pen();
     p.setWidthF(3);
