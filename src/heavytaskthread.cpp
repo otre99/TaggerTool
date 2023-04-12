@@ -215,7 +215,7 @@ bool HeavyTaskThread::exportCOCOAnnotationsTask() {
     if (includeImagesWithoutAnnotations_ || bboxes_count > 0) {
       // image
       QJsonObject jsonImg;
-      jsonImg["id"] = imgId;
+      jsonImg["id"] = imgId++;
       jsonImg["width"] = ann.img_w;
       jsonImg["height"] = ann.img_h;
       jsonImg["file_name"] = ann.image_name;
@@ -226,7 +226,6 @@ bool HeavyTaskThread::exportCOCOAnnotationsTask() {
       imgList.push_back(jsonImg);
     }
 
-    ++imgId;
     updateProgress(index++);
     if (m_abort_) {
       uniqueLabels.clear();
