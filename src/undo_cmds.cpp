@@ -5,6 +5,7 @@
 #include "line_item.h"
 #include "point_item.h"
 #include "polygon_item.h"
+#include "circle_item.h"
 #include "utils.h"
 
 QString getBoolPropertyChangeText(const QString &pname, bool val1) {
@@ -103,6 +104,48 @@ CrowdedChangeBBoxCommand::CrowdedChangeBBoxCommand(const bool oldCrowded,
 void CrowdedChangeBBoxCommand::undo() { m_item->setCrowded(m_oldCrowded); }
 
 void CrowdedChangeBBoxCommand::redo() { m_item->setCrowded(m_newCrowded); }
+
+
+/////////////////////////////////////////////////////////////////
+////////////////// PolygonItem //////////////////////////////////
+/////////////////////////////////////////////////////////////////
+
+// AddBBoxCommand
+AddCircleCommand::AddCircleCommand(const QPointF &center, qreal radius, const QString &label, bool ready,
+                                   QUndoCommand *parent)
+    : QUndoCommand("AddCircle", parent) {
+  m_item = new CircleItem(center, radius, label, nullptr, ready);
+}
+
+void AddCircleCommand::undo() {
+  Helper::imageCanvas()->removeItem(m_item);
+}
+
+void AddCircleCommand::redo() {
+  Helper::imageCanvas()->addItem(m_item);
+}
+
+AddCircleCommand::~AddCircleCommand() {
+  if (!m_item->scene()) {
+    delete m_item;
+  }
+}
+
+// RadiusChangeCircleCommand
+RadiusChangeCircleCommand::RadiusChangeCircleCommand(const QRectF oldRect,
+                                                     const QRectF &newRect,
+                                                     CircleItem *item,
+                                                     QUndoCommand *parent)
+    :QUndoCommand("RadiusChangeCircle", parent),
+    m_oldRect{oldRect}, m_newRect{newRect}, m_item{item}{}
+
+void RadiusChangeCircleCommand::undo() {
+  m_item->setRect(m_oldRect);
+}
+
+void RadiusChangeCircleCommand::redo() {
+  m_item->setRect(m_newRect);
+}
 
 /////////////////////////////////////////////////////////////////
 ////////////////// PolygonItem //////////////////////////////////
@@ -226,9 +269,9 @@ void ChangeLineSizeCommand::redo() { m_item->setLine(m_newLine); }
 ////////////////////////// commond //////////////////////////////
 /////////////////////////////////////////////////////////////////
 // MoveItemCommand
-MoveItemCommand::MoveItemCommand(const QPointF &oldPos, const QPointF &newPost,
+MoveItemCommand::MoveItemCommand(const QPointF &oldPos, const QPointF &newPos,
                                  QGraphicsItem *item, QUndoCommand *parent)
-    : QUndoCommand(parent), m_oldPos(oldPos), m_newPost(newPost), m_item(item) {
+    : QUndoCommand(parent), m_oldPos(oldPos), m_newPos(newPos), m_item(item) {
   switch (item->type()) {
   case Helper::kBBox:
     setText("MoveBBox");
@@ -241,15 +284,22 @@ MoveItemCommand::MoveItemCommand(const QPointF &oldPos, const QPointF &newPost,
     break;
   case Helper::kPolygon:
     setText("MovePolygon");
+    break;
   case Helper::kLineStrip:
     setText("MoveLineStrip");
+    break;
+  case Helper::kCircle:
+    setText("MoveCircle");
     break;
   }
 }
 
-void MoveItemCommand::undo() { m_item->setPos(m_oldPos); }
+void MoveItemCommand::undo() {
+  m_item->setPos(m_oldPos);
+}
 
-void MoveItemCommand::redo() { m_item->setPos(m_newPost); }
+void MoveItemCommand::redo() {
+  m_item->setPos(m_newPos); }
 
 // RemoveItemCommand
 RemoveItemCommand::RemoveItemCommand(QGraphicsItem *item, QUndoCommand *parent)
@@ -267,12 +317,17 @@ RemoveItemCommand::RemoveItemCommand(QGraphicsItem *item, QUndoCommand *parent)
   case Helper::kPolygon:
     setText("RemovePolygon");
     break;
+  case Helper::kCircle:
+    setText("RemoveCircle");
+    break;
+  case Helper::kLineStrip:
+    setText("RemoveLineStrip");
+    break;
   }
 }
 
 void RemoveItemCommand::undo() {
   Helper::imageCanvas()->addItem(m_item);
-  // m_canvas->update();
 }
 
 void RemoveItemCommand::redo() { Helper::imageCanvas()->removeItem(m_item); }
@@ -297,7 +352,10 @@ ChangeLabelCommand::ChangeLabelCommand(const QString &oldLabel,
     setText("ChangeLabelPolygon");
     break;
   case Helper::kLineStrip:
-    setText("ChangeLineStrip");
+    setText("ChangeLabelLineStrip");
+    break;
+  case Helper::kCircle:
+    setText("ChangeLabelCircle");
     break;
   }
 }
@@ -307,19 +365,5 @@ void ChangeLabelCommand::undo() { setLabel(m_oldLb); }
 void ChangeLabelCommand::redo() { setLabel(m_newLb); }
 
 void ChangeLabelCommand::setLabel(const QString &lb) {
-  switch (m_item->type()) {
-  case Helper::kBBox:
-    dynamic_cast<BoundingBoxItem *>(m_item)->setLabel(lb);
-    break;
-  case Helper::kPoint:
-    dynamic_cast<PointItem *>(m_item)->setLabel(lb);
-    break;
-  case Helper::kPolygon:
-  case Helper::kLineStrip:
-    dynamic_cast<PolygonItem *>(m_item)->setLabel(lb);
-    break;
-  case Helper::kLine:
-    dynamic_cast<LineItem *>(m_item)->setLabel(lb);
-    break;
-  }
+    dynamic_cast<CustomItem *>(m_item)->setLabel(lb);
 }

@@ -49,6 +49,20 @@ public:
   virtual void fromJson(const QJsonObject &obj) override;
 };
 
+class Circle : public Annotation {
+  qreal radius1;
+  QPointF center1;
+
+  public:
+  Circle() = default;
+  Circle(const QPointF &center, qreal radius, const QString &lb);
+  QPointF center() const;
+  qreal radius() const;
+  virtual QJsonObject serializeJson() const override;
+  virtual void fromJson(const QJsonObject &obj) override;
+};
+
+
 class Point : public Annotation {
   float x, y;
 
@@ -81,6 +95,7 @@ struct Annotations {
   QVector<Line> lines{};
   QVector<Point> points{};
   QVector<BBox> bboxes{};
+  QVector<Circle> circles{};
   QVector<Polygon> polygons{};
   QVector<Polygon> line_strips{};
   QString label;
@@ -88,6 +103,14 @@ struct Annotations {
   QStringList tags{};
   QJsonObject serializeJson() const;
   void fromJson(const QJsonObject &obj);
+
+  private:
+  template<typename T>
+  void serializeJsonArrayOfObjects(const QVector<T> &ann,
+                                   const QString &name,
+                                   QJsonObject &root) const;
+  template<typename T>
+  void fromArrayOfJsonObjects(const QJsonArray &json_arr, QVector<T> &output);
 };
 
 class AnnImgManager {

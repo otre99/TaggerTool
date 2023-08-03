@@ -25,6 +25,7 @@ public:
 
   enum CustomItemType {
     kBBox = QGraphicsItem::UserType + 1,
+    kCircle,
     kLine,
     kPoint,
     kPolygon,

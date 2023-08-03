@@ -315,6 +315,7 @@ void MainWindow::on_pTextImgDescription_textChanged() { on_NeedSaveChange(); }
 void MainWindow::updateSettings() {
   Helper::kPointRadius = ui->doubleSpinBoxPtRadius->value();
   Helper::kFontPixelSize = ui->spinBoxLabelPixSize->value();
+  Helper::kLineWidth = qMax(1.0, ui->doubleSpinBoxPtRadius->value()/3);
   Helper::setScale(Helper::kInvScaleFactor);
   m_imageCanvas.helperParametersChanged();
 }
@@ -510,3 +511,9 @@ void MainWindow::on_actionExport_Annotations_triggered() {
   m_heavyTaskThread.startTask(HeavyTaskThread::CollectAnnotations);
   exportedDlg.exec();
 }
+
+void MainWindow::on_actionAdd_Circle_Item_triggered()
+{
+    m_imageCanvas.prepareForNewCircle(ui->comboBoxActiveLabel->currentText());
+}
+

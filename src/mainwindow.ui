@@ -78,6 +78,7 @@
    <addaction name="saveLocalChanges"/>
    <addaction name="separator"/>
    <addaction name="addNewBbox"/>
+   <addaction name="actionAdd_Circle_Item"/>
    <addaction name="actionNew_Point"/>
    <addaction name="actionAdd_New_Line"/>
    <addaction name="actionAdd_New_Polygon"/>
@@ -641,6 +642,15 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionAdd_Circle_Item">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icons/icons/circle-item.svg</normaloff>:/icons/icons/circle-item.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add New Circle</string>
    </property>
   </action>
  </widget>

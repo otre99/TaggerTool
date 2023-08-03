@@ -89,6 +89,37 @@ bool BBox::getOccluded() const { return occluded; }
 bool BBox::getTruncated() const { return truncated; }
 bool BBox::getCrowded() const { return crowded; }
 
+
+// Circle impl
+Circle::Circle(const QPointF &center, qreal radius, const QString &lb)
+    : center1{center}, radius1{radius} {
+  label = lb;
+}
+
+QPointF Circle::center() const {
+  return center1;
+}
+
+qreal Circle::radius() const {
+  return radius1;
+}
+
+QJsonObject  Circle::serializeJson() const {
+  QJsonObject obj;
+  obj["label"] = label;
+  obj["x"] = center1.x();
+  obj["y"] = center1.y();
+  obj["radius"] = radius1;
+  return obj;
+}
+
+void Circle::fromJson(const QJsonObject &obj){
+  label = obj["label"].toString();
+  center1.setX(obj["x"].toDouble());
+  center1.setY(obj["y"].toDouble());
+  radius1 = obj["radius"].toDouble();
+}
+
 // Point impl
 Point::Point(float x, float y, const QString &lb) : x{x}, y{y} { label = lb; }
 Point::Point(const QPointF &pt, const QString &lb) : x(pt.x()), y(pt.y()) {
@@ -158,6 +189,8 @@ QPolygonF Polygon::getPolygon() const {
   return poly;
 }
 
+
+
 // Annotation impl
 QJsonObject Annotations::serializeJson() const {
   QJsonObject root;
@@ -166,34 +199,17 @@ QJsonObject Annotations::serializeJson() const {
   root.insert("image_h", img_h);
 
   // lines
-  QJsonArray array_lines;
-  for (const auto &line : lines)
-    array_lines.append(line.serializeJson());
-  root["lines"] = array_lines;
-
+  serializeJsonArrayOfObjects(lines, "lines", root);
   // boxes
-  QJsonArray array_boxes;
-  for (const auto &bbox : bboxes)
-    array_boxes.append(bbox.serializeJson());
-  root["bboxes"] = array_boxes;
-
+  serializeJsonArrayOfObjects(bboxes, "bboxes", root);
+  // circles
+  serializeJsonArrayOfObjects(circles, "circles", root);
   // points
-  QJsonArray array_points;
-  for (const auto &pt : points)
-    array_points.append(pt.serializeJson());
-  root["points"] = array_points;
-
+  serializeJsonArrayOfObjects(points, "points", root);
   // polygons
-  QJsonArray array_polygons;
-  for (const auto &poly : polygons)
-    array_polygons.append(poly.serializeJson());
-  root["polygons"] = array_polygons;
-
+  serializeJsonArrayOfObjects(polygons, "polygons", root);
   // line_strips
-  QJsonArray array_line_strips;
-  for (auto &poly : line_strips)
-    array_line_strips.append(poly.serializeJson());
-  root["line_strips"] = array_line_strips;
+  serializeJsonArrayOfObjects(line_strips, "line_strips", root);
 
   // description
   root["label"] = label;
@@ -216,44 +232,17 @@ void Annotations::fromJson(const QJsonObject &root) {
   img_h = root["image_h"].toInt();
 
   // lines
-  const QJsonArray jsonLines = root["lines"].toArray();
-  for (const auto &obj : jsonLines) {
-    Line line;
-    line.fromJson(obj.toObject());
-    this->lines.push_back(line);
-  }
-
+  fromArrayOfJsonObjects(root["lines"].toArray(), lines);
   // bboxes
-  const QJsonArray jsonBBoxes = root["bboxes"].toArray();
-  for (const auto &obj : jsonBBoxes) {
-    BBox bbox;
-    bbox.fromJson(obj.toObject());
-    this->bboxes.push_back(bbox);
-  }
-
+  fromArrayOfJsonObjects(root["bboxes"].toArray(), bboxes);
+  // circles
+  fromArrayOfJsonObjects(root["circles"].toArray(), circles);
   // points
-  const QJsonArray jsonPoints = root["points"].toArray();
-  for (const auto &obj : jsonPoints) {
-    Point pt;
-    pt.fromJson(obj.toObject());
-    this->points.push_back(pt);
-  }
-
+  fromArrayOfJsonObjects(root["points"].toArray(), points);
   // polygons
-  const QJsonArray jsonPoly = root["polygons"].toArray();
-  for (const auto &obj : jsonPoly) {
-    Polygon poly;
-    poly.fromJson(obj.toObject());
-    this->polygons.push_back(poly);
-  }
-
+  fromArrayOfJsonObjects(root["polygons"].toArray(), polygons);
   // line_strips
-  const QJsonArray line_strips = root["line_strips"].toArray();
-  for (const auto &obj : line_strips) {
-    Polygon poly;
-    poly.fromJson(obj.toObject());
-    this->line_strips.push_back(poly);
-  }
+  fromArrayOfJsonObjects(root["line_strips"].toArray(), line_strips);
 
   // image label
   this->label = root["label"].toString();
@@ -265,6 +254,25 @@ void Annotations::fromJson(const QJsonObject &root) {
   const QJsonArray tags = root["tags"].toArray();
   for (const auto &tag : tags) {
     this->tags.append(tag.toString());
+  }
+}
+
+template <typename T>
+void Annotations::serializeJsonArrayOfObjects(const QVector<T> &anns, const QString &name, QJsonObject &root) const {
+  QJsonArray array;
+  for (auto &&ann : anns){
+    array.push_back(ann.serializeJson());
+  }
+  root[name] = array;
+}
+
+template<typename T>
+void  Annotations::fromArrayOfJsonObjects(const QJsonArray &json_arr, QVector<T> &output){
+  output.clear();
+  for (auto &&obj : json_arr) {
+    T tobj;
+    tobj.fromJson(obj.toObject());
+    output.push_back(tobj);
   }
 }
 

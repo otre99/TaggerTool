@@ -104,7 +104,8 @@ void BoundingBoxItem::paint(QPainter *painter,
     painter->save();
     auto pp = p;
     pp.setCosmetic(true);
-    pp.setWidthF(qMin(1.0, p.widthF()));
+    pp.setWidthF(Helper::kLineWidth);
+//    pp.setWidthF(qMin(1.0, p.widthF()));
     // pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
@@ -292,62 +293,62 @@ void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = kInvalid;
 }
 
-void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
-  if (m_moveEnable &&
-      (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right ||
-       event->key() == Qt::Key_Up || event->key() == Qt::Key_Down)) {
-    QRectF newrect(this->pos(), this->rect().size());
-    double dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
-    double sx = 1, sy = 1;
+//void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
+//  if (m_moveEnable &&
+//      (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right ||
+//       event->key() == Qt::Key_Up || event->key() == Qt::Key_Down)) {
+//    QRectF newrect(this->pos(), this->rect().size());
+//    double dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+//    double sx = 1, sy = 1;
 
-    if (event->modifiers() & Qt::ShiftModifier) {
-      sx = std::max(newrect.width() * 0.1, 1.0);
-      sy = std::max(newrect.height() * 0.1, 1.0);
-    }
+//    if (event->modifiers() & Qt::ShiftModifier) {
+//      sx = std::max(newrect.width() * 0.1, 1.0);
+//      sy = std::max(newrect.height() * 0.1, 1.0);
+//    }
 
-    if (event->modifiers() & Qt::ControlModifier) {
-      switch (event->key()) {
-      case Qt::Key_Left:
-        dx2 = -sx;
-        break;
-      case Qt::Key_Right:
-        dx2 = +sx;
-        break;
-      case Qt::Key_Up:
-        dy2 = -sy;
-        break;
-      case Qt::Key_Down:
-        dy2 = sy;
-        break;
-      }
-    } else {
-      switch (event->key()) {
-      case Qt::Key_Left:
-        dx1 = -sx;
-        break;
-      case Qt::Key_Right:
-        dx1 = +sx;
-        break;
-      case Qt::Key_Up:
-        dy1 = -sy;
-        break;
-      case Qt::Key_Down:
-        dy1 = sy;
-        break;
-      }
-    }
-    newrect.adjust(dx1, dy1, dx2, dy2);
-    newrect &= scene()->sceneRect();
-    if (newrect.isValid()) {
-      setPos(newrect.topLeft());
-      setRect(0, 0, newrect.width(), newrect.height());
-    }
-  } else if (event->key() == Qt::Key_Return) {
-    this->setLocked(true);
-    // setCursor(Qt::ArrowCursor);
-  } else
-    QGraphicsItem::keyPressEvent(event);
-}
+//    if (event->modifiers() & Qt::ControlModifier) {
+//      switch (event->key()) {
+//      case Qt::Key_Left:
+//        dx2 = -sx;
+//        break;
+//      case Qt::Key_Right:
+//        dx2 = +sx;
+//        break;
+//      case Qt::Key_Up:
+//        dy2 = -sy;
+//        break;
+//      case Qt::Key_Down:
+//        dy2 = sy;
+//        break;
+//      }
+//    } else {
+//      switch (event->key()) {
+//      case Qt::Key_Left:
+//        dx1 = -sx;
+//        break;
+//      case Qt::Key_Right:
+//        dx1 = +sx;
+//        break;
+//      case Qt::Key_Up:
+//        dy1 = -sy;
+//        break;
+//      case Qt::Key_Down:
+//        dy1 = sy;
+//        break;
+//      }
+//    }
+//    newrect.adjust(dx1, dy1, dx2, dy2);
+//    newrect &= scene()->sceneRect();
+//    if (newrect.isValid()) {
+//      setPos(newrect.topLeft());
+//      setRect(0, 0, newrect.width(), newrect.height());
+//    }
+//  } else if (event->key() == Qt::Key_Return) {
+//    this->setLocked(true);
+//    // setCursor(Qt::ArrowCursor);
+//  } else
+//    QGraphicsItem::keyPressEvent(event);
+//}
 
 QPainterPath BoundingBoxItem::shape() const {
   QPainterPath path;

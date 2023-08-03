@@ -7,6 +7,7 @@
 #include <QUndoCommand>
 
 class BoundingBoxItem;
+class CircleItem;
 class PolygonItem;
 class PointItem;
 class LineItem;
@@ -76,6 +77,36 @@ public:
 private:
   bool m_oldCrowded, m_newCrowded;
   BoundingBoxItem *m_item;
+};
+
+
+/////////////////////////////////////////////////////////////////
+//////////////// AddCircleCommand ///////////////////////////////
+/////////////////////////////////////////////////////////////////
+// AddCircleCommand
+class AddCircleCommand : public QUndoCommand {
+  public:
+  AddCircleCommand(const QPointF &center, qreal radius, const QString &label, bool ready,
+                 QUndoCommand *parent = 0);
+  ~AddCircleCommand();
+  void undo() override;
+  void redo() override;
+
+  private:
+
+  CircleItem *m_item;
+};
+
+class RadiusChangeCircleCommand : public QUndoCommand {
+  public:
+  RadiusChangeCircleCommand(const QRectF oldRect, const QRectF &newRect,
+                        CircleItem *item, QUndoCommand *parent = 0);
+  void undo() override;
+  void redo() override;
+
+  private:
+  QRectF m_oldRect, m_newRect;
+  CircleItem *m_item;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -199,9 +230,10 @@ public:
   void redo() override;
 
 private:
-  QPointF m_oldPos, m_newPost;
+  QPointF m_oldPos, m_newPos;
   QGraphicsItem *m_item;
 };
+
 
 // RemoveItemCommand
 class RemoveItemCommand : public QUndoCommand {

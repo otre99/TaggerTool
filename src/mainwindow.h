@@ -62,7 +62,9 @@ private slots:
   void on_actionAdd_New_LineStrip_triggered();
   void on_actionExport_Annotations_triggered();
 
-private:
+  void on_actionAdd_Circle_Item_triggered();
+
+  private:
   void setUp();
   void displayImageInfo();
   void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);

@@ -18,5 +18,6 @@
         <file>icons/edit-redo.svg</file>
         <file>icons/edit-undo.svg</file>
         <file>icons/draw-line-strip.svg</file>
+        <file>icons/circle-item.svg</file>
     </qresource>
 </RCC>

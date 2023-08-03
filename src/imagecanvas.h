@@ -47,7 +47,8 @@ public:
   void showBoundingBoxes();
   bool showLabels() const { return m_showLabels; };
 
-  void prepareForNewBBox(QString label = QString());
+  void prepareForNewBBox(const QString &label = QString());
+  void prepareForNewCircle(const QString &label = QString());
   void prepareForNewPoint(const QString &label = QString());
   void prepareForNewLine(const QString &label = QString());
   void prepareForNewPolygon(const QString &label = QString());

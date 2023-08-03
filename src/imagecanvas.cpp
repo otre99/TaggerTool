@@ -9,6 +9,7 @@
 #include "line_item.h"
 #include "point_item.h"
 #include "polygon_item.h"
+#include "circle_item.h"
 #include "undo_cmds.h"
 
 ImageCanvas::ImageCanvas(QObject *parent)
@@ -37,12 +38,20 @@ void ImageCanvas::helperParametersChanged() {
   }
 }
 
-void ImageCanvas::prepareForNewBBox(QString label) {
+void ImageCanvas::prepareForNewBBox(const QString &label) {
   m_waitingForObj = true;
   if (label != QString())
     m_bboxLabel = label;
   views().first()->viewport()->setCursor(Qt::CrossCursor);
   m_waitingForTypeObj = Helper::kBBox;
+  views()[0]->setMouseTracking(true);
+}
+
+void ImageCanvas::prepareForNewCircle(const QString &label) {
+  m_waitingForObj = true;
+  m_bboxLabel = label;
+  views().first()->viewport()->setCursor(Qt::CrossCursor);
+  m_waitingForTypeObj = Helper::kCircle;
   views()[0]->setMouseTracking(true);
 }
 
@@ -53,6 +62,8 @@ void ImageCanvas::prepareForNewPoint(const QString &label) {
   m_waitingForTypeObj = Helper::kPoint;
   views()[0]->setMouseTracking(true);
 }
+
+
 
 void ImageCanvas::prepareForNewLine(const QString &label) {
   m_waitingForObj = true;
@@ -140,6 +151,10 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
                                         bbox.getOccluded(), bbox.getTruncated(),
                                         bbox.getCrowded(), false));
   }
+  for (auto &cl : ann.circles) {
+    m_undoStack.push(
+        new AddCircleCommand(cl.center(), cl.radius(), cl.getLabel(), false, nullptr));
+  }
   for (auto &pt : ann.points) {
     m_undoStack.push(
         new AddPointCommand(pt.pt(), pt.getLabel(), false, nullptr));
@@ -193,6 +208,15 @@ Annotations ImageCanvas::annotations() {
         continue;
       }
 
+      if (item->type() == Helper::kCircle){
+        Circle circle;
+        auto circle_item = static_cast<CircleItem *>(item);
+        const QPointF center = circle_item->center();
+        const qreal radius = circle_item->radius();
+        ann.circles.emplaceBack(center, radius, circle_item->label());
+        continue;
+      }
+
       if (item->type() == Helper::kLine) {
         Line line;
         auto line_item = static_cast<LineItem *>(item);
@@ -235,7 +259,8 @@ void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
   if (m_waitingForObj) {
     m_endPt = m_begPt = mouseEvent->scenePos();
     if (m_waitingForTypeObj == Helper::kBBox ||
-        m_waitingForTypeObj == Helper::kLine) {
+        m_waitingForTypeObj == Helper::kLine ||
+        m_waitingForTypeObj == Helper::kCircle) {
       m_drawObjStarted = true;
       m_waitingForObj = false;
     }
@@ -300,6 +325,14 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
       m_drawObjStarted = false;
     }
 
+    if (m_waitingForTypeObj == Helper::kCircle && (m_begPt != m_endPt)) {
+      undoStack()->push(
+          new AddCircleCommand(m_begPt, Helper::pointLen(m_endPt-m_begPt), m_bboxLabel, true));
+
+      m_drawObjStarted = false;
+    }
+
+
     if (m_waitingForTypeObj == Helper::kPolygon) {
       int n = m_currentPolygon.size();
 
@@ -355,14 +388,23 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
 
   if (m_drawObjStarted) {
     auto p = painter->pen();
-    p.setWidthF(3);
+    p.setWidthF(Helper::kLineWidth);
     p.setCosmetic(true);
     painter->setPen(p);
 
-    if (m_waitingForTypeObj == Helper::kBBox)
+    if (m_waitingForTypeObj == Helper::kBBox){
       painter->drawRect(Helper::buildRectFromTwoPoints(m_begPt, m_endPt));
-    if (m_waitingForTypeObj == Helper::kLine)
+    }
+
+    if (m_waitingForTypeObj == Helper::kLine){
       painter->drawLine(m_begPt, m_endPt);
+    }
+
+    if (m_waitingForTypeObj == Helper::kCircle){
+      qreal r = Helper::pointLen(m_begPt - m_endPt);
+      painter->drawEllipse(m_begPt.x()-r, m_begPt.y()-r, 2*r, 2*r);
+      painter->drawLine(m_begPt, m_endPt);
+    }
 
     if (m_waitingForTypeObj == Helper::kPolygon ||
         m_waitingForTypeObj == Helper::kLineStrip) {

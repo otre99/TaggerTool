@@ -21,6 +21,7 @@ set(PROJECT_SOURCES
     bbox_item.cpp bbox_item.h
     line_item.cpp line_item.h
     polygon_item.cpp polygon_item.h
+    circle_item.cpp circle_item.h
     #open_polygon_item.cpp open_polygon_item.h
     mainwindow.cpp mainwindow.h mainwindow.ui
     annimgmanager.cpp annimgmanager.h
