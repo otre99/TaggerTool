@@ -652,6 +652,9 @@
    <property name="text">
     <string>Add New Circle</string>
    </property>
+   <property name="shortcut">
+    <string>C</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
