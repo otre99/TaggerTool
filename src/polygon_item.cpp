@@ -13,11 +13,13 @@
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 
-PolygonItem::PolygonItem(const QPolygonF &poly, const QString &label,
-                         QGraphicsItem *parent, bool ready, bool closed_poly)
+PolygonItem::PolygonItem(ImageCanvas *canvas, const QPolygonF &poly,
+                         const QString &label, QGraphicsItem *parent,
+                         bool ready, bool closed_poly)
     : QGraphicsPolygonItem(poly, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
+  m_canvas = canvas;
 
   __setLocked(this, !ready);
   if (ready) {
@@ -28,7 +30,7 @@ PolygonItem::PolygonItem(const QPolygonF &poly, const QString &label,
   auto p = pen();
   p.setWidthF(Helper::penWidth());
   setPen(p);
-  setAcceptHoverEvents(true);
+  // setAcceptHoverEvents(true);
   m_closed_poly = closed_poly;
 }
 
@@ -45,7 +47,6 @@ void PolygonItem::helperParametersChanged() {
 void PolygonItem::paint(QPainter *painter,
                         const QStyleOptionGraphicsItem *option,
                         QWidget *widget) {
-
   //    auto cl = QColor(Qt::blue);
   //    cl.setAlpha(200);
   //    painter->fillPath(shape(), cl);
@@ -75,7 +76,7 @@ void PolygonItem::paint(QPainter *painter,
     painter->save();
     auto pp = p;
     pp.setCosmetic(true);
-//    pp.setWidthF(qMin(1.0, p.widthF()));
+    //    pp.setWidthF(qMin(1.0, p.widthF()));
     pp.setWidthF(Helper::kLineWidth);
     if (m_closed_poly) {
       // pp.setStyle(Qt::DotLine);
@@ -93,7 +94,7 @@ void PolygonItem::paint(QPainter *painter,
 
     int index = 0;
     painter->setPen(Qt::NoPen);
-    QColor color = Helper::getCircleColor(); // pen().color();
+    QColor color = Helper::getCircleColor();  // pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
 
@@ -106,7 +107,7 @@ void PolygonItem::paint(QPainter *painter,
     }
   }
 
-  if (m_showLabel) {
+  if (m_canvas->showLabels()) {
     painter->setFont(Helper::fontLabel());
     painter->setPen(Qt::black);
     QRectF bb = boundingRect();
@@ -176,9 +177,11 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     m_oldPolygon = polygon();
     m_oldPos = pos();
     if (m_currentCorner == kCenter || !m_moveEnable) {
+      setCursor(Qt::DragMoveCursor);
       QGraphicsPolygonItem::mousePressEvent(event);
     } else {
-      update();
+      setCursor(Qt::SizeAllCursor);
+      // update();
     }
   }
 }
@@ -203,7 +206,7 @@ void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     }
   }
   m_currentCorner = kInvalid;
-  update();
+  //  update();
 }
 
 void PolygonItem::keyPressEvent(QKeyEvent *event) {

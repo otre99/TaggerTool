@@ -15,13 +15,16 @@ class Helper {
   static ImageCanvas *m_scene;
   static QColor circleColor;
 
-public:
+ public:
   static bool m_labelsUpdated;
   static double kPointRadius;
   static int kFontPixelSize;
   static double kInvScaleFactor;
   static double kLineWidth;
   static QStringList kImgExts;
+  static const QString organizationName;
+  static const QString organizationDomain;
+  static const QString appName;
 
   enum CustomItemType {
     kBBox = QGraphicsItem::UserType + 1,
@@ -33,6 +36,9 @@ public:
   };
 
   Helper() = default;
+
+  static int64_t seconsToYear5000(
+      const std::optional<QDateTime> &dt = std::nullopt);
   static void InitFonts(const QFont &baseFont);
   static void InitSupportedImageFormats();
   static void setScale(const double &scale);
@@ -64,4 +70,4 @@ public:
   static const int kImageMarging;
   static const double kBorderSize;
 };
-#endif // UTILS_H
+#endif  // UTILS_H

@@ -1,5 +1,6 @@
 #include "bbox_item.h"
-#include "editdialog.h"
+
+#include <QApplication>
 #include <QCursor>
 #include <QDebug>
 #include <QGraphicsScene>
@@ -9,21 +10,24 @@
 #include <QMenu>
 #include <QPainter>
 
+#include "editdialog.h"
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 
 extern Helper globalHelper;
 
-BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,
-                                 QGraphicsItem *parent, bool ready)
+BoundingBoxItem::BoundingBoxItem(ImageCanvas *canvas, const QRectF &rectf,
+                                 const QString &label, QGraphicsItem *parent,
+                                 bool ready)
     : QGraphicsRectItem(rectf, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
+  m_canvas = canvas,
   //  setPos(rectf.topLeft());
   //  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
 
-  __setLocked(this, !ready);
+      __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
   }
@@ -32,7 +36,7 @@ BoundingBoxItem::BoundingBoxItem(const QRectF &rectf, const QString &label,
   auto p = pen();
   p.setWidthF(Helper::penWidth());
   setPen(p);
-  setAcceptHoverEvents(true);
+  // setAcceptHoverEvents(true);
 }
 
 void BoundingBoxItem::helperParametersChanged() {
@@ -48,7 +52,9 @@ void BoundingBoxItem::showEditDialog(QGraphicsItem *item,
   EditDialog dlg;
   dlg.setGeometry(QRect{screenPos, dlg.size()});
   dlg.setLabel(m_label);
+  dlg.setDescription(m_description);
   dlg.setOccludedTrancatedCrowded(m_occluded, m_truncated, m_crowded);
+
   if (dlg.exec() == QDialog::Accepted) {
     // ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
     ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
@@ -57,6 +63,8 @@ void BoundingBoxItem::showEditDialog(QGraphicsItem *item,
       emit canvas->deferredRemoveItem(item);
       return;
     }
+
+    // Helper::imageCanvas()->undoStack()->beginMacro("BoxEdit");
 
     if (dlg.label() != m_label) {
       Helper::imageCanvas()->undoStack()->push(
@@ -76,6 +84,13 @@ void BoundingBoxItem::showEditDialog(QGraphicsItem *item,
       Helper::imageCanvas()->undoStack()->push(
           new CrowdedChangeBBoxCommand(m_crowded, !m_crowded, this));
     }
+
+    // Helper::imageCanvas()->undoStack()->endMacro();
+
+    if (dlg.description() != m_description) {
+      Helper::imageCanvas()->undoStack()->push(
+          new ChangeDescriptionCommand(m_description, dlg.description(), item));
+    }
   }
 }
 
@@ -86,7 +101,7 @@ void BoundingBoxItem::paint(QPainter *painter,
   QPen p = pen();
   painter->setPen(p);
 
-  QRectF brect = rect(); // boundingRect();
+  QRectF brect = rect();  // boundingRect();
   if (m_moveEnable) {
     painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
   } else {
@@ -105,7 +120,7 @@ void BoundingBoxItem::paint(QPainter *painter,
     auto pp = p;
     pp.setCosmetic(true);
     pp.setWidthF(Helper::kLineWidth);
-//    pp.setWidthF(qMin(1.0, p.widthF()));
+    //    pp.setWidthF(qMin(1.0, p.widthF()));
     // pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
@@ -113,7 +128,7 @@ void BoundingBoxItem::paint(QPainter *painter,
     painter->restore();
 
     painter->setPen(Qt::NoPen);
-    QColor color = Helper::getCircleColor(); // pen().color();
+    QColor color = Helper::getCircleColor();  // pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
     qreal w2 = brect.left() + brect.width() / 2;
@@ -137,7 +152,7 @@ void BoundingBoxItem::paint(QPainter *painter,
     Helper::drawCircleOrSquared(painter, {brect.left(), h2}, w,
                                 m_currentCorner != kLeftCenter);
   }
-  if (m_showLabel) {
+  if (m_canvas->showLabels()) {
     painter->setFont(globalHelper.fontLabel());
     p.setColor(Qt::black);
     painter->setPen(p);
@@ -150,6 +165,7 @@ void BoundingBoxItem::paint(QPainter *painter,
 }
 
 void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
+  qDebug() << "AAA";
   if (m_currentCorner == kCenter || !m_moveEnable)
     QGraphicsRectItem::mouseMoveEvent(event);
   else {
@@ -162,76 +178,72 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
     bool sh;
 
     switch (m_currentCorner) {
-    case kTopLeft:
-      newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
-                                       newrect.bottomRight(), sw, sh);
-      if (sw && sh)
-        new_corner = kBottomRight;
-      else if (sw)
-        new_corner = kTopRight;
-      else if (sh)
-        new_corner = kBottomLeft;
-      break;
-    case kTopRight:
-      newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
-                                       newrect.bottomLeft(), sw, sh);
-      if (!sw && sh)
-        new_corner = kBottomLeft;
-      else if (!sw)
-        new_corner = kTopLeft;
-      else if (sh)
-        new_corner = kBottomRight;
-      break;
-    case kBottomRight:
-      newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
-                                       newrect.topLeft(), sw, sh);
-      if (!sw && !sh)
-        new_corner = kTopLeft;
-      else if (!sw)
-        new_corner = kBottomLeft;
-      else if (!sh)
-        new_corner = kTopRight;
-      break;
-    case kBottomLeft:
-      newrect = buildRectFromTwoPoints(newrect.bottomLeft() + dl,
-                                       newrect.topRight(), sw, sh);
-      if (sw && !sh)
-        new_corner = kTopRight;
-      else if (sw)
-        new_corner = kBottomRight;
-      else if (!sh)
-        new_corner = kTopLeft;
-      break;
-    case kTopCenter:
-      dl.setX(0);
-      newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
-                                       newrect.bottomRight(), sw, sh);
-      if (sh)
-        new_corner = kBottomCenter;
-      break;
-    case kBottomCenter:
-      dl.setX(0);
-      newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
-                                       newrect.topLeft(), sw, sh);
-      if (!sh)
-        new_corner = kTopCenter;
-      break;
-    case kRightCenter:
-      dl.setY(0);
-      newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
-                                       newrect.bottomLeft(), sw, sh);
-      if (!sw)
-        new_corner = kLeftCenter;
-      break;
-    case kLeftCenter:
-      dl.setY(0);
-      newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
-                                       newrect.bottomRight(), sw, sh);
-      if (sw)
-        new_corner = kRightCenter;
-      break;
-    default:
-      break;
+      case kTopLeft:
+        newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
+                                         newrect.bottomRight(), sw, sh);
+        if (sw && sh)
+          new_corner = kBottomRight;
+        else if (sw)
+          new_corner = kTopRight;
+        else if (sh)
+          new_corner = kBottomLeft;
+        break;
+      case kTopRight:
+        newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
+                                         newrect.bottomLeft(), sw, sh);
+        if (!sw && sh)
+          new_corner = kBottomLeft;
+        else if (!sw)
+          new_corner = kTopLeft;
+        else if (sh)
+          new_corner = kBottomRight;
+        break;
+      case kBottomRight:
+        newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
+                                         newrect.topLeft(), sw, sh);
+        if (!sw && !sh)
+          new_corner = kTopLeft;
+        else if (!sw)
+          new_corner = kBottomLeft;
+        else if (!sh)
+          new_corner = kTopRight;
+        break;
+      case kBottomLeft:
+        newrect = buildRectFromTwoPoints(newrect.bottomLeft() + dl,
+                                         newrect.topRight(), sw, sh);
+        if (sw && !sh)
+          new_corner = kTopRight;
+        else if (sw)
+          new_corner = kBottomRight;
+        else if (!sh)
+          new_corner = kTopLeft;
+        break;
+      case kTopCenter:
+        dl.setX(0);
+        newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
+                                         newrect.bottomRight(), sw, sh);
+        if (sh) new_corner = kBottomCenter;
+        break;
+      case kBottomCenter:
+        dl.setX(0);
+        newrect = buildRectFromTwoPoints(newrect.bottomRight() + dl,
+                                         newrect.topLeft(), sw, sh);
+        if (!sh) new_corner = kTopCenter;
+        break;
+      case kRightCenter:
+        dl.setY(0);
+        newrect = buildRectFromTwoPoints(newrect.topRight() + dl,
+                                         newrect.bottomLeft(), sw, sh);
+        if (!sw) new_corner = kLeftCenter;
+        break;
+      case kLeftCenter:
+        dl.setY(0);
+        newrect = buildRectFromTwoPoints(newrect.topLeft() + dl,
+                                         newrect.bottomRight(), sw, sh);
+        if (sw) new_corner = kRightCenter;
+        break;
+      default:
+        break;
     }
     m_currentCorner = new_corner;
     if (newrect.isValid()) {
@@ -257,8 +269,28 @@ void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     m_oldCoords = rect();
     m_oldPos = pos();
     if (m_currentCorner == kCenter || !m_moveEnable) {
+      setCursor(Qt::DragMoveCursor);
       QGraphicsRectItem::mousePressEvent(event);
     } else {
+      switch (m_currentCorner) {
+        case kLeftCenter:
+        case kRightCenter:
+          setCursor(Qt::SizeHorCursor);
+          break;
+        case kTopCenter:
+        case kBottomCenter:
+          setCursor(Qt::SizeVerCursor);
+          break;
+        case kTopRight:
+        case kBottomLeft:
+          setCursor(Qt::SizeBDiagCursor);
+          break;
+        case kTopLeft:
+        case kBottomRight:
+          setCursor(Qt::SizeFDiagCursor);
+        default:
+          break;
+      }
       update();
       m_lastPt = event->pos();
     }
@@ -293,13 +325,13 @@ void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = kInvalid;
 }
 
-//void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
-//  if (m_moveEnable &&
-//      (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right ||
-//       event->key() == Qt::Key_Up || event->key() == Qt::Key_Down)) {
-//    QRectF newrect(this->pos(), this->rect().size());
-//    double dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
-//    double sx = 1, sy = 1;
+// void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
+//   if (m_moveEnable &&
+//       (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right ||
+//        event->key() == Qt::Key_Up || event->key() == Qt::Key_Down)) {
+//     QRectF newrect(this->pos(), this->rect().size());
+//     double dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+//     double sx = 1, sy = 1;
 
 //    if (event->modifiers() & Qt::ShiftModifier) {
 //      sx = std::max(newrect.width() * 0.1, 1.0);
@@ -412,7 +444,7 @@ QRectF BoundingBoxItem::buildRectFromTwoPoints(const QPointF &p1,
 
 BoundingBoxItem::CORNER BoundingBoxItem::positionInside(const QPointF &pos) {
   CORNER result = kCenter;
-  const QRectF brect = rect(); // boundingRect();
+  const QRectF brect = rect();  // boundingRect();
 
   qreal w2 = brect.left() + brect.width() / 2;
   qreal h2 = brect.top() + brect.height() / 2;

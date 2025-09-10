@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Tagger Tool</string>
+   <string>CVTaggerTool</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -52,10 +52,28 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuImport_Annotations">
+     <property name="title">
+      <string>Import Annotations</string>
+     </property>
+     <addaction name="actionImportNative_JSON"/>
+     <addaction name="actionImportCoco"/>
+     <addaction name="actionImportYolo"/>
+    </widget>
+    <widget class="QMenu" name="menuExport_Annotations">
+     <property name="title">
+      <string>Export Annotations</string>
+     </property>
+     <addaction name="actionExportNative_JSON"/>
+     <addaction name="actionExportCoco"/>
+     <addaction name="actionExportYolo"/>
+    </widget>
     <addaction name="actionLoad_project"/>
     <addaction name="actionSave_project"/>
     <addaction name="separator"/>
-    <addaction name="actionExport_Annotations"/>
+    <addaction name="menuExport_Annotations"/>
+    <addaction name="separator"/>
+    <addaction name="menuImport_Annotations"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -103,10 +121,10 @@
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::NoDockWidgetFeatures</set>
+    <set>QDockWidget::DockWidgetFeature::NoDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
+    <set>Qt::DockWidgetArea::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>IMAGES</string>
@@ -145,6 +163,9 @@
        <property name="text">
         <string>Auto Save</string>
        </property>
+       <property name="icon">
+        <iconset theme="document-save"/>
+       </property>
       </widget>
      </item>
      <item row="2" column="1">
@@ -157,19 +178,19 @@
      <item row="1" column="0" colspan="3">
       <widget class="QListView" name="listViewImgNames">
        <property name="editTriggers">
-        <set>QAbstractItemView::NoEditTriggers</set>
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
        </property>
        <property name="alternatingRowColors">
         <bool>true</bool>
        </property>
        <property name="flow">
-        <enum>QListView::TopToBottom</enum>
+        <enum>QListView::Flow::TopToBottom</enum>
        </property>
        <property name="resizeMode">
-        <enum>QListView::Adjust</enum>
+        <enum>QListView::ResizeMode::Adjust</enum>
        </property>
        <property name="viewMode">
-        <enum>QListView::ListMode</enum>
+        <enum>QListView::ViewMode::ListMode</enum>
        </property>
        <property name="uniformItemSizes">
         <bool>false</bool>
@@ -181,12 +202,36 @@
        <property name="text">
         <string>...</string>
        </property>
+       <property name="icon">
+        <iconset theme="document-properties"/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item row="0" column="0" colspan="3">
       <widget class="QPushButton" name="pbLoadImgAnn">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
-        <string>load</string>
+        <string>Open Project</string>
+       </property>
+       <property name="icon">
+        <iconset theme="document-open"/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -202,7 +247,7 @@
   </widget>
   <widget class="QDockWidget" name="dockWidgetR">
    <property name="features">
-    <set>QDockWidget::NoDockWidgetFeatures</set>
+    <set>QDockWidget::DockWidgetFeature::NoDockWidgetFeatures</set>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -260,6 +305,15 @@
          <property name="text">
           <string>...</string>
          </property>
+         <property name="icon">
+          <iconset theme="document-properties"/>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>16</width>
+           <height>16</height>
+          </size>
+         </property>
         </widget>
        </item>
       </layout>
@@ -315,8 +369,8 @@
          </property>
          <property name="iconSize">
           <size>
-           <width>24</width>
-           <height>24</height>
+           <width>16</width>
+           <height>16</height>
           </size>
          </property>
         </widget>
@@ -332,8 +386,8 @@
          </property>
          <property name="iconSize">
           <size>
-           <width>24</width>
-           <height>24</height>
+           <width>16</width>
+           <height>16</height>
           </size>
          </property>
         </widget>
@@ -343,10 +397,13 @@
          <property name="text">
           <string>...</string>
          </property>
+         <property name="icon">
+          <iconset theme="document-properties"/>
+         </property>
          <property name="iconSize">
           <size>
-           <width>24</width>
-           <height>24</height>
+           <width>16</width>
+           <height>16</height>
           </size>
          </property>
         </widget>
@@ -474,6 +531,9 @@
    </property>
   </action>
   <action name="actionShow_Hide_Labels">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="checked">
     <bool>false</bool>
    </property>
@@ -636,14 +696,6 @@
     <string>X</string>
    </property>
   </action>
-  <action name="actionExport_Annotations">
-   <property name="text">
-    <string>Export Annotations</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+E</string>
-   </property>
-  </action>
   <action name="actionAdd_Circle_Item">
    <property name="icon">
     <iconset resource="resource.qrc">
@@ -654,6 +706,36 @@
    </property>
    <property name="shortcut">
     <string>C</string>
+   </property>
+  </action>
+  <action name="actionExportNative_JSON">
+   <property name="text">
+    <string>Native JSON</string>
+   </property>
+  </action>
+  <action name="actionExportCoco">
+   <property name="text">
+    <string>Coco</string>
+   </property>
+  </action>
+  <action name="actionExportYolo">
+   <property name="text">
+    <string>Yolo</string>
+   </property>
+  </action>
+  <action name="actionImportNative_JSON">
+   <property name="text">
+    <string>Native JSON</string>
+   </property>
+  </action>
+  <action name="actionImportCoco">
+   <property name="text">
+    <string>Coco</string>
+   </property>
+  </action>
+  <action name="actionImportYolo">
+   <property name="text">
+    <string>Yolo</string>
    </property>
   </action>
  </widget>

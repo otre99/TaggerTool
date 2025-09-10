@@ -9,22 +9,24 @@ class EditDialog;
 
 class EditDialog : public QDialog {
   Q_OBJECT
-public:
+ public:
   explicit EditDialog(QWidget *parent = nullptr);
   ~EditDialog();
   QString label() const;
+  QString description() const;
   void setLabel(const QString &lb);
+  void setDescription(const QString &dsc);
   bool removeItem() const { return m_removedItem; }
   void setOccludedTrancatedCrowded(bool occluded, bool truncated, bool crowded);
   bool getOccluded() const;
   bool getTruncated() const;
   bool getCrowded() const;
-private slots:
+ private slots:
   void on_toolButtonRemoveItem_clicked();
 
-private:
+ private:
   Ui::EditDialog *ui;
   bool m_removedItem{false};
 };
 
-#endif // EDITDIALOG_H
+#endif  // EDITDIALOG_H

@@ -13,13 +13,13 @@
 #include "undo_cmds.h"
 #include "utils.h"
 
-PointItem::PointItem(const QPointF &center, const QString &label,
-                     QGraphicsItem *parent, bool ready)
+PointItem::PointItem(ImageCanvas *canvas, const QPointF &center,
+                     const QString &label, QGraphicsItem *parent, bool ready)
     : QGraphicsEllipseItem(0, 0, 2 * Helper::penWidth(), 2 * Helper::penWidth(),
                            parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
-
+  m_canvas = canvas;
   __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
@@ -46,7 +46,7 @@ void PointItem::helperParametersChanged() {
 // QGraphicsItem
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                       QWidget *widget) {
-  QRectF brect = rect(); // boundingRect();
+  QRectF brect = rect();  // boundingRect();
   if (!m_moveEnable) {
     painter->setPen(Qt::NoPen);
     painter->setBrush(pen().brush());
@@ -58,7 +58,7 @@ void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->drawLine(brect.topLeft(), brect.bottomRight());
     painter->drawLine(brect.bottomLeft(), brect.topRight());
   }
-  if (m_showLabel) {
+  if (m_canvas->showLabels()) {
     painter->setFont(Helper::fontLabel());
     painter->setPen(Qt::black);
     brect = boundingRect();

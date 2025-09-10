@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QMainWindow>
 #include <QTimer>
@@ -9,7 +10,6 @@
 #include "heavytaskthread.h"
 #include "imagecanvas.h"
 #include "imgstringlistmodel.h"
-
 class QLabel;
 
 namespace Ui {
@@ -21,18 +21,17 @@ class QComboBox;
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
-public:
+ public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
   void resizeEvent(QResizeEvent *event) override;
 
-private slots:
+ private slots:
   void on_addNewBbox_triggered();
   void on_pbLoadImgAnn_clicked();
   void on_saveLocalChanges_triggered();
   void on_actionShowBboxes_triggered();
   void selectionChangedOnImageCanvas();
-  void on_actionShow_Hide_Labels_triggered();
   void on_actionNew_Point_triggered();
   void on_NeedSaveChangeUndo(bool enable);
   void on_NeedSaveChange();
@@ -57,14 +56,16 @@ private slots:
   void on_toolButtonAddImgLabels_clicked();
   void on_actionLoad_project_triggered();
   void on_actionSave_project_triggered();
-  void loadImagesAndAnnotations(const QString &annImg,
+  bool loadImagesAndAnnotations(const QString &annImg,
                                 const QString &annFolder);
   void on_actionAdd_New_LineStrip_triggered();
   void on_actionExport_Annotations_triggered();
 
   void on_actionAdd_Circle_Item_triggered();
 
-  private:
+  void on_actionShow_Hide_Labels_toggled(bool arg1);
+
+ private:
   void setUp();
   void displayImageInfo();
   void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);
@@ -80,6 +81,31 @@ private slots:
   bool m_needToSaveNotUndo;
   HeavyTaskThread m_heavyTaskThread;
   QLabel *m_displayLabel;
+
+  // aux functions
+  inline QString makeProjectKey(const QString &image, const QString &anno) {
+    const auto h = QCryptographicHash::hash((image + u'-' + anno).toUtf8(),
+                                            QCryptographicHash::Sha1);
+    return QString::fromLatin1(
+        h.toHex());  // store mapping from hash->packed tuple
+  }
+
+  inline QVariant packProjectTuple(const QString &image, const QString &anno,
+                                   qint64 secs) {
+    QVariantList v;
+    v << image << anno << QVariant::fromValue(secs);
+    return v;
+  }
+
+  inline bool unpackProjectTuple(const QVariant &v, QString &image,
+                                 QString &anno, qint64 &secs) {
+    const auto lst = v.toList();
+    if (lst.size() != 3) return false;
+    image = lst[0].toString();
+    anno = lst[1].toString();
+    secs = lst[2].toLongLong();
+    return true;
+  }
 };
 
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

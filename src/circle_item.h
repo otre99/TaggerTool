@@ -6,22 +6,19 @@
 #include "utils.h"
 
 class ImageCanvas;
+
 class CircleItem : public QGraphicsEllipseItem, public CustomItem {
   friend class ImageCanvas;
   enum CORNER { kCenter = -1, kBorder, kInvalid } m_currentCorner{kInvalid};
 
-public:
-  CircleItem(const QPointF &center, double radius,
+ public:
+  CircleItem(ImageCanvas *canvas, const QPointF &center, double radius,
              const QString &label = QString(), QGraphicsItem *parent = nullptr,
              bool ready = false);
   // CustomItem
   void helperParametersChanged() override;
   void setLocked(bool what) override { __setLocked(this, what); }
   void setLabel(const QString &lb) override { __setLabel(this, lb); }
-  void setShowLabel(bool show) override {
-    m_showLabel = show;
-    update();
-  }
 
   // QGraphicsItem
   int type() const override { return Helper::kCircle; }
@@ -38,7 +35,7 @@ public:
   QPointF center() const;
   qreal radius() const;
 
-private:
+ private:
   CORNER positionInside(const QPointF &pos);
 
   QRectF m_oldRect;
@@ -47,4 +44,4 @@ private:
   QPointF m_lastPt;
 };
 
-#endif // CIRCLE_ITEM_H
+#endif  // CIRCLE_ITEM_H

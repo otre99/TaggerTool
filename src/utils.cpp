@@ -9,6 +9,10 @@
 #include <QVector3D>
 #include <cmath>
 
+const QString Helper::organizationName = "RCCR";
+const QString Helper::appName = "CVTaggerTool";
+const QString Helper::organizationDomain = "rccr1987.com";
+
 const QRgb Helper::kLabelColorsArray[] = {
     qRgb(0, 113, 188),   qRgb(216, 82, 24),   qRgb(236, 176, 31),
     qRgb(125, 46, 141),  qRgb(118, 171, 47),  qRgb(76, 189, 237),
@@ -59,6 +63,13 @@ bool Helper::m_labelsUpdated = false;
 QFont Helper::m_fontLabel;
 QColor Helper::circleColor{Qt::red};
 
+int64_t Helper::seconsToYear5000(const std::optional<QDateTime> &dt) {
+  const QDateTime year5000 = dt.has_value()
+                                 ? dt.value()
+                                 : QDateTime(QDate(5000, 1, 1), QTime(0, 0, 0));
+  return QDateTime::currentDateTime().secsTo(year5000);
+}
+
 void Helper::InitFonts(const QFont &baseFont) {
   Helper::m_fontLabel = baseFont;
   Helper::m_fontLabel.setPixelSize(
@@ -106,8 +117,7 @@ QRectF Helper::buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2) {
 }
 
 QColor Helper::colorFromLabel(const QString &label) {
-  if (label.isEmpty())
-    return Qt::black;
+  if (label.isEmpty()) return Qt::black;
 
   if (Helper::m_labelToColor.contains(label)) {
     return Helper::m_labelToColor[label];

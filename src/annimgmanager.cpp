@@ -14,8 +14,7 @@
 
 // Line impl
 QJsonObject Line::serializeJson() const {
-  QJsonObject obj;
-  obj["label"] = label;
+  QJsonObject obj = Annotation::serializeJson();
   obj["x1"] = x1;
   obj["y1"] = y1;
   obj["x2"] = x2;
@@ -23,30 +22,27 @@ QJsonObject Line::serializeJson() const {
   return obj;
 }
 void Line::fromJson(const QJsonObject &obj) {
-  label = obj["label"].toString();
+  Annotation::fromJson(obj);
   x1 = obj["x1"].toDouble();
   y1 = obj["y1"].toDouble();
   x2 = obj["x2"].toDouble();
   y2 = obj["y2"].toDouble();
 }
 
-Line::Line(float x1, float y1, float x2, float y2, const QString &lb)
-    : x1{x1}, y1{y1}, x2{x2}, y2{y2} {
-  label = lb;
-}
+Line::Line(float x1, float y1, float x2, float y2, const QString &lb,
+           const QString &dsc)
+    : Annotation(lb, dsc), x1{x1}, y1{y1}, x2{x2}, y2{y2} {}
 
-Line::Line(const QPointF &pt1, const QPointF &pt2, const QString &lb)
-    : x1(pt1.x()), y1(pt1.y()), x2(pt2.x()), y2(pt2.y()) {
-  label = lb;
-}
+Line::Line(const QPointF &pt1, const QPointF &pt2, const QString &lb,
+           const QString &dsc)
+    : x1(pt1.x()), y1(pt1.y()), x2(pt2.x()), y2(pt2.y()) {}
 
 QPointF Line::pt1() const { return {x1, y1}; }
 QPointF Line::pt2() const { return {x2, y2}; }
 
 // BBox impl
 QJsonObject BBox::serializeJson() const {
-  QJsonObject obj;
-  obj["label"] = label;
+  QJsonObject obj = Annotation::serializeJson();
   obj["x1"] = x1;
   obj["y1"] = y1;
   obj["x2"] = x2;
@@ -57,7 +53,7 @@ QJsonObject BBox::serializeJson() const {
   return obj;
 }
 void BBox::fromJson(const QJsonObject &obj) {
-  label = obj["label"].toString();
+  Annotation::fromJson(obj);
   x1 = obj["x1"].toDouble();
   y1 = obj["y1"].toDouble();
   x2 = obj["x2"].toDouble();
@@ -68,18 +64,26 @@ void BBox::fromJson(const QJsonObject &obj) {
 }
 
 BBox::BBox(float x1, float y1, float x2, float y2, const QString &lb,
+           const QString &dsc, bool occluded, bool truncated, bool crowded)
+    : Annotation(lb, dsc),
+      x1{x1},
+      y1{y1},
+      x2{x2},
+      y2{y2},
+      occluded{occluded},
+      truncated{truncated},
+      crowded{crowded} {}
+
+BBox::BBox(const QRectF &r, const QString &lb, const QString &dsc,
            bool occluded, bool truncated, bool crowded)
-    : x1{x1}, y1{y1}, x2{x2}, y2{y2}, occluded{occluded}, truncated{truncated},
-      crowded{crowded} {
-  label = lb;
-}
-BBox::BBox(const QRectF &r, const QString &lb, bool occluded, bool truncated,
-           bool crowded)
-    : x1(r.left()), y1(r.top()), x2(r.right()),
-      y2(r.bottom()), occluded{occluded}, truncated{truncated}, crowded{
-                                                                    crowded} {
-  label = lb;
-}
+    : Annotation(lb, dsc),
+      x1(r.left()),
+      y1(r.top()),
+      x2(r.right()),
+      y2(r.bottom()),
+      occluded{occluded},
+      truncated{truncated},
+      crowded{crowded} {}
 
 QPointF BBox::pt1() const { return {x1, y1}; }
 
@@ -89,22 +93,16 @@ bool BBox::getOccluded() const { return occluded; }
 bool BBox::getTruncated() const { return truncated; }
 bool BBox::getCrowded() const { return crowded; }
 
-
 // Circle impl
-Circle::Circle(const QPointF &center, qreal radius, const QString &lb)
-    : center1{center}, radius1{radius} {
-  label = lb;
-}
+Circle::Circle(const QPointF &center, qreal radius, const QString &lb,
+               const QString &dsc)
+    : Annotation(lb, dsc), center1{center}, radius1{radius} {}
 
-QPointF Circle::center() const {
-  return center1;
-}
+QPointF Circle::center() const { return center1; }
 
-qreal Circle::radius() const {
-  return radius1;
-}
+qreal Circle::radius() const { return radius1; }
 
-QJsonObject  Circle::serializeJson() const {
+QJsonObject Circle::serializeJson() const {
   QJsonObject obj;
   obj["label"] = label;
   obj["x"] = center1.x();
@@ -113,38 +111,37 @@ QJsonObject  Circle::serializeJson() const {
   return obj;
 }
 
-void Circle::fromJson(const QJsonObject &obj){
-  label = obj["label"].toString();
+void Circle::fromJson(const QJsonObject &obj) {
+  Annotation::fromJson(obj);
   center1.setX(obj["x"].toDouble());
   center1.setY(obj["y"].toDouble());
   radius1 = obj["radius"].toDouble();
 }
 
 // Point impl
-Point::Point(float x, float y, const QString &lb) : x{x}, y{y} { label = lb; }
-Point::Point(const QPointF &pt, const QString &lb) : x(pt.x()), y(pt.y()) {
-  label = lb;
-}
+Point::Point(float x, float y, const QString &lb, const QString &dsc)
+    : Annotation(lb, dsc), x{x}, y{y} {}
+
+Point::Point(const QPointF &pt, const QString &lb, const QString &dsc)
+    : x(pt.x()), y(pt.y()) {}
 
 QPointF Point::pt() const { return {x, y}; }
 
 QJsonObject Point::serializeJson() const {
-  QJsonObject obj;
-  obj["label"] = label;
+  QJsonObject obj = Annotation::serializeJson();
   obj["x"] = x;
   obj["y"] = y;
   return obj;
 }
 void Point::fromJson(const QJsonObject &obj) {
-  label = obj["label"].toString();
+  Annotation::fromJson(obj);
   x = obj["x"].toDouble();
   y = obj["y"].toDouble();
 }
 
 // Polygon impl
 QJsonObject Polygon::serializeJson() const {
-  QJsonObject obj;
-  obj["label"] = label;
+  QJsonObject obj = Annotation::serializeJson();
 
   QJsonArray jsonXArray, jsonYArray;
   const int n = this->xArray.size();
@@ -157,7 +154,7 @@ QJsonObject Polygon::serializeJson() const {
   return obj;
 }
 void Polygon::fromJson(const QJsonObject &obj) {
-  label = obj["label"].toString();
+  Annotation::fromJson(obj);
 
   QJsonArray jsonXArray = obj["x_coords"].toArray();
   QJsonArray jsonYArray = obj["y_coords"].toArray();
@@ -169,12 +166,10 @@ void Polygon::fromJson(const QJsonObject &obj) {
 }
 
 Polygon::Polygon(const QVector<float> &xArr, const QVector<float> &yArr,
-                 const QString &lb)
-    : xArray(xArr), yArray(yArr) {
-  label = lb;
-}
-Polygon::Polygon(const QPolygonF &poly, const QString &lb) {
-  label = lb;
+                 const QString &lb, QString &dsc)
+    : Annotation(lb, dsc), xArray(xArr), yArray(yArr) {}
+Polygon::Polygon(const QPolygonF &poly, const QString &lb, const QString &dsc)
+    : Annotation(lb, dsc) {
   for (const auto &p : poly) {
     xArray.push_back(p.x());
     yArray.push_back(p.y());
@@ -188,8 +183,6 @@ QPolygonF Polygon::getPolygon() const {
   }
   return poly;
 }
-
-
 
 // Annotation impl
 QJsonObject Annotations::serializeJson() const {
@@ -258,16 +251,19 @@ void Annotations::fromJson(const QJsonObject &root) {
 }
 
 template <typename T>
-void Annotations::serializeJsonArrayOfObjects(const QVector<T> &anns, const QString &name, QJsonObject &root) const {
+void Annotations::serializeJsonArrayOfObjects(const QVector<T> &anns,
+                                              const QString &name,
+                                              QJsonObject &root) const {
   QJsonArray array;
-  for (auto &&ann : anns){
+  for (auto &&ann : anns) {
     array.push_back(ann.serializeJson());
   }
   root[name] = array;
 }
 
-template<typename T>
-void  Annotations::fromArrayOfJsonObjects(const QJsonArray &json_arr, QVector<T> &output){
+template <typename T>
+void Annotations::fromArrayOfJsonObjects(const QJsonArray &json_arr,
+                                         QVector<T> &output) {
   output.clear();
   for (auto &&obj : json_arr) {
     T tobj;
@@ -323,7 +319,6 @@ void AnnImgManager::saveAnnotations(const QString &image_id,
 
 void AnnImgManager::_saveAnnotations(const QString &path,
                                      const Annotations &ann) {
-
   // qDebug() << "SAVING TO DISK!!!!";
   const QJsonObject root = ann.serializeJson();
   const QByteArray out = QJsonDocument(root).toJson();

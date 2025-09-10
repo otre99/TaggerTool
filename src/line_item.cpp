@@ -13,12 +13,12 @@
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 
-LineItem::LineItem(const QPointF &p1, const QPointF &p2, const QString &label,
-                   QGraphicsItem *parent, bool ready)
+LineItem::LineItem(ImageCanvas *canvas, const QPointF &p1, const QPointF &p2,
+                   const QString &label, QGraphicsItem *parent, bool ready)
     : QGraphicsLineItem(p1.x(), p1.y(), p2.x(), p2.y(), parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
-
+  m_canvas = canvas;
   __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
@@ -33,7 +33,7 @@ LineItem::LineItem(const QPointF &p1, const QPointF &p2, const QString &label,
   auto p = pen();
   p.setWidthF(2 * Helper::penWidth());
   setPen(p);
-  setAcceptHoverEvents(true);
+  // setAcceptHoverEvents(true);
 }
 
 void LineItem::helperParametersChanged() {
@@ -70,7 +70,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   } else {
     painter->save();
     auto pp = p;
-//    pp.setWidthF(qMin(1.0, p.widthF()));
+    //    pp.setWidthF(qMin(1.0, p.widthF()));
     pp.setWidthF(Helper::kLineWidth);
     pp.setCosmetic(true);
     // pp.setStyle(Qt::DotLine);
@@ -80,7 +80,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->restore();
 
     painter->setPen(Qt::NoPen);
-    QColor color = Helper::getCircleColor(); // pen().color();
+    QColor color = Helper::getCircleColor();  // pen().color();
     color.setAlpha(150);
     painter->setBrush(color);
 
@@ -90,7 +90,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                                 m_currentCorner != kP2);
   }
 
-  if (m_showLabel) {
+  if (m_canvas->showLabels()) {
     painter->setFont(Helper::fontLabel());
     painter->setPen(Qt::black);
     QRectF brect = QGraphicsLineItem::boundingRect();
@@ -131,9 +131,11 @@ void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   } else {
     m_currentCorner = positionInside(event->pos());
     if (m_currentCorner == kCenter || !m_moveEnable) {
+      setCursor(Qt::DragMoveCursor);
       QGraphicsLineItem::mousePressEvent(event);
     } else {
-      update();
+      setCursor(Qt::SizeAllCursor);
+      // update();
     }
   }
   m_oldLine = line();
@@ -159,7 +161,7 @@ void LineItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   }
 
   m_currentCorner = kInvalid;
-  update();
+  //  update();
 }
 
 void LineItem::keyPressEvent(QKeyEvent *event) {
@@ -185,9 +187,7 @@ LineItem::CORNER LineItem::positionInside(const QPointF &pos) {
   qreal d1 = Helper::pointLen(line().p1() - pos);
   qreal d2 = Helper::pointLen(line().p2() - pos);
   qreal th = pen().widthF() / 2.0;
-  if (d1 < th)
-    return kP1;
-  if (d2 < th)
-    return kP2;
+  if (d1 < th) return kP1;
+  if (d2 < th) return kP2;
   return kCenter;
 }

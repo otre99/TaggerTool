@@ -14,18 +14,14 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   enum CORNER { kCenter = -1, kNode, kInvalid } m_currentCorner{kInvalid};
   int m_currentNodeIndx_;
 
-public:
-  PolygonItem(const QPolygonF &poly, const QString &label = QString(),
-              QGraphicsItem *parent = nullptr, bool ready = false,
-              bool closed_poly = true);
+ public:
+  PolygonItem(ImageCanvas *canvas, const QPolygonF &poly,
+              const QString &label = QString(), QGraphicsItem *parent = nullptr,
+              bool ready = false, bool closed_poly = true);
   // CustomItem
   void helperParametersChanged() override;
   void setLocked(bool what) override { __setLocked(this, what); }
   void setLabel(const QString &lb) override { __setLabel(this, lb); }
-  void setShowLabel(bool show) override {
-    m_showLabel = show;
-    update();
-  }
 
   // QGraphicsItem
   int type() const override {
@@ -44,7 +40,7 @@ public:
   // get/set
   QPolygonF getPolygonCoords() const;
 
-private:
+ private:
   CORNER positionInside(const QPointF &pos);
   QPolygonF m_oldPolygon;
   QPointF m_oldPos;
@@ -54,4 +50,4 @@ private:
                                   const QPolygonF &newPoly);
 };
 
-#endif // POLYGON_ITEM_H
+#endif  // POLYGON_ITEM_H

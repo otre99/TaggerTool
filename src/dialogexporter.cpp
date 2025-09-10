@@ -1,16 +1,19 @@
 #include "dialogexporter.h"
-#include "heavytaskthread.h"
-#include "ui_dialogexporter.h"
+
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QListWidgetItem>
 #include <QMessageBox>
 
+#include "heavytaskthread.h"
+#include "ui_dialogexporter.h"
+
 const char DialogExporter::COLLECT_ANNS[] = "Collecting annotations: ";
 
 DialogExporter::DialogExporter(QWidget *parent,
                                HeavyTaskThread *heavyTaskThread)
-    : QDialog(parent), m_heavyTaskThread{heavyTaskThread},
+    : QDialog(parent),
+      m_heavyTaskThread{heavyTaskThread},
       ui(new Ui::DialogExporter) {
   ui->setupUi(this);
   ui->progressBar->setRange(0, 100);
@@ -20,7 +23,6 @@ DialogExporter::DialogExporter(QWidget *parent,
 }
 
 void DialogExporter::closeEvent(QCloseEvent *event) {
-
   if (!m_heavyTaskThread->isTaskRunning()) {
     QDialog::closeEvent(event);
     return;
@@ -31,15 +33,15 @@ void DialogExporter::closeEvent(QCloseEvent *event) {
       "Do you want to close and abort the process?",
       QMessageBox::StandardButtons({QMessageBox::Yes, QMessageBox::No}));
   switch (ex) {
-  case QMessageBox::Yes:
-    m_heavyTaskThread->killTaskAndWait();
-    QDialog::closeEvent(event);
-    break;
-  case QMessageBox::No:
-    event->ignore();
-    break;
-  default:
-    break;
+    case QMessageBox::Yes:
+      m_heavyTaskThread->killTaskAndWait();
+      QDialog::closeEvent(event);
+      break;
+    case QMessageBox::No:
+      event->ignore();
+      break;
+    default:
+      break;
   }
 }
 
@@ -62,7 +64,7 @@ void DialogExporter::taskFinished(bool ok, QString errMsg) {
     return;
   }
   if (ui->labelProgressBarText->text() == COLLECT_ANNS) {
-    for (auto &&lb : qAsConst(m_heavyTaskThread->uniqueLabels)) {
+    for (auto &&lb : std::as_const(m_heavyTaskThread->uniqueLabels)) {
       auto item = new QListWidgetItem();
       item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
       item->setCheckState(Qt::Checked);
@@ -76,8 +78,7 @@ void DialogExporter::taskFinished(bool ok, QString errMsg) {
 void DialogExporter::on_pBExportCoco_clicked() {
   const QString cocoJsonFile =
       QFileDialog::getSaveFileName(this, "Output JSON COCO annotation file");
-  if (cocoJsonFile.isEmpty())
-    return;
+  if (cocoJsonFile.isEmpty()) return;
   getSelectedLabels();
   m_heavyTaskThread->outputDirOrFile = cocoJsonFile;
   m_heavyTaskThread->startTask(HeavyTaskThread::ExportCOCOAnnotations);
@@ -88,8 +89,7 @@ void DialogExporter::on_pBExportCoco_clicked() {
 void DialogExporter::on_pBExportPascal_clicked() {
   const QString pascalAnnFolder = QFileDialog::getExistingDirectory(
       this, "Output PASCAL annotation folder");
-  if (pascalAnnFolder.isEmpty())
-    return;
+  if (pascalAnnFolder.isEmpty()) return;
   getSelectedLabels();
   m_heavyTaskThread->outputDirOrFile = pascalAnnFolder;
   m_heavyTaskThread->includeImagesWithoutAnnotations_ =

@@ -11,7 +11,7 @@ EditDialog::EditDialog(QWidget *parent)
 
   ui->labelsComboBox->addItems(Helper::currentLabels());
   ui->labelsComboBox->completer()->setCaseSensitivity(Qt::CaseSensitive);
-  ui->labelsComboBox->setEditable(false);
+  ui->labelsComboBox->setEditable(true);
   ui->groupBox1->setVisible(false);
 }
 
@@ -19,8 +19,17 @@ EditDialog::~EditDialog() { delete ui; }
 
 QString EditDialog::label() const { return ui->labelsComboBox->currentText(); }
 
+QString EditDialog::description() const {
+  qDebug() << "AA--> " << ui->textEditDescription->document()->toPlainText();
+  return ui->textEditDescription->document()->toPlainText();
+}
+
 void EditDialog::setLabel(const QString &lb) {
   ui->labelsComboBox->setCurrentText(lb);
+}
+
+void EditDialog::setDescription(const QString &dsc) {
+  ui->textEditDescription->setText(dsc);
 }
 
 void EditDialog::setOccludedTrancatedCrowded(bool occluded, bool truncated,

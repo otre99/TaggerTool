@@ -12,10 +12,12 @@
 #include "annimgmanager.h"
 #include "utils.h"
 
+class CustomItem;
+
 class ImageCanvas : public QGraphicsScene {
   Q_OBJECT
 
-private:
+ private:
   QPixmap m_currentImage;
   QString m_imageId;
   QString m_bboxLabel;
@@ -29,7 +31,7 @@ private:
 
   friend class BoundingBoxItem;
 
-public:
+ public:
   ImageCanvas(QObject *parent = nullptr);
   void reset(const QImage &img, const QString &img_id);
   void addAnnotations(const Annotations &ann);
@@ -55,7 +57,8 @@ public:
   void prepareForNewLineStrip(const QString &label = QString());
 
   bool addingNewObj() { return m_waitingForObj; }
-  void showLabels(bool show);
+  void setShowLabels(bool show);
+  bool showLabels() { return m_showLabels; }
 
   void drawBackground(QPainter *painter, const QRectF &rect) override;
   void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
@@ -67,19 +70,21 @@ public:
   bool showGrid() const { return m_showGrid; }
   QUndoStack *undoStack() { return &m_undoStack; }
 
-public slots:
+ public slots:
   void setShowGrid(bool show);
   void removeItemCmd(QGraphicsItem *item);
+  void updateMovableItem(CustomItem *);
 
-signals:
+ signals:
   // void needSaveChanges();
   void deferredRemoveItem(QGraphicsItem *item);
 
-private:
+ private:
   bool m_showLabels{true};
   bool m_showGrid{false};
   QPolygonF m_currentPolygon{};
   QUndoStack m_undoStack;
+  CustomItem *m_currMovableItem{nullptr};
 };
 
-#endif // IMAGECANVAS_H
+#endif  // IMAGECANVAS_H

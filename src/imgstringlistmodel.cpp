@@ -10,7 +10,8 @@ QString ImgStringListModel::originalText(const QModelIndex &index) {
 QVariant ImgStringListModel::data(const QModelIndex &index, int role) const {
   QVariant r = QStringListModel::data(index, role);
   if (r.isValid() && role == Qt::DisplayRole)
-    return "[ " + QString::number(index.row()) + "] " + r.toString();
+    return u8"\U0001F5BC [ " + QString::number(index.row()) + "] " +
+           r.toString();
   return r;
 }
 

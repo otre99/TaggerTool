@@ -15,6 +15,7 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
   EditDialog dlg;
   dlg.setGeometry(QRect{screenPos, dlg.size()});
   dlg.setLabel(m_label);
+  dlg.setDescription(m_description);
   if (dlg.exec() == QDialog::Accepted) {
     // ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
     ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
@@ -27,7 +28,11 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
     if (dlg.label() != m_label) {
       Helper::imageCanvas()->undoStack()->push(
           new ChangeLabelCommand(m_label, dlg.label(), item));
-      // emit canvas->needSaveChanges();
+    }
+
+    if (dlg.description() != m_description) {
+      Helper::imageCanvas()->undoStack()->push(
+          new ChangeDescriptionCommand(m_description, dlg.description(), item));
     }
   }
 }
@@ -51,13 +56,16 @@ void CustomItem::__setLocked(QGraphicsItem *item, bool lk) {
   item->setFlag(QGraphicsItem::ItemIsMovable, m_moveEnable);
   item->setFlag(QGraphicsItem::ItemIsSelectable, m_moveEnable);
   item->setFlag(QGraphicsItem::ItemIsFocusable, m_moveEnable);
+
+  if (m_canvas && lk == false) {
+    m_canvas->updateMovableItem(this);
+  }
 }
 
 void CustomItem::__swapStackOrder(QGraphicsItem *item,
                                   const QList<QGraphicsItem *> &l) {
   if (l.count() > 1) {
-    for (int i = 1; i < l.count(); ++i)
-      item->stackBefore(l[i]);
+    for (int i = 1; i < l.count(); ++i) item->stackBefore(l[i]);
     auto *citem = dynamic_cast<CustomItem *>(l[1]);
     if (citem) {
       citem->setLocked(false);

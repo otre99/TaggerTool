@@ -11,38 +11,38 @@ class CircleItem;
 class PolygonItem;
 class PointItem;
 class LineItem;
-
+class ImageCanvas;
 /////////////////////////////////////////////////////////////////
 //////////////// BoundingBoxItem ///////////////////////////////
 /////////////////////////////////////////////////////////////////
 // AddBBoxCommand
 class AddBBoxCommand : public QUndoCommand {
-public:
-  AddBBoxCommand(const QRectF &rect, const QString &label, bool occluded,
-                 bool truncated, bool crowded, bool ready,
+ public:
+  AddBBoxCommand(ImageCanvas *canvas, const QRectF &rect, const QString &label,
+                 bool occluded, bool truncated, bool crowded, bool ready,
                  QUndoCommand *parent = 0);
   ~AddBBoxCommand();
   void undo() override;
   void redo() override;
 
-private:
+  // private:
   BoundingBoxItem *m_item;
 };
 
 class SizeChangeBBoxCommand : public QUndoCommand {
-public:
+ public:
   SizeChangeBBoxCommand(const QRectF &oldRect, const QRectF &newRect,
                         BoundingBoxItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   QRectF m_oldRect, m_newRect;
   BoundingBoxItem *m_item;
 };
 
 class OccludedChangeBBoxCommand : public QUndoCommand {
-public:
+ public:
   OccludedChangeBBoxCommand(const bool oldOccluded, const bool newOccluded,
                             BoundingBoxItem *item, QUndoCommand *parent = 0);
   void undo() override;
@@ -50,61 +50,59 @@ public:
   //  int id() const override {return 11;}
   //  bool mergeWith(const QUndoCommand *command) override;
 
-private:
+ private:
   bool m_oldOccluded, m_newOccluded;
   BoundingBoxItem *m_item;
 };
 
 class TruncatedChangeBBoxCommand : public QUndoCommand {
-public:
+ public:
   TruncatedChangeBBoxCommand(const bool oldTruncated, const bool newTruncated,
                              BoundingBoxItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   bool m_oldTruncated, m_newTruncated;
   BoundingBoxItem *m_item;
 };
 
 class CrowdedChangeBBoxCommand : public QUndoCommand {
-public:
+ public:
   CrowdedChangeBBoxCommand(const bool oldCrowded, const bool newCrowded,
                            BoundingBoxItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   bool m_oldCrowded, m_newCrowded;
   BoundingBoxItem *m_item;
 };
-
 
 /////////////////////////////////////////////////////////////////
 //////////////// AddCircleCommand ///////////////////////////////
 /////////////////////////////////////////////////////////////////
 // AddCircleCommand
 class AddCircleCommand : public QUndoCommand {
-  public:
-  AddCircleCommand(const QPointF &center, qreal radius, const QString &label, bool ready,
-                 QUndoCommand *parent = 0);
+ public:
+  AddCircleCommand(ImageCanvas *canvas, const QPointF &center, qreal radius,
+                   const QString &label, bool ready, QUndoCommand *parent = 0);
   ~AddCircleCommand();
   void undo() override;
   void redo() override;
 
-  private:
-
+ private:
   CircleItem *m_item;
 };
 
 class RadiusChangeCircleCommand : public QUndoCommand {
-  public:
+ public:
   RadiusChangeCircleCommand(const QRectF oldRect, const QRectF &newRect,
-                        CircleItem *item, QUndoCommand *parent = 0);
+                            CircleItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-  private:
+ private:
   QRectF m_oldRect, m_newRect;
   CircleItem *m_item;
 };
@@ -114,27 +112,27 @@ class RadiusChangeCircleCommand : public QUndoCommand {
 /////////////////////////////////////////////////////////////////
 // AddPolygonCommand
 class AddPolygonCommand : public QUndoCommand {
-public:
-  AddPolygonCommand(const QPolygonF &poly, const QString &label, bool ready,
-                    QUndoCommand *parent = 0);
+ public:
+  AddPolygonCommand(ImageCanvas *canvas, const QPolygonF &poly,
+                    const QString &label, bool ready, QUndoCommand *parent = 0);
   ~AddPolygonCommand();
 
   void undo() override;
   void redo() override;
 
-private:
+ private:
   PolygonItem *m_item;
 };
 
 // ChangePolygonCommand
 class ChangePolygonCommand : public QUndoCommand {
-public:
+ public:
   ChangePolygonCommand(const QPolygonF &oldPoly, const QPolygonF &newPoly,
                        PolygonItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   QPolygonF m_oldPoly, m_newPoly;
   ;
   PolygonItem *m_item;
@@ -146,27 +144,28 @@ private:
 /////////////////////////////////////////////////////////////////
 // AddPolygonCommand
 class AddLineStripCommand : public QUndoCommand {
-public:
-  AddLineStripCommand(const QPolygonF &poly, const QString &label, bool ready,
+ public:
+  AddLineStripCommand(ImageCanvas *canvas, const QPolygonF &poly,
+                      const QString &label, bool ready,
                       QUndoCommand *parent = 0);
   ~AddLineStripCommand();
 
   void undo() override;
   void redo() override;
 
-private:
+ private:
   PolygonItem *m_item;
 };
 
 // ChangeLineStripCommand
 class ChangeLineStripCommand : public QUndoCommand {
-public:
+ public:
   ChangeLineStripCommand(const QPolygonF &oldPoly, const QPolygonF &newPoly,
                          PolygonItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   QPolygonF m_oldPoly, m_newPoly;
   ;
   PolygonItem *m_item;
@@ -178,14 +177,14 @@ private:
 /////////////////////////////////////////////////////////////////
 // AddPolygonCommand
 class AddPointCommand : public QUndoCommand {
-public:
-  AddPointCommand(const QPointF &pos, const QString &label, bool ready,
-                  QUndoCommand *parent = 0);
+ public:
+  AddPointCommand(ImageCanvas *canvas, const QPointF &pos, const QString &label,
+                  bool ready, QUndoCommand *parent = 0);
   ~AddPointCommand();
   void undo() override;
   void redo() override;
 
-private:
+ private:
   PointItem *m_item;
 };
 
@@ -194,26 +193,26 @@ private:
 /////////////////////////////////////////////////////////////////
 // AddLineCommand
 class AddLineCommand : public QUndoCommand {
-public:
-  AddLineCommand(const QPointF &p1, const QPointF &p2, const QString &label,
-                 bool ready, QUndoCommand *parent = 0);
+ public:
+  AddLineCommand(ImageCanvas *canvas, const QPointF &p1, const QPointF &p2,
+                 const QString &label, bool ready, QUndoCommand *parent = 0);
   ~AddLineCommand();
   void undo() override;
   void redo() override;
 
-private:
+ private:
   LineItem *m_item;
 };
 
 // ChangeLineSizeCommand
 class ChangeLineSizeCommand : public QUndoCommand {
-public:
+ public:
   ChangeLineSizeCommand(const QLineF &oldLine, const QLineF &newLine,
                         LineItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   LineItem *m_item;
   QLineF m_oldLine, m_newLine;
 };
@@ -223,41 +222,54 @@ private:
 /////////////////////////////////////////////////////////////////
 // MoveItemCommand
 class MoveItemCommand : public QUndoCommand {
-public:
+ public:
   MoveItemCommand(const QPointF &oldPos, const QPointF &newPos,
                   QGraphicsItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   QPointF m_oldPos, m_newPos;
   QGraphicsItem *m_item;
 };
 
-
 // RemoveItemCommand
 class RemoveItemCommand : public QUndoCommand {
-public:
+ public:
   RemoveItemCommand(QGraphicsItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   QGraphicsItem *m_item;
 };
 
 // ChangeLabelCommand
 class ChangeLabelCommand : public QUndoCommand {
-public:
+ public:
   ChangeLabelCommand(const QString &oldLabel, const QString &newLabel,
                      QGraphicsItem *item, QUndoCommand *parent = 0);
   void undo() override;
   void redo() override;
 
-private:
+ private:
   QString m_oldLb, m_newLb;
   QGraphicsItem *m_item;
   void setLabel(const QString &lb);
 };
 
-#endif // UNDO_CMDS_H
+// ChangeDescriptionCommand
+class ChangeDescriptionCommand : public QUndoCommand {
+ public:
+  ChangeDescriptionCommand(const QString &oldDsc, const QString &newDsc,
+                           QGraphicsItem *item, QUndoCommand *parent = 0);
+  void undo() override;
+  void redo() override;
+
+ private:
+  QString m_oldDsc, m_newDsc;
+  QGraphicsItem *m_item;
+  void setDescription(const QString &lb);
+};
+
+#endif  // UNDO_CMDS_H

@@ -1,6 +1,7 @@
 #ifndef BBOX_ITEM_H
 #define BBOX_ITEM_H
 #include <QGraphicsRectItem>
+#include <QGraphicsSceneHoverEvent>
 
 #include "custom_item.h"
 #include "utils.h"
@@ -21,19 +22,15 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
     kInvalid
   } m_currentCorner;
 
-public:
-  BoundingBoxItem(const QRectF &rectf, const QString &label = QString(),
+ public:
+  BoundingBoxItem(ImageCanvas *canvas, const QRectF &rectf,
+                  const QString &label = QString(),
                   QGraphicsItem *parent = nullptr, bool ready = false);
 
   // CustomItem
   void helperParametersChanged() override;
   void setLocked(bool what) override { __setLocked(this, what); }
   void setLabel(const QString &lb) override { __setLabel(this, lb); }
-  void setShowLabel(bool show) override {
-    m_showLabel = show;
-    update();
-  }
-
   void setOccluded(bool occluded) { m_occluded = occluded; }
   void setTruncated(bool occluded) { m_truncated = occluded; }
   void setCrowded(bool crowded) { m_crowded = crowded; }
@@ -60,7 +57,7 @@ public:
   // get/set
   QRectF boundingBoxCoordinates();
 
-private:
+ private:
   QRectF buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2, bool &sw,
                                 bool &sh);
   CORNER positionInside(const QPointF &pos);
@@ -69,6 +66,7 @@ private:
   QPointF m_lastPt;
   QRectF m_oldCoords;
   bool m_occluded{false}, m_truncated{false}, m_crowded{false};
+  // bool m_mouse_inside{false};
 };
 
-#endif // BBOX_ITEM_H
+#endif  // BBOX_ITEM_H
