@@ -13,6 +13,17 @@
 #include "utils.h"
 
 // Line impl
+Line::Line(float x1, float y1, float x2, float y2, const QString &lb,
+           const QString &dsc)
+    : Annotation(lb, dsc), x1{x1}, y1{y1}, x2{x2}, y2{y2} {}
+
+Line::Line(const QPointF &pt1, const QPointF &pt2, const QString &lb,
+           const QString &dsc)
+    : Annotation(lb, dsc), x1(pt1.x()), y1(pt1.y()), x2(pt2.x()), y2(pt2.y()) {}
+
+QPointF Line::pt1() const { return {x1, y1}; }
+QPointF Line::pt2() const { return {x2, y2}; }
+
 QJsonObject Line::serializeJson() const {
   QJsonObject obj = Annotation::serializeJson();
   obj["x1"] = x1;
@@ -29,40 +40,7 @@ void Line::fromJson(const QJsonObject &obj) {
   y2 = obj["y2"].toDouble();
 }
 
-Line::Line(float x1, float y1, float x2, float y2, const QString &lb,
-           const QString &dsc)
-    : Annotation(lb, dsc), x1{x1}, y1{y1}, x2{x2}, y2{y2} {}
-
-Line::Line(const QPointF &pt1, const QPointF &pt2, const QString &lb,
-           const QString &dsc)
-    : x1(pt1.x()), y1(pt1.y()), x2(pt2.x()), y2(pt2.y()) {}
-
-QPointF Line::pt1() const { return {x1, y1}; }
-QPointF Line::pt2() const { return {x2, y2}; }
-
 // BBox impl
-QJsonObject BBox::serializeJson() const {
-  QJsonObject obj = Annotation::serializeJson();
-  obj["x1"] = x1;
-  obj["y1"] = y1;
-  obj["x2"] = x2;
-  obj["y2"] = y2;
-  obj["occluded"] = occluded;
-  obj["truncated"] = truncated;
-  obj["crowded"] = crowded;
-  return obj;
-}
-void BBox::fromJson(const QJsonObject &obj) {
-  Annotation::fromJson(obj);
-  x1 = obj["x1"].toDouble();
-  y1 = obj["y1"].toDouble();
-  x2 = obj["x2"].toDouble();
-  y2 = obj["y2"].toDouble();
-  occluded = obj["occluded"].toBool(false);
-  truncated = obj["truncated"].toBool(false);
-  crowded = obj["crowded"].toBool(false);
-}
-
 BBox::BBox(float x1, float y1, float x2, float y2, const QString &lb,
            const QString &dsc, bool occluded, bool truncated, bool crowded)
     : Annotation(lb, dsc),
@@ -93,6 +71,28 @@ bool BBox::getOccluded() const { return occluded; }
 bool BBox::getTruncated() const { return truncated; }
 bool BBox::getCrowded() const { return crowded; }
 
+QJsonObject BBox::serializeJson() const {
+  QJsonObject obj = Annotation::serializeJson();
+  obj["x1"] = x1;
+  obj["y1"] = y1;
+  obj["x2"] = x2;
+  obj["y2"] = y2;
+  obj["occluded"] = occluded;
+  obj["truncated"] = truncated;
+  obj["crowded"] = crowded;
+  return obj;
+}
+void BBox::fromJson(const QJsonObject &obj) {
+  Annotation::fromJson(obj);
+  x1 = obj["x1"].toDouble();
+  y1 = obj["y1"].toDouble();
+  x2 = obj["x2"].toDouble();
+  y2 = obj["y2"].toDouble();
+  occluded = obj["occluded"].toBool(false);
+  truncated = obj["truncated"].toBool(false);
+  crowded = obj["crowded"].toBool(false);
+}
+
 // Circle impl
 Circle::Circle(const QPointF &center, qreal radius, const QString &lb,
                const QString &dsc)
@@ -103,8 +103,7 @@ QPointF Circle::center() const { return center1; }
 qreal Circle::radius() const { return radius1; }
 
 QJsonObject Circle::serializeJson() const {
-  QJsonObject obj;
-  obj["label"] = label;
+  QJsonObject obj = Annotation::serializeJson();
   obj["x"] = center1.x();
   obj["y"] = center1.y();
   obj["radius"] = radius1;
@@ -123,7 +122,7 @@ Point::Point(float x, float y, const QString &lb, const QString &dsc)
     : Annotation(lb, dsc), x{x}, y{y} {}
 
 Point::Point(const QPointF &pt, const QString &lb, const QString &dsc)
-    : x(pt.x()), y(pt.y()) {}
+    : Annotation(lb, dsc), x(pt.x()), y(pt.y()) {}
 
 QPointF Point::pt() const { return {x, y}; }
 
@@ -140,6 +139,25 @@ void Point::fromJson(const QJsonObject &obj) {
 }
 
 // Polygon impl
+Polygon::Polygon(const QVector<float> &xArr, const QVector<float> &yArr,
+                 const QString &lb, QString &dsc)
+    : Annotation(lb, dsc), xArray(xArr), yArray(yArr) {}
+Polygon::Polygon(const QPolygonF &poly, const QString &lb, const QString &dsc)
+    : Annotation(lb, dsc) {
+  for (const auto &p : poly) {
+    xArray.push_back(p.x());
+    yArray.push_back(p.y());
+  }
+}
+
+QPolygonF Polygon::getPolygon() const {
+  QPolygonF poly;
+  for (size_t i = 0; i < xArray.size(); ++i) {
+    poly.append({xArray[i], yArray[i]});
+  }
+  return poly;
+}
+
 QJsonObject Polygon::serializeJson() const {
   QJsonObject obj = Annotation::serializeJson();
 
@@ -163,25 +181,6 @@ void Polygon::fromJson(const QJsonObject &obj) {
     this->xArray.push_back(jsonXArray[i].toDouble());
     this->yArray.push_back(jsonYArray[i].toDouble());
   }
-}
-
-Polygon::Polygon(const QVector<float> &xArr, const QVector<float> &yArr,
-                 const QString &lb, QString &dsc)
-    : Annotation(lb, dsc), xArray(xArr), yArray(yArr) {}
-Polygon::Polygon(const QPolygonF &poly, const QString &lb, const QString &dsc)
-    : Annotation(lb, dsc) {
-  for (const auto &p : poly) {
-    xArray.push_back(p.x());
-    yArray.push_back(p.y());
-  }
-}
-
-QPolygonF Polygon::getPolygon() const {
-  QPolygonF poly;
-  for (size_t i = 0; i < xArray.size(); ++i) {
-    poly.append({xArray[i], yArray[i]});
-  }
-  return poly;
 }
 
 // Annotation impl
@@ -210,12 +209,6 @@ QJsonObject Annotations::serializeJson() const {
   // description
   root["description"] = description;
 
-  // tags
-  QJsonArray array_tags;
-  for (auto &tag : tags) {
-    array_tags.append(tag);
-  }
-  root["tags"] = array_tags;
   return root;
 }
 
@@ -242,12 +235,6 @@ void Annotations::fromJson(const QJsonObject &root) {
 
   // description
   this->description = root["description"].toString();
-
-  // tags
-  const QJsonArray tags = root["tags"].toArray();
-  for (const auto &tag : tags) {
-    this->tags.append(tag.toString());
-  }
 }
 
 template <typename T>
@@ -289,21 +276,27 @@ void AnnImgManager::reset(const QString &images_folder_path,
   m_annCache.setMaxCost(m_imageIdsList.size());
 }
 
-const Annotations &AnnImgManager::annotations(const QString &image_id) {
-  QFileInfo info(image_id);
-  const QString ann_file_path =
-      m_annotationsDir.absoluteFilePath(info.completeBaseName() + ".json");
+const Annotations &AnnImgManager::annotations(const QString &image_id,
+                                              bool *fromCache) {
+  const QString ann_file_path = annFilePath(image_id);
 
+  bool cached_used = true;
   if (!m_annCache.contains(image_id)) {
     const Annotations ann = _loadAnnotation(ann_file_path);
     m_annCache.insert(image_id, new Annotations(ann));
+    cached_used = false;
+  }
+  if (fromCache) {
+    *fromCache = cached_used;
   }
   return *m_annCache[image_id];
 }
 
 QString AnnImgManager::annFilePath(const QString &image_id) {
   QFileInfo info(image_id);
-  return m_annotationsDir.absoluteFilePath(basename(info.filePath()) + ".json");
+
+  return m_annotationsDir.absoluteFilePath(info.completeBaseName() + "_" +
+                                           info.completeSuffix() + ".json");
 }
 
 QString AnnImgManager::imgFilePath(const QString &img_id) {
@@ -346,13 +339,15 @@ Annotations AnnImgManager::_loadAnnotation(const QString &path) {
   return ann;
 }
 
-QString AnnImgManager::basename(const QString &filePath) const {
-  int i = filePath.size() - 1;
-  while (filePath[i] != QChar('.')) {
-    --i;
-  }
-  return filePath.mid(0, i);
-}
+// QString AnnImgManager::basename(const QString &filePath) const {
+//   return QFileInfo(filePath).completeBaseName();
+
+//   // int i = filePath.size() - 1;
+//   // while (filePath[i] != QChar('.')) {
+//   //   --i;
+//   // }
+//   // return filePath.mid(0, i);
+// }
 
 QSize AnnImgManager::imageSize(const QString &image_id) {
   QImageReader img_info(imgFilePath(image_id));

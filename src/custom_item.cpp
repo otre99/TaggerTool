@@ -8,9 +8,9 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
+#include "labeltreemodel.h"
 #include "undo_cmds.h"
 #include "utils.h"
-
 void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
   EditDialog dlg;
   dlg.setGeometry(QRect{screenPos, dlg.size()});
@@ -28,6 +28,9 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
     if (dlg.label() != m_label) {
       Helper::imageCanvas()->undoStack()->push(
           new ChangeLabelCommand(m_label, dlg.label(), item));
+
+      Helper::labelTreeModel->addNewLabel(
+          static_cast<Helper::CustomItemType>(item->type()), m_label);
     }
 
     if (dlg.description() != m_description) {

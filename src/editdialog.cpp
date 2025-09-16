@@ -20,7 +20,7 @@ EditDialog::~EditDialog() { delete ui; }
 QString EditDialog::label() const { return ui->labelsComboBox->currentText(); }
 
 QString EditDialog::description() const {
-  qDebug() << "AA--> " << ui->textEditDescription->document()->toPlainText();
+  // qDebug() << "AA--> " << ui->textEditDescription->document()->toPlainText();
   return ui->textEditDescription->document()->toPlainText();
 }
 

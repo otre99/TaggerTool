@@ -9,6 +9,7 @@ class Annotation {
   Annotation(const QString &lb = {}, const QString &dsc = {})
       : label{lb}, description{dsc} {}
   QString getLabel() const { return label; }
+  QString getDescription() const { return description; }
   void setLabel(QString &label) { this->label = label; }
   void setDescription(QString &description) { this->description = description; }
 
@@ -113,15 +114,16 @@ class Polygon : public Annotation {
 struct Annotations {
   int img_w{-1}, img_h{-1};
   QString image_name{};
+  QString label{};
+  QString description{};
+
   QVector<Line> lines{};
   QVector<Point> points{};
   QVector<BBox> bboxes{};
   QVector<Circle> circles{};
   QVector<Polygon> polygons{};
   QVector<Polygon> line_strips{};
-  QString label;
-  QString description{};
-  QStringList tags{};
+
   QJsonObject serializeJson() const;
   void fromJson(const QJsonObject &obj);
 
@@ -149,7 +151,7 @@ class AnnImgManager {
   QString annFolder() const { return m_annotationsDir.absolutePath(); }
   QString imgFolder() const { return m_imagesDir.absolutePath(); }
 
-  const Annotations &annotations(const QString &image_id);
+  const Annotations &annotations(const QString &image_id, bool *fromCache);
   QSize imageSize(const QString &image_id);
   QImage image(const QString &image_id);
   QString annFilePath(const QString &img_id);
@@ -160,7 +162,7 @@ class AnnImgManager {
  private:
   void _saveAnnotations(const QString &path, const Annotations &ann);
   Annotations _loadAnnotation(const QString &path);
-  QString basename(const QString &filePath) const;
+  // QString basename(const QString &filePath) const;
   QCache<QString, Annotations> m_annCache;
 };
 

@@ -25,6 +25,7 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
  public:
   BoundingBoxItem(ImageCanvas *canvas, const QRectF &rectf,
                   const QString &label = QString(),
+                  const QString &dsc = QString(),
                   QGraphicsItem *parent = nullptr, bool ready = false);
 
   // CustomItem

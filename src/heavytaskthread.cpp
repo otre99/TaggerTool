@@ -1,269 +1,181 @@
 #include "heavytaskthread.h"
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMap>
-#include <QXmlStreamWriter>
 
-namespace {
-bool saveAnnToPascalFormat(const Annotations &ann, const QString &outputFile,
-                           QSet<QString> &selected_labels) {
-  QVector<BBox> bboxes;
-  std::copy_if(ann.bboxes.begin(), ann.bboxes.end(), std::back_inserter(bboxes),
-               [&selected_labels](const BBox &box) -> bool {
-                 return selected_labels.contains(box.getLabel());
-               });
+#include "utils.h"
 
-  if (bboxes.isEmpty()) {
-    qDebug() << "Not any bbox to export of image " << ann.image_name;
-    return false;
-  }
+bool exportCOCOAnnotationsTask(AnnImgManager& annImgManager,
+                               const QString& outputFilePath,
+                               QProgressDialog& progressDialog,
+                               bool includeBBoxes, bool includePolygons) {
+  struct CocoIds {
+    // integer IDs required by COCO
+    int next_image_id = 1;
+    int next_ann_id = 1;
+    int next_cat_id = 1;
+  } ids;
 
-  QFile ofile(outputFile);
-  if (!ofile.open(QFile::WriteOnly)) {
-    qDebug() << "Failed exporting annotation to " << outputFile << " file!";
-    return false;
-  }
-  QXmlStreamWriter xmlOut(&ofile);
-  xmlOut.setAutoFormatting(true);
-
-  xmlOut.writeStartDocument();
-
-  xmlOut.writeStartElement("annotation");
-
-  // filename, folderm segmented
-  xmlOut.writeTextElement("filename", ann.image_name);
-  xmlOut.writeTextElement("folder", "");
-  xmlOut.writeTextElement("segmented", "0");
-
-  // size
-  xmlOut.writeStartElement("size");
-  xmlOut.writeTextElement("depth", "3");
-  xmlOut.writeTextElement("height", QString("%1").arg(ann.img_h));
-  xmlOut.writeTextElement("width", QString("%1").arg(ann.img_w));
-  xmlOut.writeEndElement();
-
-  for (auto &&box : bboxes) {
-    xmlOut.writeStartElement("object");
-
-    // name, difficult, occluded, pose, truncated
-    xmlOut.writeTextElement("name", box.getLabel());
-    xmlOut.writeTextElement("difficult", box.getCrowded() ? "1" : "0");
-    xmlOut.writeTextElement("occluded", box.getOccluded() ? "1" : "0");
-    xmlOut.writeTextElement("pose", "Unspecified");
-    xmlOut.writeTextElement("truncated", box.getTruncated() ? "1" : "0");
-
-    // bndbox
-    xmlOut.writeStartElement("bndbox");
-    const auto p1 = box.pt1();
-    const auto p2 = box.pt2();
-    xmlOut.writeTextElement("xmin", QString("%1").arg(p1.x()));
-    xmlOut.writeTextElement("ymin", QString("%1").arg(p1.y()));
-    xmlOut.writeTextElement("xmax", QString("%1").arg(p2.x()));
-    xmlOut.writeTextElement("ymax", QString("%1").arg(p2.y()));
-    xmlOut.writeEndElement();
-
-    xmlOut.writeEndElement();
-  }
-  xmlOut.writeEndElement();
-  xmlOut.writeEndDocument();
-  return true;
-}
-} // namespace
-
-HeavyTaskThread::HeavyTaskThread() {}
-
-HeavyTaskThread::~HeavyTaskThread() {
-  m_exit_ = true;
-  m_waitCond.notify_all();
-  wait();
-}
-
-void HeavyTaskThread::run() {
-  for (;;) {
-    if (m_exit_)
-      break;
-    m_mutex.lock();
-    m_waitCond.wait(&m_mutex);
-    m_mutex.unlock();
-    if (m_exit_)
-      break;
-
-    switch (m_currentTask) {
-    case CollectAnnotations: {
-      internalStartTask(
-          std::bind(&HeavyTaskThread::collectAllAnnotationsTask, this));
-      break;
+  struct CocoCategoryIndex {
+    // label -> category_id
+    QHash<QString, int> map;
+    int idForLabel(const QString& label, CocoIds& ids) {
+      if (label.isEmpty()) return -1;
+      auto it = map.constFind(label);
+      if (it != map.constEnd()) return it.value();
+      int id = ids.next_cat_id++;
+      map.insert(label, id);
+      return id;
     }
-    case ExportCOCOAnnotations: {
-      internalStartTask(
-          std::bind(&HeavyTaskThread::exportCOCOAnnotationsTask, this));
-      break;
-    }
-    case ExportPASCALAnnotations: {
-      internalStartTask(
-          std::bind(&HeavyTaskThread::exportPascalAnnotationsTask, this));
-      break;
-    }
-    default:
-      break;
-    }
-  }
-}
+  } catIndex;
 
-void HeavyTaskThread::startTask(TaskName taskname) {
-  m_currentTask = taskname;
-  m_waitCond.notify_all();
-}
+  QJsonArray images;
+  QJsonArray annotations;
+  QJsonArray categories;  // filled at the end from catIndex
 
-bool HeavyTaskThread::isTaskRunning() const { return m_taskIsRunning; }
+  // We’ll collect categories first while we walk
+  struct PendingCategory {
+    int id;
+    QString name;
+    QString supercategory;
+  };
+  QHash<int, PendingCategory> catDefs;
 
-void HeavyTaskThread::killTaskAndWait() {
-  m_abort_ = true;
-  while (m_taskIsRunning) {
-    msleep(1);
-  }
-}
+  const QStringList imageIds = annImgManager.imageIds();
 
-void HeavyTaskThread::internalStartTask(std::function<bool()> funct) {
-  m_taskIsRunning = true;
-  m_abort_ = false;
-  errMsg.clear();
-  emit taskStarted();
-  bool res = funct();
-  m_taskIsRunning = false;
-  emit taskFinished(res, errMsg);
-}
+  // --- Build images + annotations
+  for (const QString& imgId : imageIds) {
+    bool _;
+    const Annotations& ann = annImgManager.annotations(imgId, &_);
 
-void HeavyTaskThread::updateProgress(size_t index) {
-  const size_t K = std::max(m_ncount / 100, size_t{1});
-  if (index % K == 0) {
-    const int p = static_cast<int>((100.0 * index) / m_ncount);
-    emit progress(p);
-  }
-}
+    // images[]
+    const int image_id = ids.next_image_id++;
+    QJsonObject imgObj{
+        {"id", image_id},
+        {"file_name", ann.image_name.isEmpty() ? imgId : ann.image_name},
+        {"width", ann.img_w},
+        {"height", ann.img_h}};
+    images.append(imgObj);
 
-bool HeavyTaskThread::collectAllAnnotationsTask() {
-  const auto img_ids = annImgManager->imageIds();
-  m_ncount = img_ids.size();
-  size_t index = 0;
-  for (auto &id : img_ids) {
-    const auto ann = annImgManager->annotations(id);
-    for (const auto &box : ann.bboxes) {
-      uniqueLabels.insert(box.getLabel());
-    }
-    updateProgress(index++);
-    if (m_abort_) {
-      uniqueLabels.clear();
-      return false;
-    }
-  }
-  return true;
-}
+    // annotations[] from bboxes
+    if (includeBBoxes) {
+      for (const auto& b : ann.bboxes) {
+        const QString label = b.getLabel().trimmed();
+        const int cat_id = catIndex.idForLabel(label, ids);
+        if (cat_id > 0 && !catDefs.contains(cat_id)) {
+          catDefs.insert(
+              cat_id, PendingCategory{cat_id, label, QStringLiteral("object")});
+        }
 
-bool HeavyTaskThread::exportCOCOAnnotationsTask() {
-  const auto img_ids = annImgManager->imageIds();
-  m_ncount = img_ids.size();
-  size_t index = 0;
+        const QPointF pt1 = b.pt1();
+        const QPointF pt2 = b.pt2();
 
-  int annId = 1;
-  int imgId = 1;
-  int labelId = 1;
-  QJsonArray annList{};
-  QJsonArray imgList{};
-  QJsonArray catList{};
+        // COCO bbox: [x, y, width, height], top-left origin
+        const double w = std::abs(pt2.x() - pt1.x());
+        const double h = std::abs(pt2.y() - pt1.y());
+        const double ar = w * h;
 
-  QMap<QString, int> label2id;
-  for (const auto &lb : qAsConst(uniqueLabels)) {
-    label2id[lb] = labelId;
-    QJsonObject jsonCat;
-    jsonCat["id"] = labelId++;
-    jsonCat["name"] = lb;
-    jsonCat["supercategory"] = "";
-    catList.push_back(jsonCat);
-  }
-
-  for (auto &id : img_ids) {
-    const Annotations &ann = annImgManager->annotations(id);
-
-    // bboxes
-    int bboxes_count = 0;
-    for (const auto &box : ann.bboxes) {
-      if (uniqueLabels.contains(box.getLabel())) {
-
-        QJsonObject jsonBox;
-        jsonBox["id"] = annId++;
-        jsonBox["image_id"] = imgId;
-        jsonBox["category_id"] = label2id[box.getLabel()];
-
-        const auto p1 = box.pt1();
-        const auto p2 = box.pt2();
-        const qreal x = p1.x();
-        const qreal y = p1.y();
-        const qreal w = p2.x() - x;
-        const qreal h = p2.y() - y;
-        jsonBox["bbox"] = QJsonArray{x, y, w, h};
-        jsonBox["area"] = w * h;
-        jsonBox["iscrowd"] = box.getCrowded();
-        // jsonBox["segmentation"] = QJsonArray{};
-
-        annList.push_back(jsonBox);
-        ++bboxes_count;
+        QJsonObject a{{"id", ids.next_ann_id++},
+                      {"image_id", image_id},
+                      {"category_id", cat_id > 0 ? cat_id : 0},
+                      {"iscrowd", 0},
+                      {"bbox", QJsonArray{pt1.x(), pt1.y(), w, h}},
+                      {"area", ar}};
+        annotations.append(a);
       }
     }
 
-    if (includeImagesWithoutAnnotations_ || bboxes_count > 0) {
-      // image
-      QJsonObject jsonImg;
-      jsonImg["id"] = imgId++;
-      jsonImg["width"] = ann.img_w;
-      jsonImg["height"] = ann.img_h;
-      jsonImg["file_name"] = ann.image_name;
-      jsonImg["license"] = "";
-      jsonImg["flickr_url"] = "";
-      jsonImg["coco_url"] = "";
-      jsonImg["date_captured"] = "";
-      imgList.push_back(jsonImg);
+    // annotations[] from polygons (as segmentations)
+    if (includePolygons) {
+      for (const auto& p : ann.polygons) {
+        const QString label = p.getLabel().trimmed();
+        const int cat_id = catIndex.idForLabel(label, ids);
+        if (cat_id > 0 && !catDefs.contains(cat_id)) {
+          catDefs.insert(
+              cat_id, PendingCategory{cat_id, label, QStringLiteral("object")});
+        }
+
+        // COCO expects segmentation as a list of polygons (each is a flat
+        // [x1,y1,...]) Ensure lengths match and >= 3 points
+        const QPolygonF poly = p.getPolygon();
+        const int n = poly.size();
+        if (n >= 3) {
+          QJsonArray flat;
+          for (auto&& coord : poly) {
+            flat.append(coord.x());
+            flat.append(coord.y());
+          }
+
+          // for (int i = 0; i < n; ++i) {
+          //     flat.append()
+          //   // flat.append(p.x_coords[i]);
+          //   // flat.append(p.y_coords[i]);
+          // }
+          const double ar = Helper::polygonArea(poly);
+
+          auto&& [l, r] = std::minmax_element(
+              poly.begin(), poly.end(),
+              [](auto& p1, auto& p2) { return p1.x() < p2.x(); });
+
+          auto&& [t, b] = std::minmax_element(
+              poly.begin(), poly.end(),
+              [](auto& p1, auto& p2) { return p1.y() < p2.y(); });
+
+          const double x = l->x();
+          const double y = t->x();
+          const double w = r->x() - x;
+          const double h = b->x() - y;
+
+          QJsonArray segm;
+          segm.append(flat);
+          QJsonObject a{{"id", ids.next_ann_id++},
+                        {"image_id", image_id},
+                        {"category_id", cat_id > 0 ? cat_id : 0},
+                        {"iscrowd", 0},
+                        {"segmentation", segm},
+                        {"area", ar},
+                        {"bbox", QJsonArray{x, y, w, h}}};
+
+          annotations.append(a);
+        }
+      }
     }
 
-    updateProgress(index++);
-    if (m_abort_) {
-      uniqueLabels.clear();
-      return false;
-    }
+    // --- TODO: If you want to export circles, approximate as polygon here
+    //           (e.g., 32-gon) and push to annotations like polygons above.
   }
 
-  QJsonObject root;
-  root["annotations"] = annList;
-  root["images"] = imgList;
-  root["categories"] = catList;
+  // categories[] from collected catDefs
+  for (auto it = catDefs.cbegin(); it != catDefs.cend(); ++it) {
+    const auto& c = it.value();
+    categories.append(QJsonObject{
+        {"id", c.id}, {"name", c.name}, {"supercategory", c.supercategory}});
+  }
 
-  const QByteArray out = QJsonDocument(root).toJson(
-      useJsonCompactFmt ? QJsonDocument::Compact : QJsonDocument::Indented);
-  QFile ofile(outputDirOrFile);
-  if (!ofile.open(QFile::WriteOnly)) {
-    errMsg = "Failed exporting annotations to '" + outputDirOrFile + "' file!";
-    qDebug() << errMsg;
+  // root COCO object
+  QJsonObject root;
+  root.insert(
+      "info",
+      QJsonObject{{"year", QDate::currentDate().year()},
+                  {"version", "1.0"},
+                  {"description", "Exported by CVTaggerTool"},
+                  {"date_created",
+                   QDateTime::currentDateTimeUtc().toString(Qt::ISODate)}});
+  root.insert("licenses", QJsonArray{});  // optional
+  root.insert("images", images);
+  root.insert("annotations", annotations);
+  root.insert("categories", categories);
+
+  // Write file
+  QFile f(outputFilePath);
+  if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    qWarning() << "Failed to open for write:" << outputFilePath
+               << f.errorString();
     return false;
   }
-  ofile.write(out);
-  return true;
-}
-
-bool HeavyTaskThread::exportPascalAnnotationsTask() {
-  const auto img_ids = annImgManager->imageIds();
-  m_ncount = img_ids.size();
-  size_t index = 0;
-
-  QDir outDir(outputDirOrFile);
-  for (auto &id : img_ids) {
-    const Annotations &ann = annImgManager->annotations(id);
-    saveAnnToPascalFormat(ann, outDir.filePath(id + ".xml"), uniqueLabels);
-    updateProgress(index++);
-    if (m_abort_) {
-      uniqueLabels.clear();
-      return false;
-    }
-  }
+  f.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+  f.close();
   return true;
 }

@@ -34,12 +34,14 @@ set(PROJECT_SOURCES
     loadimganndialog.cpp loadimganndialog.h loadimganndialog.ui
     dialoglabels.cpp dialoglabels.h dialoglabels.ui
     undo_cmds.h  undo_cmds.cpp
-    dialogexporter.h dialogexporter.cpp dialogexporter.ui
+    labeltreemodel.cpp labeltreemodel.h
     heavytaskthread.h heavytaskthread.cpp
     resource.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+
     qt_add_executable(TaggerTool
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
@@ -63,6 +65,7 @@ else()
 endif()
 
 target_link_libraries(TaggerTool PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(TaggerTool PRIVATE Qt6::Core)
 
 set_target_properties(TaggerTool PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

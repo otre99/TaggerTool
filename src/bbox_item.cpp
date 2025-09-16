@@ -12,22 +12,23 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
+#include "labeltreemodel.h"
 #include "undo_cmds.h"
-
 extern Helper globalHelper;
 
 BoundingBoxItem::BoundingBoxItem(ImageCanvas *canvas, const QRectF &rectf,
-                                 const QString &label, QGraphicsItem *parent,
-                                 bool ready)
+                                 const QString &label, const QString &dsc,
+                                 QGraphicsItem *parent, bool ready)
     : QGraphicsRectItem(rectf, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
-  m_canvas = canvas,
+  m_canvas = canvas;
+  m_description = dsc;
   //  setPos(rectf.topLeft());
   //  setRect(QRectF(0, 0, rectf.width(), rectf.height()));
 
-      __setLocked(this, !ready);
+  __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
   }
@@ -69,6 +70,7 @@ void BoundingBoxItem::showEditDialog(QGraphicsItem *item,
     if (dlg.label() != m_label) {
       Helper::imageCanvas()->undoStack()->push(
           new ChangeLabelCommand(m_label, dlg.label(), item));
+      Helper::labelTreeModel->addNewLabel(Helper::kBBox, m_label);
       // emit canvas->needSaveChanges();
     }
 
@@ -168,6 +170,7 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
   qDebug() << "AAA";
   if (m_currentCorner == kCenter || !m_moveEnable)
     QGraphicsRectItem::mouseMoveEvent(event);
+  //  event->ignore();
   else {
     QPointF cpos = event->pos();
     QPointF dl = cpos - m_lastPt;
