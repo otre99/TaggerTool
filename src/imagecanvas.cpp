@@ -444,7 +444,9 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
   // qDebug() << 9999;
   QGraphicsScene::drawForeground(painter, rect);
 
-  if (m_drawObjStarted || m_waitingForObj) {
+  if (m_drawObjStarted || m_waitingForObj /*&&
+      (m_waitingForTypeObj != Helper::kPolygon &&
+       m_waitingForTypeObj != Helper::kLineStrip)*/) {
     painter->save();
     auto pp = painter->pen();
     pp.setWidthF(Helper::kLineWidth);
@@ -528,6 +530,7 @@ void ImageCanvas::setShowGrid(bool show) {
 }
 
 void ImageCanvas::removeItemCmd(QGraphicsItem *item) {
+  qDebug() << "Item remove " << item;
   m_undoStack.push(new RemoveItemCommand(item));
 }
 

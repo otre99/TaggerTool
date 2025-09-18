@@ -32,9 +32,7 @@ class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-  void keyPressEvent(QKeyEvent *event) override;
   QPainterPath shape() const override;
   QRectF boundingRect() const override;
 

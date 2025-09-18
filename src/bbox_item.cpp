@@ -164,10 +164,9 @@ void BoundingBoxItem::paint(QPainter *painter,
 }
 
 void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-  if (m_currentCorner == kCenter || !m_editEnable)
+  if (m_currentCorner == kCenter && m_editEnable) {
     QGraphicsRectItem::mouseMoveEvent(event);
-  //  event->ignore();
-  else {
+  } else {
     QPointF cpos = event->pos();
     QPointF dl = cpos - m_lastPt;
 
@@ -254,6 +253,8 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = positionInside(event->pos());
+  m_oldCoords = rect();
+  m_oldPos = pos();
   // qDebug() << "AA" << m_editEnable << m_currentCorner;
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
@@ -264,23 +265,15 @@ void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   } else if (event->button() == Qt::RightButton && m_editEnable) {
     showEditDialog(this, event->screenPos());
   } else {
-    m_oldCoords = rect();
-    m_oldPos = pos();
     if (m_currentCorner == kCenter && m_editEnable) {
       setCursor(Qt::DragMoveCursor);
       QGraphicsRectItem::mousePressEvent(event);
-      update();
     } else {
       setCursor(Qt::ArrowCursor);
       m_lastPt = event->pos();
-      update();
     }
+    update();
   }
-  // qDebug() << "BB" << m_editEnable << m_currentCorner;
-}
-
-void BoundingBoxItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
-  QGraphicsRectItem::mouseDoubleClickEvent(event);
 }
 
 void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
@@ -288,78 +281,17 @@ void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   QGraphicsRectItem::mouseReleaseEvent(event);
 
   auto newCoords = rect();
-  if (m_oldCoords != newCoords || m_oldPos != pos()) {
-    if (m_currentCorner == kCenter) {
-      auto canvas = dynamic_cast<ImageCanvas *>(this->scene());
-      auto cmd = new MoveItemCommand(m_oldPos, pos(), this);
-      canvas->undoStack()->push(cmd);
-    } else if (m_currentCorner != kInvalid) {
-      auto canvas = dynamic_cast<ImageCanvas *>(this->scene());
-      auto cmd = new SizeChangeBBoxCommand(m_oldCoords, newCoords, this);
-      canvas->undoStack()->push(cmd);
-    }
+
+  if (m_currentCorner == kCenter && m_oldPos != pos()) {
+    auto cmd = new MoveItemCommand(m_oldPos, pos(), this);
+    Helper::imageCanvas()->undoStack()->push(cmd);
+  } else if (m_currentCorner != kInvalid && m_oldCoords != rect()) {
+    auto cmd = new SizeChangeBBoxCommand(m_oldCoords, newCoords, this);
+    Helper::imageCanvas()->undoStack()->push(cmd);
   }
   m_currentCorner = kInvalid;
-  // qDebug() << "RR" << m_editEnable << m_currentCorner;
   update();
 }
-
-// void BoundingBoxItem::keyPressEvent(QKeyEvent *event) {
-//   if (m_editEnable &&
-//       (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right ||
-//        event->key() == Qt::Key_Up || event->key() == Qt::Key_Down)) {
-//     QRectF newrect(this->pos(), this->rect().size());
-//     double dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
-//     double sx = 1, sy = 1;
-
-//    if (event->modifiers() & Qt::ShiftModifier) {
-//      sx = std::max(newrect.width() * 0.1, 1.0);
-//      sy = std::max(newrect.height() * 0.1, 1.0);
-//    }
-
-//    if (event->modifiers() & Qt::ControlModifier) {
-//      switch (event->key()) {
-//      case Qt::Key_Left:
-//        dx2 = -sx;
-//        break;
-//      case Qt::Key_Right:
-//        dx2 = +sx;
-//        break;
-//      case Qt::Key_Up:
-//        dy2 = -sy;
-//        break;
-//      case Qt::Key_Down:
-//        dy2 = sy;
-//        break;
-//      }
-//    } else {
-//      switch (event->key()) {
-//      case Qt::Key_Left:
-//        dx1 = -sx;
-//        break;
-//      case Qt::Key_Right:
-//        dx1 = +sx;
-//        break;
-//      case Qt::Key_Up:
-//        dy1 = -sy;
-//        break;
-//      case Qt::Key_Down:
-//        dy1 = sy;
-//        break;
-//      }
-//    }
-//    newrect.adjust(dx1, dy1, dx2, dy2);
-//    newrect &= scene()->sceneRect();
-//    if (newrect.isValid()) {
-//      setPos(newrect.topLeft());
-//      setRect(0, 0, newrect.width(), newrect.height());
-//    }
-//  } else if (event->key() == Qt::Key_Return) {
-//    this->setLocked(true);
-//    // setCursor(Qt::ArrowCursor);
-//  } else
-//    QGraphicsItem::keyPressEvent(event);
-//}
 
 QPainterPath BoundingBoxItem::shape() const {
   QPainterPath path;

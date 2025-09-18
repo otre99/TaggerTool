@@ -4,7 +4,6 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QMainWindow>
-#include <QTimer>
 
 #include "annimgmanager.h"
 #include "imagecanvas.h"
@@ -23,7 +22,8 @@ class MainWindow : public QMainWindow {
  public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
-  void resizeEvent(QResizeEvent *event) override;
+  void resizeEvent(QResizeEvent *event) override final;
+  void closeEvent(QCloseEvent *ev) override final;
 
  private slots:
   void on_addNewBbox_triggered();

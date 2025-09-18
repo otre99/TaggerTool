@@ -36,7 +36,10 @@ MainWindow::MainWindow(QWidget *parent)
   setUp();
 }
 
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow() {
+  m_imageCanvas.undoStack()->disconnect(this);
+  delete ui;
+}
 
 void MainWindow::setUp() {
   ui->bboxEditor->setScene(&m_imageCanvas);
@@ -75,6 +78,31 @@ void MainWindow::setUp() {
 void MainWindow::resizeEvent(QResizeEvent *event) {
   QMainWindow::resizeEvent(event);
   ui->dockWidgetL->setMaximumWidth(this->width() / 4);
+}
+
+void MainWindow::closeEvent(QCloseEvent *ev) {
+  if (ui->saveLocalChanges->isEnabled()) {
+    const auto choice = QMessageBox::warning(
+        this, tr("Unsaved changes"), tr("Save changes before closing?"),
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+        QMessageBox::Save);
+
+    switch (choice) {
+      case QMessageBox::Save: {
+        on_saveLocalChanges_triggered();
+        ev->accept();
+        return;
+      }
+      case QMessageBox::Discard:
+        ev->accept();
+        return;
+      case QMessageBox::Cancel:
+      default:
+        ev->ignore();
+        return;
+    }
+  }
+  ev->accept();
 }
 
 void MainWindow::displayImageInfo() {}
@@ -195,6 +223,7 @@ void MainWindow::on_actionNew_Point_triggered() {
 }
 
 void MainWindow::on_NeedSaveChangeUndo(bool enable) {
+  qDebug() << "on_NeedSaveChangeUndo" << enable;
   if (m_needToSaveNotUndo) return;
   ui->saveLocalChanges->setEnabled(!enable);
 }

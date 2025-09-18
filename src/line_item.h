@@ -32,9 +32,7 @@ class LineItem : public QGraphicsLineItem, public CustomItem {
              QWidget *widget) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-  void keyPressEvent(QKeyEvent *event) override;
   QRectF boundingRect() const override;
 
   // get/set

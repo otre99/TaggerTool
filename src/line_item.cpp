@@ -151,10 +151,6 @@ void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   update();
 }
 
-void LineItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
-  QGraphicsLineItem::mouseDoubleClickEvent(event);
-}
-
 void LineItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsLineItem::mouseReleaseEvent(event);
@@ -170,10 +166,6 @@ void LineItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   }
   m_currentCorner = kInvalid;
   update();
-}
-
-void LineItem::keyPressEvent(QKeyEvent *event) {
-  QGraphicsLineItem::keyPressEvent(event);
 }
 
 QRectF LineItem::boundingRect() const {

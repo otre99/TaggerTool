@@ -30,6 +30,7 @@ AddBBoxCommand::AddBBoxCommand(ImageCanvas *canvas, const QRectF &rect,
 }
 
 AddBBoxCommand::~AddBBoxCommand() {
+  qDebug() << "Delete BBox";
   if (!m_item->scene()) {
     delete m_item;
   }
@@ -129,6 +130,7 @@ AddCircleCommand::AddCircleCommand(ImageCanvas *canvas, const QPointF &center,
 }
 
 AddCircleCommand::~AddCircleCommand() {
+  qDebug() << "Delete Circle";
   if (!m_item->scene()) {
     delete m_item;
   }
@@ -166,6 +168,7 @@ AddPolygonCommand::AddPolygonCommand(ImageCanvas *canvas, const QPolygonF &poly,
 }
 
 AddPolygonCommand::~AddPolygonCommand() {
+  qDebug() << "Delete Poly";
   if (!m_item->scene()) {
     delete m_item;
   }
@@ -209,6 +212,7 @@ void AddLineStripCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
 void AddLineStripCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
 AddLineStripCommand::~AddLineStripCommand() {
+  qDebug() << "Delete LineStrip";
   if (!m_item->scene()) {
     delete m_item;
   }
@@ -243,6 +247,7 @@ AddPointCommand::AddPointCommand(ImageCanvas *canvas, const QPointF &pos,
 }
 
 AddPointCommand::~AddPointCommand() {
+  qDebug() << "Delete Point";
   if (!m_item->scene()) {
     delete m_item;
   }
@@ -267,6 +272,7 @@ AddLineCommand::AddLineCommand(ImageCanvas *canvas, const QPointF &p1,
 }
 
 AddLineCommand::~AddLineCommand() {
+  qDebug() << "Delete Line";
   if (!m_item->scene()) {
     delete m_item;
   }

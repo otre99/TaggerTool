@@ -56,6 +56,8 @@ void CustomItem::__setLocked(QGraphicsItem *item, bool lk) {
   item->setFlag(QGraphicsItem::ItemIsSelectable, m_editEnable);
   item->setFlag(QGraphicsItem::ItemIsFocusable, m_editEnable);
 
+  item->setZValue(m_editEnable ? 99 : 0);
+
   if (m_canvas && lk == false) {
     m_canvas->updateMovableItem(this);
   }

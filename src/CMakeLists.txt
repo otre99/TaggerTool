@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+
 qt_standard_project_setup()
 
 set(PROJECT_SOURCES
@@ -35,11 +36,11 @@ set(PROJECT_SOURCES
     dialoglabels.cpp dialoglabels.h dialoglabels.ui
     undo_cmds.h  undo_cmds.cpp
     labeltreemodel.cpp labeltreemodel.h
-
     import_export/yolo.cpp     import_export/yolo.h
     import_export/coco.h import_export/coco.cpp
     resource.qrc
 )
+
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     find_package(Qt6 REQUIRED COMPONENTS Core)
@@ -66,6 +67,11 @@ else()
         )
     endif()
 endif()
+
+
+# target_compile_options(TaggerTool PRIVATE -fsanitize=address,undefined)
+# target_link_options(TaggerTool PRIVATE -fsanitize=address,undefined)
+
 
 target_link_libraries(TaggerTool PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(TaggerTool PRIVATE Qt6::Core)

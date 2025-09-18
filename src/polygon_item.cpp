@@ -155,6 +155,9 @@ void PolygonItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = positionInside(event->pos());
+  m_oldPolygon = polygon();
+  m_oldPos = pos();
+
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
@@ -198,8 +201,6 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
       }
     }
   } else {
-    m_oldPolygon = polygon();
-    m_oldPos = pos();
     if (m_currentCorner == kCenter && m_editEnable) {
       setCursor(Qt::DragMoveCursor);
       QGraphicsPolygonItem::mousePressEvent(event);
@@ -210,22 +211,18 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   update();
 }
 
-void PolygonItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
-  QGraphicsPolygonItem::mouseDoubleClickEvent(event);
-}
-
 void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsPolygonItem::mouseReleaseEvent(event);
 
   if (m_currentCorner != kInvalid) {
-    if (m_oldPolygon != polygon()) {
+    if (m_currentCorner == kNode && m_oldPolygon != polygon()) {
       // this happens when a node is update
       Helper::imageCanvas()->undoStack()->push(
           makeChangeCommand(m_oldPolygon, polygon()));
     }
 
-    if (m_oldPos != pos()) {
+    if (m_currentCorner == kCenter && m_oldPos != pos()) {
       Helper::imageCanvas()->undoStack()->push(
           new MoveItemCommand(m_oldPos, pos(), this));
     }
@@ -233,10 +230,6 @@ void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = kInvalid;
   m_currentNodeIndx_ = -1;
   update();
-}
-
-void PolygonItem::keyPressEvent(QKeyEvent *event) {
-  QGraphicsPolygonItem::keyPressEvent(event);
 }
 
 QPainterPath PolygonItem::shape() const {
