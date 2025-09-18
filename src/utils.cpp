@@ -13,36 +13,10 @@ const QString Helper::organizationName = "RCCR";
 const QString Helper::appName = "CVTaggerTool";
 const QString Helper::organizationDomain = "rccr1987.com";
 
-const QRgb Helper::kLabelColorsArray[] = {
-    qRgb(0, 113, 188),   qRgb(216, 82, 24),   qRgb(236, 176, 31),
-    qRgb(125, 46, 141),  qRgb(118, 171, 47),  qRgb(76, 189, 237),
-    qRgb(161, 19, 46),   qRgb(76, 76, 76),    qRgb(153, 153, 153),
-    qRgb(255, 0, 0),     qRgb(255, 127, 0),   qRgb(190, 190, 0),
-    qRgb(0, 255, 0),     qRgb(0, 0, 255),     qRgb(170, 0, 255),
-    qRgb(84, 84, 0),     qRgb(84, 170, 0),    qRgb(84, 255, 0),
-    qRgb(170, 84, 0),    qRgb(170, 170, 0),   qRgb(170, 255, 0),
-    qRgb(255, 84, 0),    qRgb(255, 170, 0),   qRgb(255, 255, 0),
-    qRgb(0, 84, 127),    qRgb(0, 170, 127),   qRgb(0, 255, 127),
-    qRgb(84, 0, 127),    qRgb(84, 84, 127),   qRgb(84, 170, 127),
-    qRgb(84, 255, 127),  qRgb(170, 0, 127),   qRgb(170, 84, 127),
-    qRgb(170, 170, 127), qRgb(170, 255, 127), qRgb(255, 0, 127),
-    qRgb(255, 84, 127),  qRgb(255, 170, 127), qRgb(255, 255, 127),
-    qRgb(0, 84, 255),    qRgb(0, 170, 255),   qRgb(0, 255, 255),
-    qRgb(84, 0, 255),    qRgb(84, 84, 255),   qRgb(84, 170, 255),
-    qRgb(84, 255, 255),  qRgb(170, 0, 255),   qRgb(170, 84, 255),
-    qRgb(170, 170, 255), qRgb(170, 255, 255), qRgb(255, 0, 255),
-    qRgb(255, 84, 255),  qRgb(255, 170, 255), qRgb(84, 0, 0),
-    qRgb(127, 0, 0),     qRgb(170, 0, 0),     qRgb(212, 0, 0),
-    qRgb(255, 0, 0),     qRgb(0, 42, 0),      qRgb(0, 84, 0),
-    qRgb(0, 127, 0),     qRgb(0, 170, 0),     qRgb(0, 212, 0),
-    qRgb(0, 255, 0),     qRgb(0, 0, 42),      qRgb(0, 0, 84),
-    qRgb(0, 0, 127),     qRgb(0, 0, 170),     qRgb(0, 0, 212),
-    qRgb(0, 0, 255),     qRgb(0, 0, 0),       qRgb(36, 36, 36),
-    qRgb(72, 72, 72),    qRgb(109, 109, 109), qRgb(145, 145, 145),
-    qRgb(182, 182, 182), qRgb(218, 218, 218), qRgb(0, 113, 188),
-    qRgb(80, 182, 188),  qRgb(127, 127, 0)};
+#include <QCryptographicHash>
 
 const QColor Helper::kUnlockedBBoxColor = {0, 0, 128, 64};
+const QColor Helper::kUnlockedBBoxColorSelected = {0, 0, 128, 128};
 const QColor Helper::kLockedBBoxColor = {128, 128, 128, 64};
 const QColor Helper::kMarginBBoxColor = {128, 0, 0, 64};
 const QColor Helper::kLabelColor = {200, 200, 200, 64};
@@ -56,12 +30,15 @@ double Helper::kPointRadius = 8;
 double Helper::kInvScaleFactor = 1.0;
 double Helper::kLineWidth = 2.0;
 QStringList Helper::kImgExts = {};
+LabelTreeModel *Helper::labelTreeModel = nullptr;
 
 QMap<QString, QColor> Helper::m_labelToColor{};
 ImageCanvas *Helper::m_scene = nullptr;
 bool Helper::m_labelsUpdated = false;
 QFont Helper::m_fontLabel;
+
 QColor Helper::circleColor{Qt::red};
+QColor Helper::circleColorSelected{Qt::green};
 
 int64_t Helper::seconsToYear5000(const std::optional<QDateTime> &dt) {
   const QDateTime year5000 = dt.has_value()
@@ -100,7 +77,14 @@ double Helper::penWidth() {
   return qMin(kMaxPenW, qMax(kMinPenW, kPointRadius * kInvScaleFactor));
 }
 
-QColor Helper::getCircleColor() { return Helper::circleColor; }
+QColor Helper::getCircleColor(bool selected) {
+  return selected ? Helper::circleColorSelected : Helper::circleColor;
+}
+
+QColor Helper::getUnlockedColor(bool selected) {
+  return selected ? Helper::kUnlockedBBoxColorSelected
+                  : Helper::kUnlockedBBoxColor;
+}
 
 void Helper::registerNewLabels(const QStringList &labels) {
   for (const auto &lb : labels) {
@@ -116,17 +100,43 @@ QRectF Helper::buildRectFromTwoPoints(const QPointF &p1, const QPointF &p2) {
   return {topleft, QSizeF(rw, rh)};
 }
 
-QColor Helper::colorFromLabel(const QString &label) {
-  if (label.isEmpty()) return Qt::black;
-
-  if (Helper::m_labelToColor.contains(label)) {
-    return Helper::m_labelToColor[label];
+QColor Helper::colorFromLabel(const QString &text) {
+  auto &&iter = Helper::m_labelToColor.find(text);
+  if (iter != Helper::m_labelToColor.end()) {
+    return *iter;
   }
-  m_labelsUpdated = true;
-  const int index = std::hash<std::string>()(label.toStdString()) % 80;
-  Helper::m_labelToColor[label] = kLabelColorsArray[index];
-  return Helper::m_labelToColor[label];
+
+  QByteArray key = text.toUtf8();
+
+  // Use a stable hash (MD5 gives 128 bits, stable across runs)
+  QByteArray md5 = QCryptographicHash::hash(key, QCryptographicHash::Md5);
+
+  // Map first byte to hue (0..359)
+  int hue = static_cast<unsigned char>(md5[0]) % 360;
+
+  // Map second byte to saturation (60..90 %)
+  int sat = 150 + (static_cast<unsigned char>(md5[1]) % 80);
+
+  // Map third byte to lightness (40..70 %)
+  int light = 120 + (static_cast<unsigned char>(md5[2]) % 80);
+
+  QColor c;
+  c.setHsl(hue, sat, light);
+  Helper::m_labelToColor[text] = c;
+  return c;
 }
+
+// QColor Helper::colorFromLabel(const QString &label) {
+//   if (label.isEmpty()) return Qt::black;
+
+//   if (Helper::m_labelToColor.contains(label)) {
+//     return Helper::m_labelToColor[label];
+//   }
+//   m_labelsUpdated = true;
+//   const int index = std::hash<std::string>()(label.toStdString()) % 80;
+//   Helper::m_labelToColor[label] = kLabelColorsArray[index];
+//   return Helper::m_labelToColor[label];
+// }
 
 double Helper::pointLen(const QPointF &p) {
   return std::sqrt(p.x() * p.x() + p.y() * p.y());
@@ -154,4 +164,28 @@ void Helper::drawCircleOrSquared(QPainter *painter, const QPointF &ct,
     painter->drawRect(
         {ct - QPointF(radius, radius), QSizeF{2 * radius, 2 * radius}});
   }
+}
+
+double Helper::polygonArea(const QPolygonF &poly) {
+  const int n = poly.size();
+  if (n < 3) return 0.0;
+  long double s = 0;
+  for (int i = 0; i < n; ++i) {
+    const int j = (i + 1) % n;
+
+    const long double xi = poly[i].x();
+    const long double xj = poly[j].x();
+
+    const long double yi = poly[i].y();
+    const long double yj = poly[j].y();
+
+    s += xi * yj - xj * yi;
+  }
+  return std::abs(static_cast<double>(s * 0.5L));
+}
+
+QPointF Helper::intermediatePoint(const QPointF &p1, const QPointF &p2,
+                                  double dist) {
+  auto l = p2 - p1;
+  return p1 + dist * l / std::sqrt(l.x() * l.x() + l.y() * l.y());
 }

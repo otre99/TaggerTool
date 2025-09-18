@@ -16,13 +16,13 @@ class CustomItem {
   virtual void setLocked(bool what) = 0;
   virtual void helperParametersChanged() = 0;
   virtual void setShowLabel(bool show) {}
-  virtual bool isLocked() const { return !m_moveEnable; }
+  virtual bool isLocked() const { return !m_editEnable; }
   virtual void showEditDialog(QGraphicsItem *item, const QPoint screenPos);
 
  protected:
   QString m_label;
   QString m_description;
-  bool m_moveEnable{false};
+  bool m_editEnable{false};
   int m_labelLen;
   int m_labelHeight;
   ImageCanvas *m_canvas;

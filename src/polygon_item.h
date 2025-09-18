@@ -12,12 +12,13 @@ class QUndoCommand;
 class PolygonItem : public QGraphicsPolygonItem, public CustomItem {
   friend class ImageCanvas;
   enum CORNER { kCenter = -1, kNode, kInvalid } m_currentCorner{kInvalid};
-  int m_currentNodeIndx_;
+  int m_currentNodeIndx_{-1};
 
  public:
   PolygonItem(ImageCanvas *canvas, const QPolygonF &poly,
-              const QString &label = QString(), QGraphicsItem *parent = nullptr,
-              bool ready = false, bool closed_poly = true);
+              const QString &label = QString(), const QString &dsc = QString(),
+              QGraphicsItem *parent = nullptr, bool ready = false,
+              bool closed_poly = true);
   // CustomItem
   void helperParametersChanged() override;
   void setLocked(bool what) override { __setLocked(this, what); }

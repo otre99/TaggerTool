@@ -1,12 +1,6 @@
-#ifndef HEAVYTASKTHREAD_H
-#define HEAVYTASKTHREAD_H
-
-#include <QMutex>
-#include <QObject>
+#ifndef COCO_H
+#define COCO_H
 #include <QProgressDialog>
-#include <QThread>
-#include <QVector>
-#include <QWaitCondition>
 
 #include "annimgmanager.h"
 
@@ -16,4 +10,4 @@ bool exportCOCOAnnotationsTask(AnnImgManager &mgr,
                                bool includeBBoxes = true,
                                bool includePolygons = true);
 
-#endif  // HEAVYTASKTHREAD_H
+#endif  // COCO_H

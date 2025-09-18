@@ -9,8 +9,8 @@ class ImageCanvas;
 class PointItem : public QGraphicsEllipseItem, public CustomItem {
  public:
   PointItem(ImageCanvas *canvas, const QPointF &center,
-            const QString &label = QString(), QGraphicsItem *parent = nullptr,
-            bool ready = false);
+            const QString &label = QString(), const QString &dsc = QString(),
+            QGraphicsItem *parent = nullptr, bool ready = false);
 
   // CustomItem
   void helperParametersChanged() override;

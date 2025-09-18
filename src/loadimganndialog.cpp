@@ -12,14 +12,17 @@ LoadImgAnnDialog::~LoadImgAnnDialog() { delete ui; }
 
 void LoadImgAnnDialog::setImgAndAnnFolders(
     const QString &imgf, const QString &annf,
-    const QList<QPair<QString, QString> > &recents) {
-  m_recents = recents;
+    const QList<std::tuple<QString, QString, qint64> > &recents) {
+  for (auto &&r : recents) {
+    m_recents.emplace_back(std::get<0>(r), std::get<1>(r));
+  }
+
   QString imageChar =
       QString::fromUtf8(u8"\U0001F5BC");  // 🖼 (frame with picture)
   QString annoChar = QString::fromUtf8(u8"\U0001F4DD");  //  📝 (memo)
 
   ui->comboBoxRecents->addItem("");
-  for (auto &&[imagePath, annotationPath] : recents) {
+  for (auto &&[imagePath, annotationPath, _] : recents) {
     QString msg = QString("%1: %2 - %3: %4")
                       .arg(imageChar, imagePath, annoChar, annotationPath);
     ui->comboBoxRecents->addItem(msg);

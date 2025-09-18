@@ -14,12 +14,14 @@
 #include "utils.h"
 
 PointItem::PointItem(ImageCanvas *canvas, const QPointF &center,
-                     const QString &label, QGraphicsItem *parent, bool ready)
+                     const QString &label, const QString &dsc,
+                     QGraphicsItem *parent, bool ready)
     : QGraphicsEllipseItem(0, 0, 2 * Helper::penWidth(), 2 * Helper::penWidth(),
                            parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
   m_canvas = canvas;
+  m_description = dsc;
   __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
@@ -47,7 +49,7 @@ void PointItem::helperParametersChanged() {
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                       QWidget *widget) {
   QRectF brect = rect();  // boundingRect();
-  if (!m_moveEnable) {
+  if (!m_editEnable) {
     painter->setPen(Qt::NoPen);
     painter->setBrush(pen().brush());
     painter->drawEllipse(brect);
@@ -74,13 +76,15 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
   } else if (event->modifiers() == Qt::ShiftModifier &&
              event->button() == Qt::LeftButton) {
-    setLocked(m_moveEnable);
-  } else if (event->button() == Qt::RightButton && m_moveEnable) {
+    setLocked(m_editEnable);
+  } else if (event->button() == Qt::RightButton && m_editEnable) {
     showEditDialog(this, event->screenPos());
-  } else {
+  } else if (m_editEnable) {
+    // setCursor(Qt::DragMoveCursor);
     QGraphicsEllipseItem::mousePressEvent(event);
   }
   m_oldPos = pos();
+  update();
 }
 
 void PointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {

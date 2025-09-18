@@ -19,25 +19,27 @@ QString getBoolPropertyChangeText(const QString &pname, bool val1) {
 /////////////////////////////////////////////////////////////////
 // AddBBoxCommand
 AddBBoxCommand::AddBBoxCommand(ImageCanvas *canvas, const QRectF &rect,
-                               const QString &label, bool occluded,
-                               bool truncated, bool crowded, bool ready,
-                               QUndoCommand *parent)
+                               const QString &label, const QString &dsc,
+                               bool occluded, bool truncated, bool crowded,
+                               bool ready, QUndoCommand *parent)
     : QUndoCommand("AddBBox", parent) {
-  m_item = new BoundingBoxItem(canvas, rect, label, nullptr, ready);
+  m_item = new BoundingBoxItem(canvas, rect, label, dsc, nullptr, ready);
   m_item->setOccluded(occluded);
   m_item->setTruncated(truncated);
   m_item->setCrowded(crowded);
 }
-
-void AddBBoxCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
-
-void AddBBoxCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
 AddBBoxCommand::~AddBBoxCommand() {
   if (!m_item->scene()) {
     delete m_item;
   }
 }
+
+void AddBBoxCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+
+void AddBBoxCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
+
+BoundingBoxItem *AddBBoxCommand::item() const { return m_item; }
 
 // SizeChangeBBoxCommand
 SizeChangeBBoxCommand::SizeChangeBBoxCommand(const QRectF &oldRect,
@@ -120,20 +122,23 @@ void CrowdedChangeBBoxCommand::redo() { m_item->setCrowded(m_newCrowded); }
 // AddBBoxCommand
 AddCircleCommand::AddCircleCommand(ImageCanvas *canvas, const QPointF &center,
                                    qreal radius, const QString &label,
-                                   bool ready, QUndoCommand *parent)
+                                   const QString &dsc, bool ready,
+                                   QUndoCommand *parent)
     : QUndoCommand("AddCircle", parent) {
-  m_item = new CircleItem(canvas, center, radius, label, nullptr, ready);
+  m_item = new CircleItem(canvas, center, radius, label, dsc, nullptr, ready);
 }
-
-void AddCircleCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
-
-void AddCircleCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
 AddCircleCommand::~AddCircleCommand() {
   if (!m_item->scene()) {
     delete m_item;
   }
 }
+
+void AddCircleCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+
+void AddCircleCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
+
+CircleItem *AddCircleCommand::item() const { return m_item; }
 
 // RadiusChangeCircleCommand
 RadiusChangeCircleCommand::RadiusChangeCircleCommand(const QRectF oldRect,
@@ -154,21 +159,23 @@ void RadiusChangeCircleCommand::redo() { m_item->setRect(m_newRect); }
 /////////////////////////////////////////////////////////////////
 // AddPolygonCommand
 AddPolygonCommand::AddPolygonCommand(ImageCanvas *canvas, const QPolygonF &poly,
-                                     const QString &label, bool ready,
-                                     QUndoCommand *parent)
+                                     const QString &label, const QString &dsc,
+                                     bool ready, QUndoCommand *parent)
     : QUndoCommand("AddPolygon", parent) {
-  m_item = new PolygonItem(canvas, poly, label, nullptr, ready);
+  m_item = new PolygonItem(canvas, poly, label, dsc, nullptr, ready);
 }
-
-void AddPolygonCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
-
-void AddPolygonCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
 AddPolygonCommand::~AddPolygonCommand() {
   if (!m_item->scene()) {
     delete m_item;
   }
 }
+
+void AddPolygonCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+
+void AddPolygonCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
+
+PolygonItem *AddPolygonCommand::item() const { return m_item; }
 
 // ChangePolygonCommand
 ChangePolygonCommand::ChangePolygonCommand(const QPolygonF &oldPoly,
@@ -190,10 +197,11 @@ void ChangePolygonCommand::redo() { m_item->setPolygon(m_newPoly); }
 // AddPolygonCommand
 AddLineStripCommand::AddLineStripCommand(ImageCanvas *canvas,
                                          const QPolygonF &poly,
-                                         const QString &label, bool ready,
+                                         const QString &label,
+                                         const QString &dsc, bool ready,
                                          QUndoCommand *parent)
     : QUndoCommand("AddLineStrip", parent) {
-  m_item = new PolygonItem(canvas, poly, label, nullptr, ready, false);
+  m_item = new PolygonItem(canvas, poly, label, dsc, nullptr, ready, false);
 }
 
 void AddLineStripCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
@@ -205,6 +213,8 @@ AddLineStripCommand::~AddLineStripCommand() {
     delete m_item;
   }
 }
+
+PolygonItem *AddLineStripCommand::item() const { return m_item; }
 
 // MovePolygonCommand
 ChangeLineStripCommand::ChangeLineStripCommand(const QPolygonF &oldPoly,
@@ -225,10 +235,11 @@ void ChangeLineStripCommand::redo() { m_item->setPolygon(m_newPoly); }
 /////////////////////////////////////////////////////////////////
 // AddPointCommand
 AddPointCommand::AddPointCommand(ImageCanvas *canvas, const QPointF &pos,
-                                 const QString &label, bool ready,
+                                 const QString &label,
+                                 const QString &description, bool ready,
                                  QUndoCommand *parent)
     : QUndoCommand("AddPoint", parent) {
-  m_item = new PointItem(canvas, pos, label, nullptr, ready);
+  m_item = new PointItem(canvas, pos, label, description, nullptr, ready);
 }
 
 AddPointCommand::~AddPointCommand() {
@@ -241,15 +252,18 @@ void AddPointCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
 
 void AddPointCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
+PointItem *AddPointCommand::item() const { return m_item; }
+
 /////////////////////////////////////////////////////////////////
 ///////////////////// LineItem //////////////////////////////////
 /////////////////////////////////////////////////////////////////
 // AddLineCommand
 AddLineCommand::AddLineCommand(ImageCanvas *canvas, const QPointF &p1,
                                const QPointF &p2, const QString &label,
-                               bool ready, QUndoCommand *parent)
+                               const QString &dsc, bool ready,
+                               QUndoCommand *parent)
     : QUndoCommand("AddLine", parent) {
-  m_item = new LineItem(canvas, p1, p2, label, nullptr, ready);
+  m_item = new LineItem(canvas, p1, p2, label, dsc, nullptr, ready);
 }
 
 AddLineCommand::~AddLineCommand() {
@@ -261,6 +275,8 @@ AddLineCommand::~AddLineCommand() {
 void AddLineCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
 
 void AddLineCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
+
+LineItem *AddLineCommand::item() const { return m_item; }
 
 ChangeLineSizeCommand::ChangeLineSizeCommand(const QLineF &oldLine,
                                              const QLineF &newLine,

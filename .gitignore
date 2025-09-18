@@ -1,2 +1,3 @@
 src/build/**/*
 /src/CMakeLists.txt.user
+/CVTaggerTool_app/*

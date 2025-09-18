@@ -74,13 +74,15 @@ class ImageCanvas : public QGraphicsScene {
   void setShowGrid(bool show);
   void removeItemCmd(QGraphicsItem *item);
   void updateMovableItem(CustomItem *);
+  void onLabelEnableChanged(Helper::CustomItemType annType,
+                            const QString &label, bool enabled);
 
  signals:
   // void needSaveChanges();
   void deferredRemoveItem(QGraphicsItem *item);
 
  private:
-  bool m_showLabels{true};
+  bool m_showLabels{false};
   bool m_showGrid{false};
   QPolygonF m_currentPolygon{};
   QUndoStack m_undoStack;

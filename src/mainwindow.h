@@ -7,7 +7,6 @@
 #include <QTimer>
 
 #include "annimgmanager.h"
-#include "heavytaskthread.h"
 #include "imagecanvas.h"
 #include "imgstringlistmodel.h"
 class QLabel;
@@ -42,28 +41,25 @@ class MainWindow : public QMainWindow {
   void on_actionAdd_New_Polygon_triggered();
   void on_actionzoom100_triggered();
   void on_actionGrid_triggered(bool checked);
-  void on_timeout();
-  void on_tBAdd_clicked();
-  void on_tBRemove_clicked();
   void on_pTextImgDescription_textChanged();
   void updateSettings();
   void on_doubleSpinBoxPtRadius_valueChanged(double arg1);
   void on_spinBoxLabelPixSize_valueChanged(int arg1);
   void on_actionFit_Into_View_triggered();
   void on_comboBoxImgLabel_currentTextChanged(const QString &arg1);
-  void on_toolButtonAddItemLabels_clicked();
-  void on_toolButtonAddTags_clicked();
   void on_toolButtonAddImgLabels_clicked();
-  void on_actionLoad_project_triggered();
-  void on_actionSave_project_triggered();
   bool loadImagesAndAnnotations(const QString &annImg,
                                 const QString &annFolder);
   void on_actionAdd_New_LineStrip_triggered();
-  void on_actionExport_Annotations_triggered();
-
   void on_actionAdd_Circle_Item_triggered();
+  void on_actionExportCoco_triggered();
+  void on_actionEdit_historial_triggered(bool checked);
+  void on_actionSettings_triggered(bool checked);
+  void on_actionShow_Hide_Labels_triggered(bool checked);
 
-  void on_actionShow_Hide_Labels_toggled(bool arg1);
+  void on_actionExportYolo_triggered();
+
+  void on_actionNative_triggered();
 
  private:
   void setUp();
@@ -71,7 +67,6 @@ class MainWindow : public QMainWindow {
   void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);
   QStringList getLabelsFromComboBox(QComboBox *cbox);
 
-  QTimer m_timer;
   QGraphicsItem *m_currentItem;
   Ui::MainWindow *ui;
   AnnImgManager m_annImgManager;
@@ -79,7 +74,6 @@ class MainWindow : public QMainWindow {
   ImgStringListModel m_imageListModel;
   QModelIndex m_current_index{};
   bool m_needToSaveNotUndo;
-  HeavyTaskThread m_heavyTaskThread;
   QLabel *m_displayLabel;
 
   // aux functions

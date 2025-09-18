@@ -19,13 +19,14 @@ class ImageCanvas;
 class AddBBoxCommand : public QUndoCommand {
  public:
   AddBBoxCommand(ImageCanvas *canvas, const QRectF &rect, const QString &label,
-                 bool occluded, bool truncated, bool crowded, bool ready,
-                 QUndoCommand *parent = 0);
+                 const QString &dsc, bool occluded, bool truncated,
+                 bool crowded, bool ready, QUndoCommand *parent = 0);
   ~AddBBoxCommand();
   void undo() override;
   void redo() override;
+  BoundingBoxItem *item() const;
 
-  // private:
+ private:
   BoundingBoxItem *m_item;
 };
 
@@ -86,10 +87,12 @@ class CrowdedChangeBBoxCommand : public QUndoCommand {
 class AddCircleCommand : public QUndoCommand {
  public:
   AddCircleCommand(ImageCanvas *canvas, const QPointF &center, qreal radius,
-                   const QString &label, bool ready, QUndoCommand *parent = 0);
+                   const QString &label, const QString &dsc, bool ready,
+                   QUndoCommand *parent = 0);
   ~AddCircleCommand();
   void undo() override;
   void redo() override;
+  CircleItem *item() const;
 
  private:
   CircleItem *m_item;
@@ -114,11 +117,13 @@ class RadiusChangeCircleCommand : public QUndoCommand {
 class AddPolygonCommand : public QUndoCommand {
  public:
   AddPolygonCommand(ImageCanvas *canvas, const QPolygonF &poly,
-                    const QString &label, bool ready, QUndoCommand *parent = 0);
+                    const QString &label, const QString &dsc, bool ready,
+                    QUndoCommand *parent = 0);
   ~AddPolygonCommand();
 
   void undo() override;
   void redo() override;
+  PolygonItem *item() const;
 
  private:
   PolygonItem *m_item;
@@ -134,7 +139,6 @@ class ChangePolygonCommand : public QUndoCommand {
 
  private:
   QPolygonF m_oldPoly, m_newPoly;
-  ;
   PolygonItem *m_item;
   QString m_label;
 };
@@ -146,12 +150,13 @@ class ChangePolygonCommand : public QUndoCommand {
 class AddLineStripCommand : public QUndoCommand {
  public:
   AddLineStripCommand(ImageCanvas *canvas, const QPolygonF &poly,
-                      const QString &label, bool ready,
+                      const QString &label, const QString &dsc, bool ready,
                       QUndoCommand *parent = 0);
   ~AddLineStripCommand();
 
   void undo() override;
   void redo() override;
+  PolygonItem *item() const;
 
  private:
   PolygonItem *m_item;
@@ -179,10 +184,12 @@ class ChangeLineStripCommand : public QUndoCommand {
 class AddPointCommand : public QUndoCommand {
  public:
   AddPointCommand(ImageCanvas *canvas, const QPointF &pos, const QString &label,
-                  bool ready, QUndoCommand *parent = 0);
+                  const QString &description, bool ready,
+                  QUndoCommand *parent = 0);
   ~AddPointCommand();
   void undo() override;
   void redo() override;
+  PointItem *item() const;
 
  private:
   PointItem *m_item;
@@ -195,10 +202,12 @@ class AddPointCommand : public QUndoCommand {
 class AddLineCommand : public QUndoCommand {
  public:
   AddLineCommand(ImageCanvas *canvas, const QPointF &p1, const QPointF &p2,
-                 const QString &label, bool ready, QUndoCommand *parent = 0);
+                 const QString &label, const QString &dsc, bool ready,
+                 QUndoCommand *parent = 0);
   ~AddLineCommand();
   void undo() override;
   void redo() override;
+  LineItem *item() const;
 
  private:
   LineItem *m_item;

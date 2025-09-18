@@ -13,13 +13,28 @@
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 
+// TODO(otre99): The ChangePolygonCommand command stores old and new polygons.
+// This command includes:
+// -> Update a polygon node
+// -> Delete a polygon node
+// -> Add a new polygon node
+// Storing old and new polygons is memory inefficient strategy, especially when
+// working with detailed polygons (many points). Therefore, it is recommended to
+// choose one of these two possible solutions:
+//   1) Combine commands (I really don't like this!)
+//   2) Split ChangePolygonCommand into (I like this!):
+//      - UpdatePolygonNode (only index and the old/new points need to be store)
+//      - DeletePolygonNode (only index and deleted point need to be store)
+//      - AddPolygonNode (only index and new point need to be store)
+
 PolygonItem::PolygonItem(ImageCanvas *canvas, const QPolygonF &poly,
-                         const QString &label, QGraphicsItem *parent,
-                         bool ready, bool closed_poly)
+                         const QString &label, const QString &dsc,
+                         QGraphicsItem *parent, bool ready, bool closed_poly)
     : QGraphicsPolygonItem(poly, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
   m_canvas = canvas;
+  m_description = dsc;
 
   __setLocked(this, !ready);
   if (ready) {
@@ -55,13 +70,14 @@ void PolygonItem::paint(QPainter *painter,
   QPen p = pen();
   painter->setPen(p);
   const QPolygonF poly = polygon();
-  if (m_moveEnable) {
-    painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
+  if (m_editEnable) {
+    painter->setBrush(
+        QBrush(Helper::getUnlockedColor(m_currentCorner == kCenter)));
   } else {
     painter->setBrush(QBrush(Helper::kLockedBBoxColor));
   }
 
-  if (!m_moveEnable) {
+  if (!m_editEnable) {
     QPen pp = p;
     pp.setWidth(Helper::kLineWidth);
     pp.setCosmetic(true);
@@ -94,15 +110,21 @@ void PolygonItem::paint(QPainter *painter,
 
     int index = 0;
     painter->setPen(Qt::NoPen);
-    QColor color = Helper::getCircleColor();  // pen().color();
-    color.setAlpha(150);
-    painter->setBrush(color);
+    painter->setBrush(Helper::getCircleColor(false));
 
     qreal radius = p.widthF();
     for (auto pt : poly) {
-      Helper::drawCircleOrSquared(
-          painter, pt, radius,
-          (m_currentCorner != kNode || index != m_currentNodeIndx_));
+      bool not_selected_node =
+          (m_currentCorner != kNode || index != m_currentNodeIndx_);
+
+      if (not_selected_node) {
+        Helper::drawCircleOrSquared(painter, pt, radius, not_selected_node);
+      } else {
+        painter->save();
+        painter->setBrush(Helper::getCircleColor(true));
+        Helper::drawCircleOrSquared(painter, pt, radius, not_selected_node);
+        painter->restore();
+      }
       ++index;
     }
   }
@@ -121,7 +143,7 @@ void PolygonItem::paint(QPainter *painter,
 }
 
 void PolygonItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-  if (m_currentCorner == kCenter || !m_moveEnable)
+  if (m_currentCorner == kCenter && m_editEnable)
     QGraphicsItem::mouseMoveEvent(event);
   else if (m_currentCorner == kNode) {
     QPointF cpos = event->pos();
@@ -132,24 +154,25 @@ void PolygonItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
-  m_currentCorner = kInvalid;
+  m_currentCorner = positionInside(event->pos());
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
   } else if (event->modifiers() == Qt::ShiftModifier &&
              event->button() == Qt::LeftButton) {
-    setLocked(m_moveEnable);
-  } else if (event->button() == Qt::RightButton && m_moveEnable) {
+    setLocked(m_editEnable);
+  } else if (event->button() == Qt::RightButton && m_editEnable) {
     showEditDialog(this, event->screenPos());
   } else if ((event->modifiers() & (Qt::AltModifier | Qt::MetaModifier)) &&
              event->button() == Qt::LeftButton) {
-    auto corner = positionInside(event->pos());
     QPolygonF poly = polygon();
-    if (corner == kNode) {
+    if (m_currentCorner == kNode) {
       if (poly.count() > (m_closed_poly ? 3 : 2)) {
         poly.remove(m_currentNodeIndx_);
         Helper::imageCanvas()->undoStack()->push(
             makeChangeCommand(polygon(), poly));
+        m_currentCorner = kInvalid;
+        m_currentNodeIndx_ = -1;
       }
     } else {
       qreal th = pen().widthF();
@@ -167,23 +190,24 @@ void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
             poly.insert(i + 1, newPt);
             Helper::imageCanvas()->undoStack()->push(
                 makeChangeCommand(polygon(), poly));
+            m_currentCorner = kInvalid;
+            m_currentNodeIndx_ = -1;
             break;
           }
         }
       }
     }
   } else {
-    m_currentCorner = positionInside(event->pos());
     m_oldPolygon = polygon();
     m_oldPos = pos();
-    if (m_currentCorner == kCenter || !m_moveEnable) {
+    if (m_currentCorner == kCenter && m_editEnable) {
       setCursor(Qt::DragMoveCursor);
       QGraphicsPolygonItem::mousePressEvent(event);
     } else {
-      setCursor(Qt::SizeAllCursor);
-      // update();
+      setCursor(Qt::ArrowCursor);
     }
   }
+  update();
 }
 
 void PolygonItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
@@ -195,18 +219,20 @@ void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   QGraphicsPolygonItem::mouseReleaseEvent(event);
 
   if (m_currentCorner != kInvalid) {
+    if (m_oldPolygon != polygon()) {
+      // this happens when a node is update
+      Helper::imageCanvas()->undoStack()->push(
+          makeChangeCommand(m_oldPolygon, polygon()));
+    }
+
     if (m_oldPos != pos()) {
       Helper::imageCanvas()->undoStack()->push(
           new MoveItemCommand(m_oldPos, pos(), this));
     }
-
-    if (m_oldPolygon != polygon()) {
-      Helper::imageCanvas()->undoStack()->push(
-          makeChangeCommand(m_oldPolygon, polygon()));
-    }
   }
   m_currentCorner = kInvalid;
-  //  update();
+  m_currentNodeIndx_ = -1;
+  update();
 }
 
 void PolygonItem::keyPressEvent(QKeyEvent *event) {

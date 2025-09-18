@@ -13,8 +13,8 @@ class CircleItem : public QGraphicsEllipseItem, public CustomItem {
 
  public:
   CircleItem(ImageCanvas *canvas, const QPointF &center, double radius,
-             const QString &label = QString(), QGraphicsItem *parent = nullptr,
-             bool ready = false);
+             const QString &label = QString(), const QString &dsc = QString(),
+             QGraphicsItem *parent = nullptr, bool ready = false);
   // CustomItem
   void helperParametersChanged() override;
   void setLocked(bool what) override { __setLocked(this, what); }

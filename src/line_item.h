@@ -10,12 +10,17 @@ class ImageCanvas;
 
 class LineItem : public QGraphicsLineItem, public CustomItem {
   friend class ImageCanvas;
-  enum CORNER { kCenter = -1, kP1 = 0, kP2 = 1, kInvalid } m_currentCorner;
+  enum CORNER {
+    kCenter = -1,
+    kP1 = 0,
+    kP2 = 1,
+    kInvalid
+  } m_currentCorner{kInvalid};
 
  public:
   LineItem(ImageCanvas *canvas, const QPointF &p1, const QPointF &p2,
-           const QString &label = QString(), QGraphicsItem *parent = nullptr,
-           bool ready = false);
+           const QString &label = QString(), const QString &dsc = QString(),
+           QGraphicsItem *parent = nullptr, bool ready = false);
   // CustomItem
   void helperParametersChanged() override;
   void setLocked(bool lk) override { __setLocked(this, lk); };

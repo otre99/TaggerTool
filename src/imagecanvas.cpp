@@ -8,11 +8,11 @@
 #include "bbox_item.h"
 #include "circle_item.h"
 #include "custom_item.h"
+#include "labeltreemodel.h"
 #include "line_item.h"
 #include "point_item.h"
 #include "polygon_item.h"
 #include "undo_cmds.h"
-
 ImageCanvas::ImageCanvas(QObject *parent)
     : QGraphicsScene(parent), m_waitingForObj(false), m_drawObjStarted(false) {
   QObject::connect(this, &ImageCanvas::deferredRemoveItem, this,
@@ -143,37 +143,71 @@ void ImageCanvas::reset(const QImage &img, const QString &img_id) {
 }
 
 void ImageCanvas::addAnnotations(const Annotations &ann) {
-  // qDebug() << 3333;
   m_undoStack.beginMacro("Load Annotations");
+
+  // BBoxes
   for (auto &bbox : ann.bboxes) {
     QRectF frect = QRectF{bbox.pt1(), bbox.pt2()} & sceneRect();
     if (frect.isNull() || frect.isEmpty() || !frect.isValid()) continue;
 
-    m_undoStack.push(new AddBBoxCommand(this, frect, bbox.getLabel(),
-                                        bbox.getOccluded(), bbox.getTruncated(),
-                                        bbox.getCrowded(), false));
+    auto cmd = new AddBBoxCommand(
+        this, frect, bbox.getLabel(), bbox.getDescription(), bbox.getOccluded(),
+        bbox.getTruncated(), bbox.getCrowded(), false);
+    m_undoStack.push(cmd);
+    if (!Helper::labelTreeModel->isEnable(Helper::kBBox, bbox.getLabel())) {
+      cmd->item()->setVisible(false);
+    }
   }
+  // Circle
   for (auto &cl : ann.circles) {
-    m_undoStack.push(new AddCircleCommand(this, cl.center(), cl.radius(),
-                                          cl.getLabel(), false, nullptr));
+    auto cmd =
+        new AddCircleCommand(this, cl.center(), cl.radius(), cl.getLabel(),
+                             cl.getDescription(), false, nullptr);
+    m_undoStack.push(cmd);
+    if (!Helper::labelTreeModel->isEnable(Helper::kCircle, cl.getLabel())) {
+      cmd->item()->setVisible(false);
+    }
   }
+
+  // Points
   for (auto &pt : ann.points) {
-    m_undoStack.push(
-        new AddPointCommand(this, pt.pt(), pt.getLabel(), false, nullptr));
+    auto cmd = new AddPointCommand(this, pt.pt(), pt.getLabel(),
+                                   pt.getDescription(), false, nullptr);
+    m_undoStack.push(cmd);
+    if (!Helper::labelTreeModel->isEnable(Helper::kPoint, pt.getLabel())) {
+      cmd->item()->setVisible(false);
+    }
   }
+
+  // Lines
   for (auto &l : ann.lines) {
-    m_undoStack.push(new AddLineCommand(this, l.pt1(), l.pt2(), l.getLabel(),
-                                        false, nullptr));
+    auto cmd = new AddLineCommand(this, l.pt1(), l.pt2(), l.getLabel(),
+                                  l.getDescription(), false, nullptr);
+    m_undoStack.push(cmd);
+    if (!Helper::labelTreeModel->isEnable(Helper::kLine, l.getLabel())) {
+      cmd->item()->setVisible(false);
+    }
   }
 
+  // Polygons
   for (auto &p : ann.polygons) {
-    m_undoStack.push(new AddPolygonCommand(this, p.getPolygon(), p.getLabel(),
-                                           false, nullptr));
+    auto cmd = new AddPolygonCommand(this, p.getPolygon(), p.getLabel(),
+                                     p.getDescription(), false, nullptr);
+    m_undoStack.push(cmd);
+    if (!Helper::labelTreeModel->isEnable(Helper::kPolygon, p.getLabel())) {
+      cmd->item()->setVisible(false);
+    }
   }
 
+  // LneStrips
   for (auto &lst : ann.line_strips) {
-    m_undoStack.push(new AddLineStripCommand(this, lst.getPolygon(),
-                                             lst.getLabel(), false, nullptr));
+    auto cmd =
+        new AddLineStripCommand(this, lst.getPolygon(), lst.getDescription(),
+                                lst.getLabel(), false, nullptr);
+    m_undoStack.push(cmd);
+    if (!Helper::labelTreeModel->isEnable(Helper::kLineStrip, lst.getLabel())) {
+      cmd->item()->setVisible(false);
+    }
   }
 
   m_undoStack.endMacro();
@@ -292,12 +326,18 @@ void ImageCanvas::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
       m_drawObjStarted = true;
     }
 
-    if (m_waitingForTypeObj == Helper::kPoint) {
+    if (m_waitingForTypeObj == Helper::kPoint &&
+        mouseEvent->button() == Qt::LeftButton) {
       views().first()->viewport()->setCursor(Qt::ArrowCursor);
-      undoStack()->push(new AddPointCommand(this, mouseEvent->scenePos(),
-                                            m_bboxLabel, true, nullptr));
+
+      auto cmd = new AddPointCommand(this, mouseEvent->scenePos(), m_bboxLabel,
+                                     QString(), true, nullptr);
+      undoStack()->push(cmd);
       m_waitingForObj = false;
       views()[0]->setMouseTracking(false);
+      // set the label
+      auto it = cmd->item();
+      it->showEditDialog(it, mouseEvent->screenPos());
       update();
     }
   }
@@ -324,53 +364,74 @@ void ImageCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
     if (m_waitingForTypeObj == Helper::kBBox && (m_begPt != m_endPt)) {
       auto bbox = Helper::buildRectFromTwoPoints(m_begPt, m_endPt);
 
-      auto cmd = new AddBBoxCommand(this, bbox, m_bboxLabel, false, false,
+      auto cmd = new AddBBoxCommand(this, bbox, m_bboxLabel, {}, false, false,
                                     false, true, nullptr);
       m_undoStack.push(cmd);
       m_drawObjStarted = false;
+
+      // set the label
+      auto it = cmd->item();
+      it->showEditDialog(it, mouseEvent->screenPos());
     }
 
     if (m_waitingForTypeObj == Helper::kLine && (m_begPt != m_endPt)) {
-      undoStack()->push(
-          new AddLineCommand(this, m_begPt, m_endPt, m_bboxLabel, true));
+      auto cmd =
+          new AddLineCommand(this, m_begPt, m_endPt, m_bboxLabel, {}, true);
+      undoStack()->push(cmd);
       m_drawObjStarted = false;
+
+      // set the label
+      auto it = cmd->item();
+      it->showEditDialog(it, mouseEvent->screenPos());
     }
 
     if (m_waitingForTypeObj == Helper::kCircle && (m_begPt != m_endPt)) {
-      undoStack()->push(new AddCircleCommand(
-          this, m_begPt, Helper::pointLen(m_endPt - m_begPt), m_bboxLabel,
-          true));
-
+      auto cmd = new AddCircleCommand(this, m_begPt,
+                                      Helper::pointLen(m_endPt - m_begPt),
+                                      m_bboxLabel, {}, true);
+      undoStack()->push(cmd);
       m_drawObjStarted = false;
+
+      // set the label
+      auto it = cmd->item();
+      it->showEditDialog(it, mouseEvent->screenPos());
     }
 
     if (m_waitingForTypeObj == Helper::kPolygon) {
       int n = m_currentPolygon.size();
 
-      if (n >= 3) {
-        qreal d =
-            Helper::pointLen(m_currentPolygon[0] - m_currentPolygon.last());
-        if (d < Helper::kPointRadius * Helper::kInvScaleFactor) {
-          if (n > 3) {
-            m_currentPolygon.removeLast();
-            Helper::imageCanvas()->undoStack()->push(new AddPolygonCommand(
-                this, m_currentPolygon, m_bboxLabel, true, nullptr));
-          }
+      if (n >= 2) {
+        if (mouseEvent->button() == Qt::RightButton) {
+          m_currentPolygon.push_back(m_endPt);
+          auto cmd = new AddPolygonCommand(this, m_currentPolygon, m_bboxLabel,
+                                           {}, true, nullptr);
+          Helper::imageCanvas()->undoStack()->push(cmd);
           m_drawObjStarted = false;
           m_waitingForObj = false;
           views()[0]->setMouseTracking(false);
+
+          // set the label
+          auto it = cmd->item();
+          it->showEditDialog(it, mouseEvent->screenPos());
         }
       }
     }
     if (m_waitingForTypeObj == Helper::kLineStrip) {
       int n = m_currentPolygon.size();
-      if (n >= 2) {
+
+      if (n >= 1) {
         if (mouseEvent->button() == Qt::RightButton) {
-          Helper::imageCanvas()->undoStack()->push(new AddLineStripCommand(
-              this, m_currentPolygon, m_bboxLabel, true, nullptr));
+          m_currentPolygon.push_back(m_endPt);
+          auto cmd = new AddLineStripCommand(this, m_currentPolygon,
+                                             m_bboxLabel, {}, true, nullptr);
+          Helper::imageCanvas()->undoStack()->push(cmd);
           m_drawObjStarted = false;
           m_waitingForObj = false;
           views()[0]->setMouseTracking(false);
+
+          // set the label
+          auto it = cmd->item();
+          it->showEditDialog(it, mouseEvent->screenPos());
         }
       }
     }
@@ -405,6 +466,7 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
     painter->setPen(p);
 
     if (m_waitingForTypeObj == Helper::kBBox) {
+      painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
       painter->drawRect(Helper::buildRectFromTwoPoints(m_begPt, m_endPt));
     }
 
@@ -414,6 +476,7 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
 
     if (m_waitingForTypeObj == Helper::kCircle) {
       qreal r = Helper::pointLen(m_begPt - m_endPt);
+      painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
       painter->drawEllipse(m_begPt.x() - r, m_begPt.y() - r, 2 * r, 2 * r);
       painter->drawLine(m_begPt, m_endPt);
     }
@@ -422,33 +485,35 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
         m_waitingForTypeObj == Helper::kLineStrip) {
       painter->setBrush(Qt::black);
       for (int i = 0; i < m_currentPolygon.count(); ++i) {
-        if (i == 0) {
-          painter->drawEllipse(m_currentPolygon[0],
-                               Helper::kPointRadius * Helper::kInvScaleFactor,
-                               Helper::kPointRadius * Helper::kInvScaleFactor);
-        } else {
-          painter->drawEllipse(
-              m_currentPolygon[i],
-              0.5 * Helper::kPointRadius * Helper::kInvScaleFactor,
-              0.5 * Helper::kPointRadius * Helper::kInvScaleFactor);
-        }
+        painter->drawEllipse(
+            m_currentPolygon[i],
+            0.5 * Helper::kPointRadius * Helper::kInvScaleFactor,
+            0.5 * Helper::kPointRadius * Helper::kInvScaleFactor);
       }
-      bool drawp = m_waitingForTypeObj == Helper::kPolygon;
-      if (drawp) {
-        painter->drawPolyline(m_currentPolygon);
+
+      auto tmp = m_currentPolygon;
+      tmp.push_back(m_endPt);
+      if (m_waitingForTypeObj == Helper::kPolygon) {
+        painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
+        painter->drawPolygon(tmp);
       } else {
-        painter->drawPolyline(m_currentPolygon);
+        painter->drawPolyline(tmp);
       }
-      if (!m_currentPolygon.empty() && m_currentPolygon.last() != m_endPt)
-        painter->drawLine(m_currentPolygon.last(), m_endPt);
     }
   }
 }
 
 void ImageCanvas::keyPressEvent(QKeyEvent *keyEvent) {
-  if (m_drawObjStarted) {
-    if (keyEvent->key() == Qt::Key_Escape &&
-        m_waitingForTypeObj == Helper::kPolygon) {
+  // if (m_drawObjStarted) {
+  //   if (keyEvent->key() == Qt::Key_Escape &&
+  //       m_waitingForTypeObj == Helper::kPolygon) {
+  //     m_drawObjStarted = false;
+  //     m_waitingForObj = false;
+  //     update();
+  //   }
+  // }
+  if (m_drawObjStarted || m_waitingForObj) {
+    if (keyEvent->key() == Qt::Key_Escape) {
       m_drawObjStarted = false;
       m_waitingForObj = false;
       update();
@@ -479,4 +544,18 @@ void ImageCanvas::updateMovableItem(CustomItem *item) {
     }
   }
   m_currMovableItem = item;
+}
+
+void ImageCanvas::onLabelEnableChanged(Helper::CustomItemType annType,
+                                       const QString &label, bool enabled) {
+  for (auto &&item : items()) {
+    CustomItem *citem = dynamic_cast<CustomItem *>(item);
+
+    if (citem == nullptr || item->type() != annType || citem->label() != label)
+      continue;
+
+    if (item->isVisible() != enabled) {
+      item->setVisible(enabled);
+    }
+  }
 }

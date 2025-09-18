@@ -7,6 +7,9 @@
    width="32"
    height="32"
    inkscape:version="1.1.1 (1:1.1+202109281949+c3084ef5ed)"
+   inkscape:export-filename="draw-line.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -29,7 +32,9 @@
      inkscape:window-x="56"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg6" />
+     inkscape:current-layer="svg6"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
   <defs
      id="defs3051">
     <style
@@ -40,9 +45,26 @@
       }
       </style>
   </defs>
-  <path
-     style="fill:currentColor;fill-opacity:1;stroke:none;stroke-width:2.49984"
-     d="M 23.591304,1.0764985 V 6.8568082 L 6.8697627,23.577719 H 1.0924681 v 7.49878 h 7.501226 V 25.291303 L 25.310327,8.5752745 h 5.782141 v -7.498776 z m 2.500328,2.4995973 H 28.59206 V 6.0756931 H 26.091632 Z M 3.5879937,26.072448 h 2.5004212 v 2.499597 H 3.5879937 Z"
-     class="ColorScheme-Text"
-     id="path4" />
+  <ellipse
+     style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.78159;stroke-dasharray:none;stroke-opacity:1"
+     id="path3132"
+     cx="27.54163"
+     cy="4.171701"
+     rx="2.6092067"
+     ry="2.6092043" />
+  <ellipse
+     style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.78159;stroke-dasharray:none;stroke-opacity:1"
+     id="path3132-0"
+     cx="4.0503621"
+     cy="27.725779"
+     rx="2.6092067"
+     ry="2.6092043" />
+  <rect
+     style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.93554;stroke-dasharray:none;stroke-opacity:1"
+     id="rect3221"
+     width="33.386856"
+     height="0.57649219"
+     x="-17.77828"
+     y="22.026028"
+     transform="matrix(0.70315709,-0.71103453,0.73410231,0.67903888,0,0)" />
 </svg>

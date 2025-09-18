@@ -1,13 +1,11 @@
-#include "heavytaskthread.h"
+#include "coco.h"
 
 #include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QMap>
+#include <QThread>
 
 #include "utils.h"
 
-bool exportCOCOAnnotationsTask(AnnImgManager& annImgManager,
+bool exportCOCOAnnotationsTask(AnnImgManager& mgr,
                                const QString& outputFilePath,
                                QProgressDialog& progressDialog,
                                bool includeBBoxes, bool includePolygons) {
@@ -43,45 +41,56 @@ bool exportCOCOAnnotationsTask(AnnImgManager& annImgManager,
   };
   QHash<int, PendingCategory> catDefs;
 
-  const QStringList imageIds = annImgManager.imageIds();
+  const QStringList imageIds = mgr.imageIds();
+
+  ProgressValue pVal(imageIds.size());
 
   // --- Build images + annotations
   for (const QString& imgId : imageIds) {
+    if (progressDialog.wasCanceled()) {
+      return false;
+    }
+
     bool _;
-    const Annotations& ann = annImgManager.annotations(imgId, &_);
+    const Annotations& ann = mgr.annotations(imgId, &_);
+
+    int W = ann.img_w;
+    int H = ann.img_h;
+    if (W <= 1 || H <= 1) {
+      auto imageReader = mgr.imageReader(imgId);
+      W = imageReader.size().width();
+      H = imageReader.size().height();
+    }
 
     // images[]
     const int image_id = ids.next_image_id++;
     QJsonObject imgObj{
-        {"id", image_id},
-        {"file_name", ann.image_name.isEmpty() ? imgId : ann.image_name},
-        {"width", ann.img_w},
-        {"height", ann.img_h}};
+        {"id", image_id}, {"file_name", imgId}, {"width", W}, {"height", H}};
     images.append(imgObj);
 
     // annotations[] from bboxes
     if (includeBBoxes) {
       for (const auto& b : ann.bboxes) {
-        const QString label = b.getLabel().trimmed();
+        const QString label = b.getLabel();
         const int cat_id = catIndex.idForLabel(label, ids);
         if (cat_id > 0 && !catDefs.contains(cat_id)) {
           catDefs.insert(
               cat_id, PendingCategory{cat_id, label, QStringLiteral("object")});
         }
 
-        const QPointF pt1 = b.pt1();
-        const QPointF pt2 = b.pt2();
+        const QPointF p1 = b.pt1();
+        const QPointF p2 = b.pt2();
 
         // COCO bbox: [x, y, width, height], top-left origin
-        const double w = std::abs(pt2.x() - pt1.x());
-        const double h = std::abs(pt2.y() - pt1.y());
+        const double w = p2.x() - p1.x();
+        const double h = p2.y() - p1.y();
         const double ar = w * h;
 
         QJsonObject a{{"id", ids.next_ann_id++},
                       {"image_id", image_id},
                       {"category_id", cat_id > 0 ? cat_id : 0},
-                      {"iscrowd", 0},
-                      {"bbox", QJsonArray{pt1.x(), pt1.y(), w, h}},
+                      {"iscrowd", b.getCrowded() ? 1 : 0},
+                      {"bbox", QJsonArray{p1.x(), p1.y(), w, h}},
                       {"area", ar}};
         annotations.append(a);
       }
@@ -90,7 +99,7 @@ bool exportCOCOAnnotationsTask(AnnImgManager& annImgManager,
     // annotations[] from polygons (as segmentations)
     if (includePolygons) {
       for (const auto& p : ann.polygons) {
-        const QString label = p.getLabel().trimmed();
+        const QString label = p.getLabel();
         const int cat_id = catIndex.idForLabel(label, ids);
         if (cat_id > 0 && !catDefs.contains(cat_id)) {
           catDefs.insert(
@@ -108,11 +117,6 @@ bool exportCOCOAnnotationsTask(AnnImgManager& annImgManager,
             flat.append(coord.y());
           }
 
-          // for (int i = 0; i < n; ++i) {
-          //     flat.append()
-          //   // flat.append(p.x_coords[i]);
-          //   // flat.append(p.y_coords[i]);
-          // }
           const double ar = Helper::polygonArea(poly);
 
           auto&& [l, r] = std::minmax_element(
@@ -143,8 +147,10 @@ bool exportCOCOAnnotationsTask(AnnImgManager& annImgManager,
       }
     }
 
-    // --- TODO: If you want to export circles, approximate as polygon here
-    //           (e.g., 32-gon) and push to annotations like polygons above.
+    int pv;
+    if ((pv = pVal.value()) > 0) {
+      progressDialog.setValue(pv);
+    }
   }
 
   // categories[] from collected catDefs

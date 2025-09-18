@@ -1,26 +1,35 @@
 #include "editdialog.h"
 
 #include <QCompleter>
+#include <QMessageBox>
 
+#include "labeltreemodel.h"
 #include "ui_editdialog.h"
-#include "utils.h"
 
-EditDialog::EditDialog(QWidget *parent)
+EditDialog::EditDialog(Helper::CustomItemType anntype, const QString &label,
+                       const QString &dsc, QWidget *parent)
     : QDialog(parent), ui(new Ui::EditDialog) {
   ui->setupUi(this);
 
-  ui->labelsComboBox->addItems(Helper::currentLabels());
+  auto labels = Helper::labelTreeModel->labels(anntype);
+  ui->labelsComboBox->addItems(labels);
   ui->labelsComboBox->completer()->setCaseSensitivity(Qt::CaseSensitive);
   ui->labelsComboBox->setEditable(true);
   ui->groupBox1->setVisible(false);
+
+  m_annType = anntype;
+  setDescription(dsc);
+  m_oldLabel = label;
+  setLabel(label.isEmpty() ? labels[0] : label);
 }
 
 EditDialog::~EditDialog() { delete ui; }
 
-QString EditDialog::label() const { return ui->labelsComboBox->currentText(); }
+QString EditDialog::label() const {
+  return ui->labelsComboBox->currentText().trimmed();
+}
 
 QString EditDialog::description() const {
-  // qDebug() << "AA--> " << ui->textEditDescription->document()->toPlainText();
   return ui->textEditDescription->document()->toPlainText();
 }
 
@@ -49,6 +58,21 @@ bool EditDialog::getTruncated() const {
 }
 
 bool EditDialog::getCrowded() const { return ui->checkBoxCrowded->isChecked(); }
+
+void EditDialog::accept() {
+  const QString lb = label();
+  if (lb.trimmed().isEmpty()) {
+    QMessageBox::warning(
+        this, "Non valid label",
+        "You need to specify a lable or selected an existring one");
+    return;
+  }
+
+  if (label() != m_oldLabel) {
+    Helper::labelTreeModel->addNewLabel(m_annType, label());
+  }
+  QDialog::accept();
+}
 
 void EditDialog::on_toolButtonRemoveItem_clicked() {
   m_removedItem = true;

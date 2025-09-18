@@ -10,8 +10,6 @@
 
 class TreeNode {
   QString m_label{};
-  QColor m_color{};
-  Qt::CheckState m_checked;
   Helper::CustomItemType m_annType{};
   TreeNode *m_parent{};
   QList<TreeNode *> m_childrens;
@@ -23,9 +21,6 @@ class TreeNode {
   ~TreeNode();
   Helper::CustomItemType annType() const;
   QString label() const;
-  QColor color() const;
-  Qt::CheckState isChecked() const;
-  void setChecked(Qt::CheckState checked);
   bool isTypeNode() const;
   int childrenCount() const;
   TreeNode *parent();
@@ -53,9 +48,14 @@ class LabelTreeModel : public QAbstractItemModel {
   bool setData(const QModelIndex &idx, const QVariant &value,
                int role) override;
   Qt::ItemFlags flags(const QModelIndex &index) const override;
-  // QHash<int, QByteArray> roleNames() const override;
   QVariant headerData(int section, Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;
+
+  QStringList labels(Helper::CustomItemType annType) const;
+
+ signals:
+  void labelEnableChanged(Helper::CustomItemType annType, const QString &label,
+                          bool enabled);
 
  public slots:
   void clear();
@@ -63,8 +63,9 @@ class LabelTreeModel : public QAbstractItemModel {
  private:
   QList<TreeNode *> m_roots;
   TreeNode *nodeFromIndex(const QModelIndex &idx) const;
-  QMap<Helper::CustomItemType, QMap<QString, bool>> m_currentLabels;
+  QMap<Helper::CustomItemType, QMap<QString, Qt::CheckState>> m_currentLabels;
   TreeNode *ensureRootNode(Helper::CustomItemType &annType, int *nodeRow);
+  QMap<Helper::CustomItemType, QString> m_recentLabels;
 };
 
 #endif  // LABELTREEMODEL_H

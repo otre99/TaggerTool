@@ -358,3 +358,8 @@ QImage AnnImgManager::image(const QString &image_id) {
   const QString img_file_path = m_imagesDir.absoluteFilePath(image_id);
   return QImage(img_file_path);
 }
+
+QImageReader AnnImgManager::imageReader(const QString &image_id) {
+  const QString img_file_path = m_imagesDir.absoluteFilePath(image_id);
+  return QImageReader(img_file_path);
+}

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1165</width>
-    <height>755</height>
+    <width>1397</width>
+    <height>946</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1165</width>
+     <width>1397</width>
      <height>19</height>
     </rect>
    </property>
@@ -52,30 +52,30 @@
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuImport_Annotations">
-     <property name="title">
-      <string>Import Annotations</string>
-     </property>
-     <addaction name="actionImportNative_JSON"/>
-     <addaction name="actionImportCoco"/>
-     <addaction name="actionImportYolo"/>
-    </widget>
-    <widget class="QMenu" name="menuExport_Annotations">
+    <widget class="QMenu" name="menuExport_Annotations_2">
      <property name="title">
       <string>Export Annotations</string>
      </property>
-     <addaction name="actionExportNative_JSON"/>
      <addaction name="actionExportCoco"/>
      <addaction name="actionExportYolo"/>
+     <addaction name="actionNative"/>
     </widget>
-    <addaction name="actionLoad_project"/>
-    <addaction name="actionSave_project"/>
     <addaction name="separator"/>
-    <addaction name="menuExport_Annotations"/>
+    <addaction name="menuExport_Annotations_2"/>
     <addaction name="separator"/>
-    <addaction name="menuImport_Annotations"/>
+    <addaction name="actionAuto_Save"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_historial"/>
+    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="iconSize">
@@ -96,15 +96,15 @@
    <addaction name="saveLocalChanges"/>
    <addaction name="separator"/>
    <addaction name="addNewBbox"/>
-   <addaction name="actionAdd_Circle_Item"/>
+   <addaction name="actionAdd_New_Polygon"/>
    <addaction name="actionNew_Point"/>
    <addaction name="actionAdd_New_Line"/>
-   <addaction name="actionAdd_New_Polygon"/>
    <addaction name="actionAdd_New_LineStrip"/>
+   <addaction name="actionAdd_Circle_Item"/>
    <addaction name="separator"/>
-   <addaction name="actionGrid"/>
    <addaction name="actionShowBboxes"/>
    <addaction name="actionShow_Hide_Labels"/>
+   <addaction name="actionGrid"/>
    <addaction name="actionzoom100"/>
    <addaction name="actionFit_Into_View"/>
    <addaction name="separator"/>
@@ -127,13 +127,13 @@
     <set>Qt::DockWidgetArea::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>IMAGES</string>
+    <string/>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContentsL">
-    <layout class="QGridLayout" name="gridLayout_2">
+    <layout class="QGridLayout" name="gridLayout_6">
      <property name="leftMargin">
       <number>3</number>
      </property>
@@ -149,71 +149,7 @@
      <property name="spacing">
       <number>2</number>
      </property>
-     <item row="4" column="0" colspan="3">
-      <widget class="QUndoView" name="undoView"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QCheckBox" name="checkBoxAutoSave">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Auto Save</string>
-       </property>
-       <property name="icon">
-        <iconset theme="document-save"/>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QComboBox" name="comboBoxActiveLabel">
-       <property name="editable">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="3">
-      <widget class="QListView" name="listViewImgNames">
-       <property name="editTriggers">
-        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-       </property>
-       <property name="alternatingRowColors">
-        <bool>true</bool>
-       </property>
-       <property name="flow">
-        <enum>QListView::Flow::TopToBottom</enum>
-       </property>
-       <property name="resizeMode">
-        <enum>QListView::ResizeMode::Adjust</enum>
-       </property>
-       <property name="viewMode">
-        <enum>QListView::ViewMode::ListMode</enum>
-       </property>
-       <property name="uniformItemSizes">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QToolButton" name="toolButtonAddItemLabels">
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset theme="document-properties"/>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="3">
+     <item row="0" column="0">
       <widget class="QPushButton" name="pbLoadImgAnn">
        <property name="font">
         <font>
@@ -235,24 +171,238 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0" colspan="3">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>HISTORIAL</string>
+     <item row="1" column="0">
+      <widget class="QListView" name="listViewImgNames">
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="flow">
+        <enum>QListView::Flow::TopToBottom</enum>
+       </property>
+       <property name="resizeMode">
+        <enum>QListView::ResizeMode::Adjust</enum>
+       </property>
+       <property name="viewMode">
+        <enum>QListView::ViewMode::ListMode</enum>
+       </property>
+       <property name="uniformItemSizes">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="title">
+        <string>Image</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignBottom|Qt::AlignmentFlag::AlignHCenter</set>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Description</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPlainTextEdit" name="pTextImgDescription"/>
+        </item>
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Label:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBoxImgLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="editable">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButtonAddImgLabels">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="document-properties"/>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="title">
+        <string>Annotation labels</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QTreeView" name="treeViewLabels">
+          <property name="headerHidden">
+           <bool>true</bool>
+          </property>
+          <attribute name="headerVisible">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidgetEditHistorial">
+   <property name="font">
+    <font>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFeature::DockWidgetClosable|QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::DockWidgetArea::LeftDockWidgetArea|Qt::DockWidgetArea::RightDockWidgetArea|Qt::DockWidgetArea::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Historial</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContentsR">
+    <layout class="QGridLayout" name="gridLayout_7">
+     <item row="0" column="0">
+      <widget class="QUndoView" name="undoView">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
       </widget>
      </item>
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockWidgetR">
+  <widget class="QDockWidget" name="dockWidgetSettings">
+   <property name="font">
+    <font>
+     <bold>true</bold>
+    </font>
+   </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFeature::NoDockWidgetFeatures</set>
+    <set>QDockWidget::DockWidgetFeature::DockWidgetClosable|QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::DockWidgetArea::LeftDockWidgetArea|Qt::DockWidgetArea::RightDockWidgetArea|Qt::DockWidgetArea::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Settings</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContentsR">
+   <widget class="QWidget" name="dockWidgetContents_3">
     <layout class="QGridLayout" name="gridLayout_4">
      <property name="leftMargin">
       <number>3</number>
@@ -270,157 +420,9 @@
       <number>2</number>
      </property>
      <item row="0" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_5">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Image Label:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboBoxImgLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="editable">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButtonAddImgLabels">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset theme="document-properties"/>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>16</width>
-           <height>16</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Image Description:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QPlainTextEdit" name="pTextImgDescription"/>
-     </item>
-     <item row="3" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Tags:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboBoxTag">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="editable">
-          <bool>false</bool>
-         </property>
-         <item>
-          <property name="text">
-           <string/>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="tBAdd">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="resource.qrc">
-           <normaloff>:/icons/icons/emblem-added.svg</normaloff>:/icons/icons/emblem-added.svg</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>16</width>
-           <height>16</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="tBRemove">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="resource.qrc">
-           <normaloff>:/icons/icons/emblem-remove.svg</normaloff>:/icons/icons/emblem-remove.svg</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>16</width>
-           <height>16</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButtonAddTags">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset theme="document-properties"/>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>16</width>
-           <height>16</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="4" column="0">
-      <widget class="QListWidget" name="listWidgetTags">
-       <property name="alternatingRowColors">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>Settings</string>
+        <string/>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <property name="leftMargin">
@@ -440,6 +442,11 @@
         </property>
         <item row="0" column="0">
          <widget class="QLabel" name="label_3">
+          <property name="font">
+           <font>
+            <bold>true</bold>
+           </font>
+          </property>
           <property name="text">
            <string>Point Radius:</string>
           </property>
@@ -447,6 +454,11 @@
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_4">
+          <property name="font">
+           <font>
+            <bold>true</bold>
+           </font>
+          </property>
           <property name="text">
            <string>Label Font Size:</string>
           </property>
@@ -454,6 +466,11 @@
         </item>
         <item row="1" column="1">
          <widget class="QSpinBox" name="spinBoxLabelPixSize">
+          <property name="font">
+           <font>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="minimum">
            <number>8</number>
           </property>
@@ -467,6 +484,11 @@
         </item>
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="doubleSpinBoxPtRadius">
+          <property name="font">
+           <font>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="minimum">
            <double>0.500000000000000</double>
           </property>
@@ -521,7 +543,7 @@
      <normaloff>:/icons/icons/view-visible.svg</normaloff>:/icons/icons/view-visible.svg</iconset>
    </property>
    <property name="text">
-    <string>Show </string>
+    <string>Show/Hide Non Editable Items </string>
    </property>
    <property name="toolTip">
     <string>Show/Hide annotations (H)</string>
@@ -542,10 +564,10 @@
      <normaloff>:/icons/icons/show_hide_labels.svg</normaloff>:/icons/icons/show_hide_labels.svg</iconset>
    </property>
    <property name="text">
-    <string>Show/Hide Labels</string>
+    <string>Show Labels</string>
    </property>
    <property name="toolTip">
-    <string>Show/Hide Labels (L)</string>
+    <string>Show Labels (L)</string>
    </property>
    <property name="shortcut">
     <string>L</string>
@@ -708,34 +730,57 @@
     <string>C</string>
    </property>
   </action>
-  <action name="actionExportNative_JSON">
+  <action name="actionExportNative">
    <property name="text">
-    <string>Native JSON</string>
+    <string>Native</string>
+   </property>
+   <property name="toolTip">
+    <string>Export to native JSON</string>
    </property>
   </action>
   <action name="actionExportCoco">
    <property name="text">
     <string>Coco</string>
    </property>
+   <property name="toolTip">
+    <string>Export to coco JSON</string>
+   </property>
   </action>
   <action name="actionExportYolo">
    <property name="text">
     <string>Yolo</string>
    </property>
-  </action>
-  <action name="actionImportNative_JSON">
-   <property name="text">
-    <string>Native JSON</string>
+   <property name="toolTip">
+    <string>Export to yolo JSON</string>
    </property>
   </action>
-  <action name="actionImportCoco">
+  <action name="actionAuto_Save">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Coco</string>
+    <string>Auto Save</string>
    </property>
   </action>
-  <action name="actionImportYolo">
+  <action name="actionEdit_historial">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Yolo</string>
+    <string>Historial</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionNative">
+   <property name="text">
+    <string>Native</string>
    </property>
   </action>
  </widget>

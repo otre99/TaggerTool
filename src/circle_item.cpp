@@ -9,20 +9,20 @@
 #include <QMenu>
 #include <QPainter>
 
-#include "editdialog.h"
 #include "imagecanvas.h"
 #include "undo_cmds.h"
 
 extern Helper globalHelper;
 
 CircleItem::CircleItem(ImageCanvas *canvas, const QPointF &center,
-                       double radius, const QString &label,
+                       double radius, const QString &label, const QString &dsc,
                        QGraphicsItem *parent, bool ready)
     : QGraphicsEllipseItem(0, 0, 2 * radius, 2 * radius, parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
   m_canvas = canvas;
+  m_description = dsc;
   setPos(center - QPointF{radius, radius});
 
   __setLocked(this, !ready);
@@ -53,12 +53,13 @@ void CircleItem::paint(QPainter *painter,
   painter->setPen(p);
 
   QRectF brect = rect();  // boundingRect();
-  if (m_moveEnable) {
-    painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
+  if (m_editEnable) {
+    painter->setBrush(
+        QBrush(Helper::getUnlockedColor(m_currentCorner == kCenter)));
   } else {
     painter->setBrush(QBrush(Helper::kLockedBBoxColor));
   }
-  if (!m_moveEnable) {
+  if (!m_editEnable) {
     QPen pp = p;
     pp.setWidthF(Helper::kLineWidth);
     pp.setCosmetic(true);
@@ -66,7 +67,7 @@ void CircleItem::paint(QPainter *painter,
     painter->drawEllipse(brect);
     painter->setPen(p);
   }
-  if (m_moveEnable) {
+  if (m_editEnable) {
     auto pp = p;
     pp.setCosmetic(true);
     pp.setWidthF(Helper::kLineWidth);
@@ -81,9 +82,16 @@ void CircleItem::paint(QPainter *painter,
     painter->drawLine(QPointF{c.x(), c.y() - r}, QPointF{c.x(), c.y() + r});
 
     if (m_currentCorner == kBorder) {
-      pp.setStyle(Qt::DotLine);
+      painter->setBrush(Helper::getCircleColor(true));
+
       painter->setPen(pp);
       painter->drawLine(c, m_lastPt);
+      painter->setPen(Qt::NoPen);
+      qreal radius = p.widthF();
+      Helper::drawCircleOrSquared(
+          painter,
+          Helper::intermediatePoint(c, m_lastPt, this->radius() - radius),
+          radius, true);
     }
   }
   if (m_canvas->showLabels()) {
@@ -100,7 +108,7 @@ void CircleItem::paint(QPainter *painter,
 }
 
 void CircleItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-  if (m_currentCorner == kCenter || !m_moveEnable)
+  if (m_currentCorner == kCenter || !m_editEnable)
     QGraphicsEllipseItem::mouseMoveEvent(event);
   else {
     const QPointF pos = event->pos();
@@ -120,20 +128,20 @@ void CircleItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
   } else if (event->modifiers() == Qt::ShiftModifier &&
              event->button() == Qt::LeftButton) {
-    setLocked(m_moveEnable);
-  } else if (event->button() == Qt::RightButton && m_moveEnable) {
+    setLocked(m_editEnable);
+  } else if (event->button() == Qt::RightButton && m_editEnable) {
     showEditDialog(this, event->screenPos());
   } else {
     m_currentCorner = positionInside(event->pos());
     m_oldPos = pos();
     m_oldRect = rect();
-    if (m_currentCorner == kCenter || !m_moveEnable) {
+    if (m_currentCorner == kCenter && m_editEnable) {
       setCursor(Qt::DragMoveCursor);
       QGraphicsEllipseItem::mousePressEvent(event);
     } else {
-      // update();
-      setCursor(Qt::SizeAllCursor);
+      setCursor(Qt::ArrowCursor);
       m_lastPt = event->pos();
+      update();
     }
   }
 }
@@ -184,7 +192,7 @@ QRectF CircleItem::boundingRect() const {
 
 // private
 CircleItem::CORNER CircleItem::positionInside(const QPointF &pos) {
-  const qreal th = pen().widthF() / 2;
+  const qreal th = pen().widthF();
   const qreal r = radius();
   const qreal dist = Helper::pointLen(pos - rect().center());
   qreal delta = r - dist;

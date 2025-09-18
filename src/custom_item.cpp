@@ -8,14 +8,13 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
-#include "labeltreemodel.h"
 #include "undo_cmds.h"
 #include "utils.h"
+
 void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
-  EditDialog dlg;
+  EditDialog dlg(static_cast<Helper::CustomItemType>(item->type()), m_label,
+                 m_description);
   dlg.setGeometry(QRect{screenPos, dlg.size()});
-  dlg.setLabel(m_label);
-  dlg.setDescription(m_description);
   if (dlg.exec() == QDialog::Accepted) {
     // ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
     ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
@@ -28,9 +27,6 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
     if (dlg.label() != m_label) {
       Helper::imageCanvas()->undoStack()->push(
           new ChangeLabelCommand(m_label, dlg.label(), item));
-
-      Helper::labelTreeModel->addNewLabel(
-          static_cast<Helper::CustomItemType>(item->type()), m_label);
     }
 
     if (dlg.description() != m_description) {
@@ -55,10 +51,10 @@ void CustomItem::__calculateLabelSize(const QString &label) {
 }
 
 void CustomItem::__setLocked(QGraphicsItem *item, bool lk) {
-  m_moveEnable = !lk;
-  item->setFlag(QGraphicsItem::ItemIsMovable, m_moveEnable);
-  item->setFlag(QGraphicsItem::ItemIsSelectable, m_moveEnable);
-  item->setFlag(QGraphicsItem::ItemIsFocusable, m_moveEnable);
+  m_editEnable = !lk;
+  item->setFlag(QGraphicsItem::ItemIsMovable, m_editEnable);
+  item->setFlag(QGraphicsItem::ItemIsSelectable, m_editEnable);
+  item->setFlag(QGraphicsItem::ItemIsFocusable, m_editEnable);
 
   if (m_canvas && lk == false) {
     m_canvas->updateMovableItem(this);

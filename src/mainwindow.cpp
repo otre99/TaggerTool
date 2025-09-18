@@ -3,16 +3,21 @@
 #include <QCompleter>
 #include <QDebug>
 #include <QFileDialog>
+#include <QFuture>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QPromise>
 #include <QRegularExpression>
 #include <QUndoView>
 #include <QWheelEvent>
 
-#include "dialogexporter.h"
 #include "dialoglabels.h"
+#include "import_export/coco.h"
+#include "import_export/native.h"
+#include "import_export/yolo.h"
+#include "labeltreemodel.h"
 #include "loadimganndialog.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
@@ -22,16 +27,16 @@ extern Helper globalHelper;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
-  setUp();
   Helper::InitFonts(font());
   Helper::InitSupportedImageFormats();
   Helper::setImageCanvas(&m_imageCanvas);
+  Helper::labelTreeModel = new LabelTreeModel(this);
+  ui->treeViewLabels->setModel(Helper::labelTreeModel);
+
+  setUp();
 }
 
-MainWindow::~MainWindow() {
-  m_timer.stop();
-  delete ui;
-}
+MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::setUp() {
   ui->bboxEditor->setScene(&m_imageCanvas);
@@ -42,9 +47,6 @@ void MainWindow::setUp() {
 
   connect(m_imageCanvas.undoStack(), &QUndoStack::cleanChanged, this,
           &MainWindow::on_NeedSaveChangeUndo);
-
-  connect(&m_timer, &QTimer::timeout, this, &MainWindow::on_timeout);
-  m_timer.start(500);
 
   auto undoAction = m_imageCanvas.undoStack()->createUndoAction(this);
   undoAction->setIcon(QIcon(":/icons/icons/edit-undo.svg"));
@@ -59,9 +61,15 @@ void MainWindow::setUp() {
   ui->undoView->setStack(m_imageCanvas.undoStack());
   ui->saveLocalChanges->setEnabled(false);
 
-  m_heavyTaskThread.start(QThread::HighestPriority);
-
   ui->statusBar->addWidget(m_displayLabel = new QLabel);
+
+  ui->dockWidgetEditHistorial->close();
+  ui->dockWidgetSettings->close();
+
+  connect(Helper::labelTreeModel,
+          SIGNAL(labelEnableChanged(Helper::CustomItemType, QString, bool)),
+          &m_imageCanvas,
+          SLOT(onLabelEnableChanged(Helper::CustomItemType, QString, bool)));
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -112,7 +120,7 @@ void MainWindow::selectionChangedOnImageCanvas() {
 }
 
 void MainWindow::on_addNewBbox_triggered() {
-  m_imageCanvas.prepareForNewBBox(ui->comboBoxActiveLabel->currentText());
+  m_imageCanvas.prepareForNewBBox("");
 }
 
 void MainWindow::on_pbLoadImgAnn_clicked() {
@@ -121,18 +129,20 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
   QSettings st;
   st.beginGroup("recent_image_annotation_folders");
   const auto keys = st.childKeys();  // O(n) listing once
-  // qDebug() << "AAAA" << st.childKeys();
-  QList<QPair<QString, QString>> recents;
+  QList<std::tuple<QString, QString, qint64>> recents;
   recents.reserve(keys.size());
   for (const auto &k : keys) {
     QString image_path, anno_path;
-    qint64 _ = 0;
+    qint64 dti = 0;
 
-    if (unpackProjectTuple(st.value(k), image_path, anno_path, _)) {
-      recents.push_back({image_path, anno_path});
+    if (unpackProjectTuple(st.value(k), image_path, anno_path, dti)) {
+      recents.emplace_back(image_path, anno_path, dti);
     }
   }
   st.endGroup();
+
+  std::sort(recents.begin(), recents.end(),
+            [](auto &&x, auto &&y) { return std::get<2>(x) < std::get<2>(y); });
 
   LoadImgAnnDialog dlg;
   dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
@@ -144,6 +154,7 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
 
   bool ok = loadImagesAndAnnotations(dlg.imgFolder(), dlg.annFolder());
   ui->listViewImgNames->setEnabled(ok);
+
   if (ok) {
     st.beginGroup("recent_image_annotation_folders");
     auto key = makeProjectKey(m_annImgManager.imgFolder(),
@@ -152,7 +163,6 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
                                   m_annImgManager.annFolder(),
                                   Helper::seconsToYear5000());
     st.setValue(key, value);
-    // qDebug() << "BBB" << st.childKeys();
     st.endGroup();
     st.sync();
   }
@@ -164,9 +174,6 @@ void MainWindow::on_saveLocalChanges_triggered() {
   // image label, description and tags
   ann.label = ui->comboBoxImgLabel->currentText();
   ann.description = ui->pTextImgDescription->toPlainText();
-  for (int i = 0; i < ui->listWidgetTags->count(); ++i) {
-    ann.tags.append(ui->listWidgetTags->item(i)->text());
-  }
 
   m_annImgManager.saveAnnotations(ann.image_name, ann);
   ui->saveLocalChanges->setEnabled(false);
@@ -184,7 +191,7 @@ void MainWindow::on_actionShowBboxes_triggered() {
 }
 
 void MainWindow::on_actionNew_Point_triggered() {
-  m_imageCanvas.prepareForNewPoint(ui->comboBoxActiveLabel->currentText());
+  m_imageCanvas.prepareForNewPoint("");
 }
 
 void MainWindow::on_NeedSaveChangeUndo(bool enable) {
@@ -196,11 +203,14 @@ void MainWindow::on_NeedSaveChange() {
   ui->saveLocalChanges->setEnabled(m_needToSaveNotUndo = true);
 }
 
+///////////////////////////////////////////////////////
+///////  LOAD ANNOTATIONS TO CANVAS                  //
+///////////////////////////////////////////////////////
 void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   if (index == m_current_index) return;
 
   if (ui->saveLocalChanges->isEnabled()) {
-    if (ui->checkBoxAutoSave->isChecked()) {
+    if (ui->actionAuto_Save->isChecked()) {
       on_saveLocalChanges_triggered();
     } else {
       QMessageBox::StandardButton ex = QMessageBox::warning(
@@ -225,7 +235,14 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
 
   const QString image_id = m_imageListModel.originalText(index);
   const QImage &image = m_annImgManager.image(image_id);
-  const Annotations &ann = m_annImgManager.annotations(image_id);
+  bool fromCached;
+  const Annotations &ann = m_annImgManager.annotations(image_id, &fromCached);
+
+  // WHEN ANNOTATIONS COME FROM THE CACHE THE TAGS ARE ALREADY REGISTERED
+  if (!fromCached) {
+    Helper::labelTreeModel->populateLabelsFromAnnotations(ann);
+  }
+
   m_imageCanvas.reset(image, image_id);
   m_imageCanvas.addAnnotations(ann);
 
@@ -235,15 +252,6 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   // description
   ui->pTextImgDescription->setPlainText(ann.description);
 
-  // tags
-  ui->listWidgetTags->clear();
-  for (auto &tag : ann.tags) {
-    auto item = new QListWidgetItem();
-    item->setFlags(item->flags() | Qt::ItemIsEditable);
-    item->setText(tag);
-    addNewUniqueItem(ui->comboBoxTag, tag, false);
-    ui->listWidgetTags->addItem(item);
-  }
   on_actionFit_Into_View_triggered();
   displayImageInfo();
 
@@ -254,7 +262,7 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
 }
 
 void MainWindow::on_actionAdd_New_Line_triggered() {
-  m_imageCanvas.prepareForNewLine(ui->comboBoxActiveLabel->currentText());
+  m_imageCanvas.prepareForNewLine("");
 }
 
 void MainWindow::on_actionNext_triggered() {
@@ -275,7 +283,7 @@ void MainWindow::on_actionPrevious_triggered() {
 }
 
 void MainWindow::on_actionAdd_New_Polygon_triggered() {
-  m_imageCanvas.prepareForNewPolygon(ui->comboBoxActiveLabel->currentText());
+  m_imageCanvas.prepareForNewPolygon("");
 }
 
 void MainWindow::on_actionzoom100_triggered() {
@@ -287,45 +295,6 @@ void MainWindow::on_actionzoom100_triggered() {
 
 void MainWindow::on_actionGrid_triggered(bool checked) {
   m_imageCanvas.setShowGrid(checked);
-}
-
-void MainWindow::on_timeout() {
-  if (Helper::m_labelsUpdated) {
-    QString currLabel = ui->comboBoxActiveLabel->currentText();
-    ui->comboBoxActiveLabel->clear();
-    ui->comboBoxActiveLabel->addItems(Helper::currentLabels());
-    if (currLabel.isEmpty()) {
-      ui->comboBoxActiveLabel->setCurrentIndex(0);
-    } else {
-      ui->comboBoxActiveLabel->setCurrentText(currLabel);
-    }
-    Helper::m_labelsUpdated = false;
-  }
-}
-
-void MainWindow::on_tBAdd_clicked() {
-  QString currTag = ui->comboBoxTag->currentText();
-  if (currTag.isEmpty()) return;
-
-  auto item = new QListWidgetItem();
-  item->setFlags(item->flags() | Qt::ItemIsEditable);
-  item->setText(currTag);
-  auto idx = ui->listWidgetTags->currentIndex();
-  if (idx.isValid()) {
-    ui->listWidgetTags->insertItem(idx.row() + 1, item);
-  } else {
-    ui->listWidgetTags->addItem(item);
-  }
-  ui->comboBoxTag->setCurrentIndex(0);
-  on_NeedSaveChange();
-}
-
-void MainWindow::on_tBRemove_clicked() {
-  auto idx = ui->listWidgetTags->currentIndex();
-  if (idx.isValid()) {
-    delete ui->listWidgetTags->takeItem(idx.row());
-    on_NeedSaveChange();
-  }
 }
 
 void MainWindow::on_pTextImgDescription_textChanged() { on_NeedSaveChange(); }
@@ -356,28 +325,6 @@ void MainWindow::on_comboBoxImgLabel_currentTextChanged(const QString &arg1) {
   on_NeedSaveChange();
 }
 
-void MainWindow::on_toolButtonAddItemLabels_clicked() {
-  DialogLabels dlb(this, "Item's labels");
-  dlb.setLabels(getLabelsFromComboBox(ui->comboBoxActiveLabel));
-  if (dlb.exec() == QDialog::Accepted) {
-    Helper::clearLabels();
-    Helper::registerNewLabels(dlb.getLabels());
-  }
-}
-
-void MainWindow::on_toolButtonAddTags_clicked() {
-  DialogLabels dlb(this, "Image's tags");
-  QStringList tags = getLabelsFromComboBox(ui->comboBoxTag);
-  tags.removeFirst();
-  dlb.setLabels(tags);
-  if (dlb.exec() == QDialog::Accepted) {
-    tags = dlb.getLabels();
-    tags.push_front("");
-    ui->comboBoxTag->clear();
-    ui->comboBoxTag->addItems(tags);
-  }
-}
-
 void MainWindow::on_toolButtonAddImgLabels_clicked() {
   DialogLabels dlb(this, "Image's labels");
   QStringList labels = getLabelsFromComboBox(ui->comboBoxImgLabel);
@@ -389,48 +336,12 @@ void MainWindow::on_toolButtonAddImgLabels_clicked() {
   }
 }
 
-void MainWindow::on_actionSave_project_triggered() {
-  const QString filePath =
-      QFileDialog::getSaveFileName(this, "Save project file");
-  if (filePath.isEmpty()) return;
-
-  QJsonObject root;
-  root.insert("ann_folder", m_annImgManager.annFolder());
-  root.insert("img_folder", m_annImgManager.imgFolder());
-
-  // tags
-  QJsonArray array_lbs;
-  for (int i = 0; i < ui->comboBoxTag->count(); ++i) {
-    QString tag = ui->comboBoxTag->itemText(i);
-    if (!tag.isEmpty()) array_lbs.append(tag);
-  }
-  root["tags"] = array_lbs;
-
-  // obj labes
-  array_lbs = {};
-  for (int i = 0; i < ui->comboBoxActiveLabel->count(); ++i) {
-    QString tag = ui->comboBoxActiveLabel->itemText(i);
-    if (!tag.isEmpty()) array_lbs.append(tag);
-  }
-  root["obj_labels"] = array_lbs;
-
-  // img labes
-  array_lbs = {};
-  for (int i = 0; i < ui->comboBoxImgLabel->count(); ++i) {
-    QString tag = ui->comboBoxImgLabel->itemText(i);
-    if (!tag.isEmpty()) array_lbs.append(tag);
-  }
-  root["img_labels"] = array_lbs;
-
-  const QByteArray out = QJsonDocument(root).toJson();
-  QFile ofile(filePath);
-  if (!ofile.open(QFile::WriteOnly)) {
-    qDebug() << "Failed writing project file: " << filePath;
-    return;
-  }
-  ofile.write(out);
-}
-
+/**
+ * @brief MainWindow::loadImagesAndAnnotations Load a new project
+ * @param annImg
+ * @param annFolder
+ * @return true|false
+ */
 bool MainWindow::loadImagesAndAnnotations(const QString &annImg,
                                           const QString &annFolder) {
   // clean labels
@@ -443,6 +354,7 @@ bool MainWindow::loadImagesAndAnnotations(const QString &annImg,
     return false;
   }
 
+  Helper::labelTreeModel->clear();
   m_imageListModel.setStringList(m_annImgManager.imageIds());
   ui->saveLocalChanges->setEnabled(false);
 
@@ -455,82 +367,67 @@ bool MainWindow::loadImagesAndAnnotations(const QString &annImg,
   ui->mainToolBar->setToolTip(m_annImgManager.imgFolder());
   m_displayLabel->setText(u8"\U0001F5BC " + m_annImgManager.imgFolder() +
                           u8" \U0001F4DD " + m_annImgManager.annFolder());
+
   return true;
 }
 
-void MainWindow::on_actionLoad_project_triggered() {
-  const QString filePath =
-      QFileDialog::getOpenFileName(this, "Load project file");
-  if (filePath.isEmpty()) return;
-
-  QFile ifile(filePath);
-  if (!ifile.open(QFile::ReadOnly)) {
-    qDebug() << "Failed reading annotations file: " << filePath;
-    return;
-  }
-  const QByteArray json = ifile.readAll();
-
-  QJsonDocument doc = QJsonDocument::fromJson(json);
-  QJsonObject root = doc.object();
-
-  // tags
-  QStringList lbs;
-  for (auto &&lb : root["tags"].toArray()) {
-    lbs << lb.toString();
-  }
-  ui->comboBoxTag->clear();
-  lbs.push_front("");
-  ui->comboBoxTag->addItems(lbs);
-
-  // object labels
-  lbs.clear();
-  for (auto &&lb : root["obj_labels"].toArray()) {
-    lbs << lb.toString();
-  }
-  ui->comboBoxActiveLabel->clear();
-  Helper::clearLabels();
-  Helper::registerNewLabels(lbs);
-
-  // img labels
-  lbs.clear();
-  for (auto &&lb : root["img_labels"].toArray()) {
-    lbs << lb.toString();
-  }
-  ui->comboBoxImgLabel->clear();
-  ui->comboBoxImgLabel->addItems(lbs);
-
-  const QString imgFolder = root["img_folder"].toString();
-  const QString annFolder = root["ann_folder"].toString();
-  loadImagesAndAnnotations(imgFolder, annFolder);
-}
-
 void MainWindow::on_actionAdd_New_LineStrip_triggered() {
-  m_imageCanvas.prepareForNewLineStrip(ui->comboBoxActiveLabel->currentText());
-}
-
-void MainWindow::on_actionExport_Annotations_triggered() {
-  if (m_annImgManager.annotationsCount() == 0) {
-    QMessageBox::warning(this, "Export Annotations", "Nothing to export!");
-    return;
-  }
-
-  m_heavyTaskThread.annImgManager = &m_annImgManager;
-  DialogExporter exportedDlg(this, &m_heavyTaskThread);
-  connect(&m_heavyTaskThread, &HeavyTaskThread::taskStarted, &exportedDlg,
-          &DialogExporter::taskStarted);
-  connect(&m_heavyTaskThread, &HeavyTaskThread::progress, &exportedDlg,
-          &DialogExporter::updateProgress);
-  connect(&m_heavyTaskThread, &HeavyTaskThread::taskFinished, &exportedDlg,
-          &DialogExporter::taskFinished);
-
-  m_heavyTaskThread.startTask(HeavyTaskThread::CollectAnnotations);
-  exportedDlg.exec();
+  m_imageCanvas.prepareForNewLineStrip("");
 }
 
 void MainWindow::on_actionAdd_Circle_Item_triggered() {
-  m_imageCanvas.prepareForNewCircle(ui->comboBoxActiveLabel->currentText());
+  m_imageCanvas.prepareForNewCircle("");
 }
 
-void MainWindow::on_actionShow_Hide_Labels_toggled(bool arg1) {
-  m_imageCanvas.setShowLabels(arg1);
+void MainWindow::on_actionExportCoco_triggered() {
+  const QString fileName = QFileDialog::getSaveFileName(this, "Coco JSON file");
+  if (fileName.isEmpty()) return;
+
+  QProgressDialog progress("Exporting to COCO format...", "Cancel", 0, 100,
+                           this);
+  progress.setMinimumDuration(0);
+  progress.setWindowModality(Qt::WindowModal);
+  exportCOCOAnnotationsTask(m_annImgManager, fileName, progress, true, true);
+}
+
+void MainWindow::on_actionEdit_historial_triggered(bool checked) {
+  if (checked) {
+    ui->dockWidgetEditHistorial->show();
+  } else {
+    ui->dockWidgetEditHistorial->close();
+  }
+}
+
+void MainWindow::on_actionSettings_triggered(bool checked) {
+  if (checked) {
+    ui->dockWidgetSettings->show();
+  } else {
+    ui->dockWidgetSettings->close();
+  }
+}
+
+void MainWindow::on_actionShow_Hide_Labels_triggered(bool checked) {
+  m_imageCanvas.setShowLabels(checked);
+}
+
+void MainWindow::on_actionExportYolo_triggered() {
+  const QString outDir = QFileDialog::getExistingDirectory(
+      this, "Select folder for YOLO annotations");
+  if (outDir.isEmpty()) return;
+
+  QProgressDialog progress("Exporting to YOLO format...", "Cancel", 0, 100,
+                           this);
+  progress.setWindowModality(Qt::WindowModal);
+  exportProjectToYOLO(m_annImgManager, outDir, progress, true, true);
+}
+
+void MainWindow::on_actionNative_triggered() {
+  const QString fileName =
+      QFileDialog::getSaveFileName(this, "Native JSON file");
+  if (fileName.isEmpty()) return;
+
+  QProgressDialog progress("Exporting to a single JSON file...", "Cancel", 0,
+                           100, this);
+  progress.setWindowModality(Qt::WindowModal);
+  exportProjectToJSON(m_annImgManager, fileName, progress);
 }

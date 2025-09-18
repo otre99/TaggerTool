@@ -14,11 +14,13 @@
 #include "undo_cmds.h"
 
 LineItem::LineItem(ImageCanvas *canvas, const QPointF &p1, const QPointF &p2,
-                   const QString &label, QGraphicsItem *parent, bool ready)
+                   const QString &label, const QString &dsc,
+                   QGraphicsItem *parent, bool ready)
     : QGraphicsLineItem(p1.x(), p1.y(), p2.x(), p2.y(), parent) {
   setFlags(QGraphicsItem::ItemIsFocusable |
            QGraphicsItem::ItemSendsGeometryChanges);
   m_canvas = canvas;
+  m_description = dsc;
   __setLocked(this, !ready);
   if (ready) {
     setSelected(ready);
@@ -60,7 +62,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   QPen p = pen();
   p.setWidthF(p.widthF() / 2.0);
   painter->setPen(p);
-  if (!m_moveEnable) {
+  if (!m_editEnable) {
     QPen pp = p;
     pp.setWidth(Helper::kLineWidth);
     pp.setCosmetic(true);
@@ -70,24 +72,33 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   } else {
     painter->save();
     auto pp = p;
-    //    pp.setWidthF(qMin(1.0, p.widthF()));
     pp.setWidthF(Helper::kLineWidth);
     pp.setCosmetic(true);
-    // pp.setStyle(Qt::DotLine);
     pp.setColor(Qt::black);
     painter->setPen(pp);
     painter->drawLine(line());
     painter->restore();
 
     painter->setPen(Qt::NoPen);
-    QColor color = Helper::getCircleColor();  // pen().color();
-    color.setAlpha(150);
-    painter->setBrush(color);
+    painter->setBrush(Helper::getCircleColor(false));
 
-    Helper::drawCircleOrSquared(painter, line().p1(), p.widthF(),
-                                m_currentCorner != kP1);
-    Helper::drawCircleOrSquared(painter, line().p2(), p.widthF(),
-                                m_currentCorner != kP2);
+    const QPair<CORNER, QPointF> pts[] = {
+        {kP1, line().p1()},
+        {kP2, line().p2()},
+    };
+
+    for (auto &&[corner, pt] : pts) {
+      if (m_currentCorner == corner) {
+        painter->save();
+        painter->setBrush(Helper::getCircleColor(true));
+        Helper::drawCircleOrSquared(painter, pt, p.widthF(),
+                                    m_currentCorner != corner);
+        painter->restore();
+      } else {
+        Helper::drawCircleOrSquared(painter, pt, p.widthF(),
+                                    m_currentCorner != corner);
+      }
+    }
   }
 
   if (m_canvas->showLabels()) {
@@ -102,7 +113,7 @@ void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 }
 
 void LineItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-  if (m_currentCorner == kCenter || !m_moveEnable)
+  if (m_currentCorner == kCenter || !m_editEnable)
     QGraphicsItem::mouseMoveEvent(event);
   else {
     QPointF cpos = event->pos();
@@ -113,33 +124,31 @@ void LineItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
       auto p = line().p1();
       setLine(p.x(), p.y(), cpos.x(), cpos.y());
     }
-    // emit dynamic_cast<ImageCanvas *>(scene())->needSaveChanges();
   }
-  //  if (isSelected())
-  //    emit dynamic_cast<ImageCanvas *>(scene())->bboxItemToEditor(this, 0);
 }
 
 void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+  m_currentCorner = positionInside(event->pos());
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
   } else if (event->modifiers() == Qt::ShiftModifier &&
              event->button() == Qt::LeftButton) {
-    setLocked(m_moveEnable);
-  } else if (event->button() == Qt::RightButton && m_moveEnable) {
+    setLocked(m_editEnable);
+  } else if (event->button() == Qt::RightButton && m_editEnable) {
     showEditDialog(this, event->screenPos());
   } else {
-    m_currentCorner = positionInside(event->pos());
-    if (m_currentCorner == kCenter || !m_moveEnable) {
+    if (m_currentCorner == kCenter && m_editEnable) {
       setCursor(Qt::DragMoveCursor);
       QGraphicsLineItem::mousePressEvent(event);
     } else {
-      setCursor(Qt::SizeAllCursor);
-      // update();
+      setCursor(Qt::ArrowCursor);
+      update();
     }
   }
   m_oldLine = line();
   m_oldPos = pos();
+  update();
 }
 
 void LineItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
@@ -159,9 +168,8 @@ void LineItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     Helper::imageCanvas()->undoStack()->push(
         new MoveItemCommand(m_oldPos, pos(), this, nullptr));
   }
-
   m_currentCorner = kInvalid;
-  //  update();
+  update();
 }
 
 void LineItem::keyPressEvent(QKeyEvent *event) {

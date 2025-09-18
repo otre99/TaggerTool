@@ -20,7 +20,7 @@ class BoundingBoxItem : public QGraphicsRectItem, public CustomItem {
     kBottomCenter,
     kLeftCenter,
     kInvalid
-  } m_currentCorner;
+  } m_currentCorner{kInvalid};
 
  public:
   BoundingBoxItem(ImageCanvas *canvas, const QRectF &rectf,

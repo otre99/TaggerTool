@@ -2,11 +2,7 @@
 
 TreeNode::TreeNode(Helper::CustomItemType annType, const QString &label,
                    bool isRootNode)
-    : m_annType{annType}, m_label{label}, m_isRootNode{isRootNode} {
-  // TODO(initialize color
-  m_color = Qt::red;
-  m_checked = Qt::Checked;
-}
+    : m_annType{annType}, m_label{label}, m_isRootNode{isRootNode} {}
 
 TreeNode::~TreeNode() {
   for (auto &&n : m_childrens) {
@@ -17,9 +13,7 @@ TreeNode::~TreeNode() {
 Helper::CustomItemType TreeNode::annType() const { return m_annType; }
 
 QString TreeNode::label() const { return m_label; }
-QColor TreeNode::color() const { return m_color; }
-Qt::CheckState TreeNode::isChecked() const { return m_checked; }
-void TreeNode::setChecked(Qt::CheckState checked) { m_checked = checked; }
+// QColor TreeNode::color() const { return m_color; }
 int TreeNode::childrenCount() const { return m_childrens.size(); }
 TreeNode *TreeNode::parent() { return m_parent; }
 TreeNode *TreeNode::addChild(const QString &label) {
@@ -49,18 +43,19 @@ void LabelTreeModel::addNewLabel(Helper::CustomItemType annType,
                                  const QString &label) {
   int node_row;
   TreeNode *rootNode = ensureRootNode(annType, &node_row);
+  m_recentLabels[annType] = label;
   if (m_currentLabels[annType].contains(label)) {
     return;
   }
   beginInsertRows(createIndex(node_row, 0, rootNode), rootNode->childrenCount(),
                   rootNode->childrenCount());
+  m_currentLabels[annType].insert(label, Qt::Checked);
   rootNode->addChild(label);
   endInsertRows();
-  m_currentLabels[annType].insert(label, true);
 }
 
 void LabelTreeModel::populateLabelsFromAnnotations(const Annotations &ann) {
-  qDebug() << "----------------";
+  // qDebug() << "----------------";
   for (auto &o : ann.bboxes) addNewLabel(Helper::kBBox, o.getLabel());
   for (auto &o : ann.polygons) addNewLabel(Helper::kPolygon, o.getLabel());
   for (auto &o : ann.points) addNewLabel(Helper::kPoint, o.getLabel());
@@ -71,7 +66,7 @@ void LabelTreeModel::populateLabelsFromAnnotations(const Annotations &ann) {
 
 bool LabelTreeModel::isEnable(Helper::CustomItemType annType,
                               const QString &label) const {
-  return m_currentLabels[annType][label];
+  return m_currentLabels[annType][label] == Qt::Checked;
 }
 
 QModelIndex LabelTreeModel::index(int row, int column,
@@ -132,7 +127,7 @@ QVariant LabelTreeModel::data(const QModelIndex &idx, int role) const {
       if (n->isRootNode())
         return {};
       else
-        return n->isChecked();
+        return m_currentLabels[n->annType()][n->label()];
       break;
     default:
       return {};
@@ -146,11 +141,15 @@ bool LabelTreeModel::setData(const QModelIndex &idx, const QVariant &value,
   if (n->isRootNode()) return false;
 
   if (role == Qt::CheckStateRole && !n->isRootNode()) {
-    Qt::CheckState checked = static_cast<Qt::CheckState>(value.toInt());
-    if (checked == n->isChecked()) return true;
-    n->setChecked(checked);
-    emit dataChanged(idx, idx, {role});
-    m_currentLabels[n->annType()][n->label()] = checked == Qt::Checked;
+    Qt::CheckState checkState = static_cast<Qt::CheckState>(value.toInt());
+    auto &&oldCheckStateIter = m_currentLabels[n->annType()].find(n->label());
+
+    if (oldCheckStateIter.value() != checkState) {
+      *oldCheckStateIter = checkState;
+      emit dataChanged(idx, idx, {role});
+      emit labelEnableChanged(n->annType(), n->label(),
+                              checkState == Qt::Checked);
+    }
     return true;
   }
   return false;
@@ -175,6 +174,18 @@ QVariant LabelTreeModel::headerData(int section, Qt::Orientation orientation,
       return {};
       break;
   }
+}
+
+QStringList LabelTreeModel::labels(Helper::CustomItemType annType) const {
+  QStringList labels;
+  const QString mostRecentLabel = m_recentLabels.value(annType, "");
+  labels << mostRecentLabel;
+  for (auto &&lb : m_currentLabels.value(annType).keys()) {
+    if (mostRecentLabel != lb) {
+      labels << lb;
+    }
+  }
+  return labels;
 }
 
 void LabelTreeModel::clear() {

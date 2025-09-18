@@ -154,6 +154,7 @@ class AnnImgManager {
   const Annotations &annotations(const QString &image_id, bool *fromCache);
   QSize imageSize(const QString &image_id);
   QImage image(const QString &image_id);
+  QImageReader imageReader(const QString &image_id);
   QString annFilePath(const QString &img_id);
   QString imgFilePath(const QString &img_id);
   QStringList imageIds() const { return m_imageIdsList; }

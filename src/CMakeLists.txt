@@ -35,7 +35,9 @@ set(PROJECT_SOURCES
     dialoglabels.cpp dialoglabels.h dialoglabels.ui
     undo_cmds.h  undo_cmds.cpp
     labeltreemodel.cpp labeltreemodel.h
-    heavytaskthread.h heavytaskthread.cpp
+
+    import_export/yolo.cpp     import_export/yolo.h
+    import_export/coco.h import_export/coco.cpp
     resource.qrc
 )
 
@@ -45,6 +47,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(TaggerTool
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        import_export/native.h import_export/native.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET TaggerTool APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
