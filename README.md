@@ -1,74 +1,74 @@
-# TaggerTool 
-This is a very simple tool for viewing/editing visual annotations on images. Supports **BoundingBoxes**, **Polygons**, **LineStrips**, **Points** and **Lines**
+# CVTaggerTool
 
-## Annotation format
+CVTaggerTool is a simple, lightweight **computer vision annotation tool** built with Qt 6.  
+It supports the most common annotation types used in CV datasets:
 
-TaggerTool uses JSON format for annotations. To each `image_name.jpg` corresponds the `image_name.json` annotation file. Annotations and images can be in the same folder or in separate folders. 
+- Bounding Boxes  
+- Polygons  
+- Points  
+- Lines, Line Strips  
+- Circles  
 
-### Annotation json format/schema: 
-```json  
-{
-  "description": "Annotation Example",
-  "image_h": 1536,
-  "image_name": "DSC00767.JPG",
-  "image_w": 2048,
-  "label": "sample00",
-  "bboxes": [
-    {
-      "crowded": false, "label": "cat", "occluded": false, "truncated": false,
-      "x1": 369.54, "x2": 452.2, "y1": 638.587, "y2": 709.77
-    }
-  ],
-  "line_strips": [
-    {
-      "label": "line_strip1",
-      "x_coords": [800.82, 1046.8, 1153.647],                        
-      "y_coords": [548.5, 728.6, 588.33]
-    }
-  ],
-  "lines": [
-    {
-      "label": "line1",
-      "x1": 502.49, "x2": 671.0, "y1": 631.2, "y2": 703
-    }
-  ],
-  "points": [
-    {"label": "pt", "x": 709.7, "y": 857.38},
-    {"label": "pt", "x": 577.8, "y": 865.75}
-  ],
-  "polygons": [
-    {
-      "label": "poly1",
-      "x_coords": [674.18, 976.0, 951.59, 921.5, 882.50],
-      "y_coords": [734.0, 780.5, 839.58, 882.50, 908.675]
-    }
-  ],
-  "tags": ["person","animal"]
-}
-``` 
-Use scripts [coco_convert.py](py_tools/coco_convert.py) and [pascal_convert.py](py_tools/pascal_convert.py) to convert annotation from [COCO](https://cocodataset.org/#home) and [PASCAL](http://host.robots.ox.ac.uk/pascal/VOC/) formats. You can export annotations to COCO and PASCAL formats directly from TaggerTool
+The goal of this project is to provide an **easy-to-use, dependency-light alternative** to existing heavy annotation tools.  
+Because it is a pure Qt app, it integrates well into Linux distributions without requiring complex runtime environments.
 
-## How to use?
+---
 
-### Some shortcuts:
-* **a** : add new **BBox** 
-* **w** : add new **Polygon**
-* **q** : add new **Line** 
-* **x** : add new **LineStrip**
-* **z** : add new **Point** 
-* **g** : show/hide grid 
-* **l** : show/hide labels 
-* **Ctrl +** mouse scroll wheel* : zoom in/out image  
-* **Shift +** left click* : enable/disable item 
-* **Meta + left click** or **Alt + left click**: add or remove polygons nodes
-* **Ctrl + E**: open Exporter dialog  
+## Features
 
-### See this simple [demo](https://www.youtube.com/watch?v=QozIy9p6gbM): 
+- Create and edit multiple annotation types  
+- Lock/unlock items to prevent accidental edits  
+- Export annotations to:
+  - **Native JSON format** (one file per image)
+  - **COCO JSON** dataset format
+  - **YOLO (Ultralytics)** text format  
+- Undo/redo with `QUndoStack`  
+- Cross-platform (Linux, Windows, macOS [not tested])
+- Ready to use executables here for [Window 11](link here) and Linux (link here)
+---
 
-![](assets/demo01.png)
+## License
 
-## How to compile?
-Use QtCreator to compile. 
+This project is released under the **GNU General Public License v3 (GPL-3.0)**.  
+See [LICENSE](LICENSE) for the full text.
+
+This ensures the tool can be packaged and redistributed in Linux repositories.
+
+---
+
+## Requirements
+
+- **Qt 6.5+** (tested with 6.9)  
+- CMake 3.16+  
+- A C++17 (or later) compiler (GCC, Clang, MSVC all supported)
+
+---
+
+## Building
+
+```bash
+git clone https://github.com/yourname/cvtaggertool.git
+```
+Open `cvtaggertool/src/CMakeLists.txt` with QtCreator and compile it.
+
+This produces the cvtaggertool binary inside the build folder.
+
+## Usage
+
+```bash
+./cvtaggertool
+```
 
 
 
+
+
+## Contributing
+
+Contributions are welcome!
+Please open issues or pull requests on the GitHub repository.
+
+## Acknowledgements
+ - Built with Qt
+ - COCO export based on the official dataset specification
+ - YOLO export compatible with Ultralytics
