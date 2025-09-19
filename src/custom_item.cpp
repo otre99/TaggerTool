@@ -15,13 +15,15 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
   EditDialog dlg(static_cast<Helper::CustomItemType>(item->type()), m_label,
                  m_description);
   dlg.setGeometry(QRect{screenPos, dlg.size()});
+
+
   if (dlg.exec() == QDialog::Accepted) {
-    // ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
-    ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
+
+    ImageCanvas *canvas = Helper::imageCanvas();
 
     if (dlg.removeItem()) {
-      emit canvas->deferredRemoveItem(item);
-      return;
+        emit canvas->deferredRemoveItem(item);
+            return;
     }
 
     if (dlg.label() != m_label) {

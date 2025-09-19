@@ -5,6 +5,7 @@
 
 #include "labeltreemodel.h"
 #include "ui_editdialog.h"
+#include <QPushButton>
 
 EditDialog::EditDialog(Helper::CustomItemType anntype, const QString &label,
                        const QString &dsc, QWidget *parent)
@@ -21,6 +22,8 @@ EditDialog::EditDialog(Helper::CustomItemType anntype, const QString &label,
   setDescription(dsc);
   m_oldLabel = label;
   setLabel(label.isEmpty() ? labels[0] : label);
+
+  ui->buttonBox->button(QDialogButtonBox::Cancel)->setEnabled(!m_oldLabel.isEmpty());
 }
 
 EditDialog::~EditDialog() { delete ui; }
@@ -64,7 +67,7 @@ void EditDialog::accept() {
   if (lb.trimmed().isEmpty()) {
     QMessageBox::warning(
         this, "Non valid label",
-        "You need to specify a lable or selected an existring one");
+        "You need to specify a valid label");
     return;
   }
 
@@ -76,5 +79,5 @@ void EditDialog::accept() {
 
 void EditDialog::on_toolButtonRemoveItem_clicked() {
   m_removedItem = true;
-  accept();
+  QDialog::accept();
 }

@@ -12,7 +12,6 @@
 
 #include "editdialog.h"
 #include "imagecanvas.h"
-#include "labeltreemodel.h"
 #include "undo_cmds.h"
 extern Helper globalHelper;
 
@@ -56,8 +55,7 @@ void BoundingBoxItem::showEditDialog(QGraphicsItem *item,
   dlg.setOccludedTrancatedCrowded(m_occluded, m_truncated, m_crowded);
 
   if (dlg.exec() == QDialog::Accepted) {
-    // ImageCanvas *canvas = dynamic_cast<ImageCanvas *>(item->scene());
-    ImageCanvas *canvas = reinterpret_cast<ImageCanvas *>(item->scene());
+    ImageCanvas *canvas = Helper::imageCanvas();
 
     if (dlg.removeItem()) {
       emit canvas->deferredRemoveItem(item);
