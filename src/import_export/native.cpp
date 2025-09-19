@@ -1,7 +1,7 @@
 #include "native.h"
 
 #include <QJsonArray>
-
+#include <QJsonDocument>
 #include "utils.h"
 
 bool exportProjectToJSON(AnnImgManager& mgr, const QString& outputFilePath,

@@ -2,6 +2,7 @@
 
 #include <QJsonArray>
 #include <QThread>
+#include <QJsonDocument>
 
 #include "utils.h"
 
@@ -162,6 +163,9 @@ bool exportCOCOAnnotationsTask(AnnImgManager& mgr,
 
   // root COCO object
   QJsonObject root;
+
+
+
   root.insert(
       "info",
       QJsonObject{{"year", QDate::currentDate().year()},

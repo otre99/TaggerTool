@@ -45,7 +45,7 @@
      <x>0</x>
      <y>0</y>
      <width>1397</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -202,7 +202,7 @@
         </font>
        </property>
        <property name="title">
-        <string>Image</string>
+        <string> Image </string>
        </property>
        <property name="alignment">
         <set>Qt::AlignmentFlag::AlignBottom|Qt::AlignmentFlag::AlignHCenter</set>
@@ -238,7 +238,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Description</string>
+           <string> Description </string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -246,7 +246,14 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QPlainTextEdit" name="pTextImgDescription"/>
+         <widget class="QPlainTextEdit" name="pTextImgDescription">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <bold>false</bold>
+           </font>
+          </property>
+         </widget>
         </item>
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -314,7 +321,7 @@
         </font>
        </property>
        <property name="title">
-        <string>Annotation labels</string>
+        <string> Annotation labels </string>
        </property>
        <property name="alignment">
         <set>Qt::AlignmentFlag::AlignCenter</set>

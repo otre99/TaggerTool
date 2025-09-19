@@ -444,9 +444,7 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
   // qDebug() << 9999;
   QGraphicsScene::drawForeground(painter, rect);
 
-  if (m_drawObjStarted || m_waitingForObj /*&&
-      (m_waitingForTypeObj != Helper::kPolygon &&
-       m_waitingForTypeObj != Helper::kLineStrip)*/) {
+  if (m_drawObjStarted || m_waitingForObj) {
     painter->save();
     auto pp = painter->pen();
     pp.setWidthF(Helper::kLineWidth);
@@ -479,7 +477,8 @@ void ImageCanvas::drawForeground(QPainter *painter, const QRectF &rect) {
     if (m_waitingForTypeObj == Helper::kCircle) {
       qreal r = Helper::pointLen(m_begPt - m_endPt);
       painter->setBrush(QBrush(Helper::kUnlockedBBoxColor));
-      painter->drawEllipse(m_begPt.x() - r, m_begPt.y() - r, 2 * r, 2 * r);
+      // painter->drawEllipse(m_begPt.x() - r, m_begPt.y() - r, 2 * r, 2 * r);
+      painter->drawEllipse(m_begPt, r, r);
       painter->drawLine(m_begPt, m_endPt);
     }
 

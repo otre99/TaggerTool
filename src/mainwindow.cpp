@@ -223,7 +223,7 @@ void MainWindow::on_actionNew_Point_triggered() {
 }
 
 void MainWindow::on_NeedSaveChangeUndo(bool enable) {
-  qDebug() << "on_NeedSaveChangeUndo" << enable;
+  // qDebug() << "on_NeedSaveChangeUndo" << enable;
   if (m_needToSaveNotUndo) return;
   ui->saveLocalChanges->setEnabled(!enable);
 }
