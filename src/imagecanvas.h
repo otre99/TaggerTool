@@ -57,7 +57,6 @@ class ImageCanvas : public QGraphicsScene {
   void prepareForNewLineStrip(const QString &label = QString());
 
   bool addingNewObj() { return m_waitingForObj; }
-  void setShowLabels(bool show);
   bool showLabels() { return m_showLabels; }
 
   void drawBackground(QPainter *painter, const QRectF &rect) override;
@@ -71,6 +70,7 @@ class ImageCanvas : public QGraphicsScene {
   QUndoStack *undoStack() { return &m_undoStack; }
 
  public slots:
+  void setShowLabels(bool show);
   void setShowGrid(bool show);
   void removeItemCmd(QGraphicsItem *item);
   void updateMovableItem(CustomItem *);
@@ -78,7 +78,6 @@ class ImageCanvas : public QGraphicsScene {
                             const QString &label, bool enabled);
 
  signals:
-  // void needSaveChanges();
   void deferredRemoveItem(QGraphicsItem *item);
 
  private:

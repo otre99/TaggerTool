@@ -27,12 +27,6 @@ extern Helper globalHelper;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
-  Helper::InitFonts(font());
-  Helper::InitSupportedImageFormats();
-  Helper::setImageCanvas(&m_imageCanvas);
-  Helper::labelTreeModel = new LabelTreeModel(this);
-  ui->treeViewLabels->setModel(Helper::labelTreeModel);
-
   setUp();
 }
 
@@ -42,12 +36,22 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setUp() {
+  // init some global parameters
+  Helper::InitFonts(font());
+  Helper::InitSupportedImageFormats();
+
+  // make images canvas global
+  Helper::setImageCanvas(&m_imageCanvas);
+
+  // make labels model global
+  Helper::labelTreeModel = new LabelTreeModel(this);
+  ui->treeViewLabels->setModel(Helper::labelTreeModel);
+
+  // set up image canvas
   ui->bboxEditor->setScene(&m_imageCanvas);
   ui->listViewImgNames->setModel(&m_imageListModel);
 
-  connect(&m_imageCanvas, &ImageCanvas::selectionChanged, this,
-          &MainWindow::selectionChangedOnImageCanvas);
-
+  // set up Undo Stack
   connect(m_imageCanvas.undoStack(), &QUndoStack::cleanChanged, this,
           &MainWindow::on_NeedSaveChangeUndo);
 
@@ -64,15 +68,23 @@ void MainWindow::setUp() {
   ui->undoView->setStack(m_imageCanvas.undoStack());
   ui->saveLocalChanges->setEnabled(false);
 
+  // set up status bar
   ui->statusBar->addWidget(m_displayLabel = new QLabel);
 
   ui->dockWidgetEditHistorial->close();
   ui->dockWidgetSettings->close();
 
+  // show/hide item based on labels enable/disable
   connect(Helper::labelTreeModel,
           SIGNAL(labelEnableChanged(Helper::CustomItemType, QString, bool)),
           &m_imageCanvas,
           SLOT(onLabelEnableChanged(Helper::CustomItemType, QString, bool)));
+
+  // extra docker windos
+  connect(ui->actionSettings, &QAction::triggered, ui->dockWidgetSettings,
+          &QDockWidget::setVisible);
+  connect(ui->actionEdit_historial, &QAction::triggered,
+          ui->dockWidgetEditHistorial, &QDockWidget::setVisible);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -105,8 +117,6 @@ void MainWindow::closeEvent(QCloseEvent *ev) {
   ev->accept();
 }
 
-void MainWindow::displayImageInfo() {}
-
 void MainWindow::addNewUniqueItem(QComboBox *cbox, const QString &label,
                                   bool selected) {
   const int n = cbox->count();
@@ -127,24 +137,6 @@ QStringList MainWindow::getLabelsFromComboBox(QComboBox *cbox) {
     labels << cbox->itemText(i);
   }
   return labels;
-}
-
-void MainWindow::selectionChangedOnImageCanvas() {
-  const auto selected_items = m_imageCanvas.selectedItems();
-
-  if (selected_items.empty())
-    m_currentItem = nullptr;
-  else if (selected_items.size() == 1)
-    m_currentItem = selected_items[0];
-  else {
-    if (m_currentItem == selected_items[0]) {
-      selected_items[0]->setSelected(false);
-      m_currentItem = selected_items[1];
-    } else {
-      selected_items[1]->setSelected(false);
-      m_currentItem = selected_items[0];
-    }
-  }
 }
 
 void MainWindow::on_addNewBbox_triggered() {
@@ -210,6 +202,7 @@ void MainWindow::on_saveLocalChanges_triggered() {
 }
 
 void MainWindow::on_actionShowBboxes_triggered() {
+  // TODO(otre99): fix this
   static bool vis = false;
   if (vis)
     m_imageCanvas.showBoundingBoxes();
@@ -222,10 +215,9 @@ void MainWindow::on_actionNew_Point_triggered() {
   m_imageCanvas.prepareForNewPoint("");
 }
 
-void MainWindow::on_NeedSaveChangeUndo(bool enable) {
-  // qDebug() << "on_NeedSaveChangeUndo" << enable;
+void MainWindow::on_NeedSaveChangeUndo(bool clean) {
   if (m_needToSaveNotUndo) return;
-  ui->saveLocalChanges->setEnabled(!enable);
+  ui->saveLocalChanges->setEnabled(!clean);
 }
 
 void MainWindow::on_NeedSaveChange() {
@@ -282,7 +274,6 @@ void MainWindow::on_listViewImgNames_clicked(const QModelIndex &index) {
   ui->pTextImgDescription->setPlainText(ann.description);
 
   on_actionFit_Into_View_triggered();
-  displayImageInfo();
 
   ui->saveLocalChanges->setEnabled(false);
   m_needToSaveNotUndo = false;
@@ -419,21 +410,21 @@ void MainWindow::on_actionExportCoco_triggered() {
   exportCOCOAnnotationsTask(m_annImgManager, fileName, progress, true, true);
 }
 
-void MainWindow::on_actionEdit_historial_triggered(bool checked) {
-  if (checked) {
-    ui->dockWidgetEditHistorial->show();
-  } else {
-    ui->dockWidgetEditHistorial->close();
-  }
-}
+// void MainWindow::on_actionEdit_historial_triggered(bool checked) {
+//   if (checked) {
+//     ui->dockWidgetEditHistorial->show();
+//   } else {
+//     ui->dockWidgetEditHistorial->close();
+//   }
+// }
 
-void MainWindow::on_actionSettings_triggered(bool checked) {
-  if (checked) {
-    ui->dockWidgetSettings->show();
-  } else {
-    ui->dockWidgetSettings->close();
-  }
-}
+// void MainWindow::on_actionSettings_triggered(bool checked) {
+//   if (checked) {
+//     ui->dockWidgetSettings->show();
+//   } else {
+//     ui->dockWidgetSettings->close();
+//   }
+// }
 
 void MainWindow::on_actionShow_Hide_Labels_triggered(bool checked) {
   m_imageCanvas.setShowLabels(checked);
