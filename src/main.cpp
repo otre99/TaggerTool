@@ -10,7 +10,6 @@ int main(int argc, char *argv[]) {
   a.setApplicationName(Helper::appName);
   a.setOrganizationName(Helper::organizationName);
   a.setOrganizationDomain(Helper::organizationDomain);
-
   a.setStyle("Fusion");
 
   // // Dark themes
@@ -37,6 +36,11 @@ int main(int argc, char *argv[]) {
 
   MainWindow w;
   w.showMaximized();
-
+  auto args = a.arguments();
+  if (args.size() > 1) {
+    QFileInfo info(args[1]);
+    QString dir = info.absoluteDir().absolutePath();
+    w.loadImagesAndAnnotations(dir, dir, info.fileName());
+  }
   return a.exec();
 }

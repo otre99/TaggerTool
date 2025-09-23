@@ -26,6 +26,10 @@ class MainWindow : public QMainWindow {
   void resizeEvent(QResizeEvent *event) override final;
   void closeEvent(QCloseEvent *ev) override final;
 
+  // from command line
+  bool loadImagesAndAnnotations(const QString &annImg, const QString &annFolder,
+                                const QString &imageId);
+
  private slots:
   // Add new annotation items
   // TODO(otre99): these function are not necesary, the corresponding

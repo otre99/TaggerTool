@@ -20,6 +20,6 @@ printf "#!/bin/sh\n" > ${LINUX_DEPLOY}/CVTaggerTool.sh
 printf 'execname=$PWD/bin/TaggerTool\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
 printf 'LD_LIBRARY_PATH=${PWD}:${PWD}/lib\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
 printf 'export LD_LIBRARY_PATH\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
-printf '${execname}\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
+printf '${execname} "$@"\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
 
 chmod a+x ${LINUX_DEPLOY}/CVTaggerTool.sh

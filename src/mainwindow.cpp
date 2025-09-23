@@ -366,6 +366,38 @@ bool MainWindow::loadImagesAndAnnotations(const QString &annImg,
   return true;
 }
 
+bool MainWindow::loadImagesAndAnnotations(const QString &annImg,
+                                          const QString &annFolder,
+                                          const QString &imageId) {
+  // clean labels
+  m_annImgManager.reset(annImg, annFolder);
+  if (m_annImgManager.annotationsCount() == 0) {
+    QMessageBox::information(
+        this, "Not valid images folder",
+        "Not images found in folder: " + m_annImgManager.imgFolder() +
+            "\nPlease, select another folder.");
+    return false;
+  }
+
+  Helper::labelTreeModel->clear();
+  const QStringList imageFileNames = m_annImgManager.imageIds();
+  m_imageListModel.setStringList(imageFileNames);
+  ui->saveLocalChanges->setEnabled(false);
+
+  int index = imageFileNames.indexOf(imageId);
+  QModelIndex tmp = m_imageListModel.indexAtRow(index);
+  ui->listViewImgNames->setCurrentIndex(tmp);
+  m_current_index = QModelIndex();
+  on_listViewImgNames_clicked(tmp);
+  ui->actionNext->setEnabled(true);
+  ui->actionPrevious->setEnabled(true);
+  ui->mainToolBar->setToolTip(m_annImgManager.imgFolder());
+  m_displayLabel->setText(u8"\U0001F5BC " + m_annImgManager.imgFolder() +
+                          u8" \U0001F4DD " + m_annImgManager.annFolder());
+
+  return true;
+}
+
 void MainWindow::on_actionAdd_New_LineStrip_triggered() {
   m_imageCanvas.prepareForNewLineStrip("");
 }
