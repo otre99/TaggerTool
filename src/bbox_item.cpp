@@ -84,6 +84,7 @@ void BoundingBoxItem::showEditDialog(QGraphicsItem *item,
       Helper::imageCanvas()->undoStack()->push(
           new ChangeDescriptionCommand(m_description, dlg.description(), item));
     }
+    __setLocked(item, true);
   }
 }
 

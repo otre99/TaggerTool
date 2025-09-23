@@ -8,6 +8,7 @@
 #include "annimgmanager.h"
 #include "imagecanvas.h"
 #include "imgstringlistmodel.h"
+#include "recentprojects.h"
 class QLabel;
 
 namespace Ui {
@@ -94,31 +95,7 @@ class MainWindow : public QMainWindow {
   QModelIndex m_current_index{};
   bool m_needToSaveNotUndo;
   QLabel *m_displayLabel;
-
-  // aux functions
-  inline QString makeProjectKey(const QString &image, const QString &anno) {
-    const auto h = QCryptographicHash::hash((image + u'-' + anno).toUtf8(),
-                                            QCryptographicHash::Sha1);
-    return QString::fromLatin1(
-        h.toHex());  // store mapping from hash->packed tuple
-  }
-
-  inline QVariant packProjectTuple(const QString &image, const QString &anno,
-                                   qint64 secs) {
-    QVariantList v;
-    v << image << anno << QVariant::fromValue(secs);
-    return v;
-  }
-
-  inline bool unpackProjectTuple(const QVariant &v, QString &image,
-                                 QString &anno, qint64 &secs) {
-    const auto lst = v.toList();
-    if (lst.size() != 3) return false;
-    image = lst[0].toString();
-    anno = lst[1].toString();
-    secs = lst[2].toLongLong();
-    return true;
-  }
+  RecentProjects m_recentProjectsManager;
 };
 
 #endif  // MAINWINDOW_H

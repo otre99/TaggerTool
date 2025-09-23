@@ -16,14 +16,12 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
                  m_description);
   dlg.setGeometry(QRect{screenPos, dlg.size()});
 
-
   if (dlg.exec() == QDialog::Accepted) {
-
     ImageCanvas *canvas = Helper::imageCanvas();
 
     if (dlg.removeItem()) {
-        emit canvas->deferredRemoveItem(item);
-            return;
+      emit canvas->deferredRemoveItem(item);
+      return;
     }
 
     if (dlg.label() != m_label) {
@@ -35,6 +33,7 @@ void CustomItem::showEditDialog(QGraphicsItem *item, const QPoint screenPos) {
       Helper::imageCanvas()->undoStack()->push(
           new ChangeDescriptionCommand(m_description, dlg.description(), item));
     }
+    __setLocked(item, true);
   }
 }
 

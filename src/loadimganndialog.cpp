@@ -12,9 +12,9 @@ LoadImgAnnDialog::~LoadImgAnnDialog() { delete ui; }
 
 void LoadImgAnnDialog::setImgAndAnnFolders(
     const QString &imgf, const QString &annf,
-    const QList<std::tuple<QString, QString, qint64> > &recents) {
+    const QList<RecentProjects::RecentEntry> &recents) {
   for (auto &&r : recents) {
-    m_recents.emplace_back(std::get<0>(r), std::get<1>(r));
+    m_recents.emplace_back(r.imgFolder, r.annFolder);
   }
 
   QString imageChar =

@@ -9,8 +9,7 @@ It supports the most common annotation types used in CV datasets:
 - Lines, Line Strips  
 - Circles  
 
-The goal of this project is to provide an **easy-to-use, dependency-light alternative** to existing heavy annotation tools.  
-Because it is a pure Qt app, it integrates well into Linux distributions without requiring complex runtime environments.
+The goal of this project is to provide an **easy-to-use, dependency-light alternative** to existing heavy annotation tools. Because it is a pure Qt app, it integrates well into Linux/Window/Mac  without requiring complex runtime environments.
 
 ---
 
@@ -51,16 +50,13 @@ git clone https://github.com/yourname/cvtaggertool.git
 ```
 Open `cvtaggertool/src/CMakeLists.txt` with QtCreator and compile it.
 
-This produces the cvtaggertool binary inside the build folder.
+This produces the `TaggerTool` binary inside the build folder.
 
 ## Usage
 
 ```bash
-./cvtaggertool
+./TaggerTool
 ```
-
-
-
 
 
 ## Contributing

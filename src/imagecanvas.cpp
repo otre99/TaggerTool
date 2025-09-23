@@ -19,12 +19,23 @@ ImageCanvas::ImageCanvas(QObject *parent)
                    &ImageCanvas::removeItemCmd, Qt::QueuedConnection);
 }
 
-void ImageCanvas::hideBoundingBoxes() {
+void ImageCanvas::hideNonEditableAnnotationItems() {
   const auto all_items = items();
   for (auto item : all_items) {
     CustomItem *citem = dynamic_cast<CustomItem *>(item);
     if (citem && citem->isLocked()) {
       item->setVisible(false);
+    }
+  }
+}
+
+void ImageCanvas::showNonEditableAnnotationItems() {
+  for (auto item : items()) {
+    CustomItem *citem = dynamic_cast<CustomItem *>(item);
+    if (citem) {
+      bool is_enable = Helper::labelTreeModel->isEnable(
+          static_cast<Helper::CustomItemType>(item->type()), citem->label());
+      if (is_enable) item->setVisible(true);
     }
   }
 }
@@ -90,12 +101,6 @@ void ImageCanvas::prepareForNewLineStrip(const QString &label) {
   prepareForNewPolygon(label);
   m_waitingForTypeObj = Helper::kLineStrip;
   views()[0]->setMouseTracking(true);
-}
-
-void ImageCanvas::showBoundingBoxes() {
-  for (auto item : items()) {
-    item->setVisible(true);
-  }
 }
 
 void ImageCanvas::setShowLabels(bool show) {
@@ -529,7 +534,6 @@ void ImageCanvas::setShowGrid(bool show) {
 }
 
 void ImageCanvas::removeItemCmd(QGraphicsItem *item) {
-  qDebug() << "Item remove " << item;
   m_undoStack.push(new RemoveItemCommand(item));
 }
 

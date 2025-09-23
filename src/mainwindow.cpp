@@ -146,27 +146,10 @@ void MainWindow::on_addNewBbox_triggered() {
 void MainWindow::on_pbLoadImgAnn_clicked() {
   ui->listViewImgNames->setEnabled(false);
 
-  QSettings st;
-  st.beginGroup("recent_image_annotation_folders");
-  const auto keys = st.childKeys();  // O(n) listing once
-  QList<std::tuple<QString, QString, qint64>> recents;
-  recents.reserve(keys.size());
-  for (const auto &k : keys) {
-    QString image_path, anno_path;
-    qint64 dti = 0;
-
-    if (unpackProjectTuple(st.value(k), image_path, anno_path, dti)) {
-      recents.emplace_back(image_path, anno_path, dti);
-    }
-  }
-  st.endGroup();
-
-  std::sort(recents.begin(), recents.end(),
-            [](auto &&x, auto &&y) { return std::get<2>(x) < std::get<2>(y); });
-
   LoadImgAnnDialog dlg;
   dlg.setImgAndAnnFolders(m_annImgManager.imgFolder(),
-                          m_annImgManager.annFolder(), recents);
+                          m_annImgManager.annFolder(),
+                          m_recentProjectsManager.recentEntries());
   if (dlg.exec() != QDialog::Accepted) {
     ui->listViewImgNames->setEnabled(true);
     return;
@@ -176,15 +159,7 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
   ui->listViewImgNames->setEnabled(ok);
 
   if (ok) {
-    st.beginGroup("recent_image_annotation_folders");
-    auto key = makeProjectKey(m_annImgManager.imgFolder(),
-                              m_annImgManager.annFolder());
-    auto value = packProjectTuple(m_annImgManager.imgFolder(),
-                                  m_annImgManager.annFolder(),
-                                  Helper::seconsToYear5000());
-    st.setValue(key, value);
-    st.endGroup();
-    st.sync();
+    m_recentProjectsManager.updateEntry(dlg.imgFolder(), dlg.annFolder());
   }
 }
 
@@ -205,9 +180,9 @@ void MainWindow::on_actionShowBboxes_triggered() {
   // TODO(otre99): fix this
   static bool vis = false;
   if (vis)
-    m_imageCanvas.showBoundingBoxes();
+    m_imageCanvas.showNonEditableAnnotationItems();
   else
-    m_imageCanvas.hideBoundingBoxes();
+    m_imageCanvas.hideNonEditableAnnotationItems();
   vis = !vis;
 }
 

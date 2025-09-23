@@ -44,9 +44,9 @@ class ImageCanvas : public QGraphicsScene {
   void clear();
   QSize imageSize();
   QString imageId();
-  void hideBoundingBoxes();
+  void hideNonEditableAnnotationItems();
   void helperParametersChanged();
-  void showBoundingBoxes();
+  void showNonEditableAnnotationItems();
   bool showLabels() const { return m_showLabels; };
 
   void prepareForNewBBox(const QString &label = QString());

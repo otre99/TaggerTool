@@ -37,6 +37,7 @@ set(PROJECT_SOURCES
     import_export/yolo.cpp     import_export/yolo.h
     import_export/coco.h import_export/coco.cpp
     import_export/native.h import_export/native.cpp
+    recentprojects.h recentprojects.cpp
     resource.qrc
 )
 

@@ -73,6 +73,8 @@
     <addaction name="separator"/>
     <addaction name="actionEdit_historial"/>
     <addaction name="actionSettings"/>
+    <addaction name="actionShow_Hide_Labels"/>
+    <addaction name="actionGrid"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -103,8 +105,6 @@
    <addaction name="actionAdd_Circle_Item"/>
    <addaction name="separator"/>
    <addaction name="actionShowBboxes"/>
-   <addaction name="actionShow_Hide_Labels"/>
-   <addaction name="actionGrid"/>
    <addaction name="actionzoom100"/>
    <addaction name="actionFit_Into_View"/>
    <addaction name="separator"/>
@@ -538,7 +538,7 @@
     <string>New BBox</string>
    </property>
    <property name="toolTip">
-    <string>New BBox (A)</string>
+    <string>Add Bounding Box (A)</string>
    </property>
    <property name="shortcut">
     <string>A</string>
@@ -566,18 +566,11 @@
    <property name="checked">
     <bool>false</bool>
    </property>
-   <property name="icon">
-    <iconset resource="resource.qrc">
-     <normaloff>:/icons/icons/show_hide_labels.svg</normaloff>:/icons/icons/show_hide_labels.svg</iconset>
-   </property>
    <property name="text">
     <string>Show Labels</string>
    </property>
    <property name="toolTip">
-    <string>Show Labels (L)</string>
-   </property>
-   <property name="shortcut">
-    <string>L</string>
+    <string>Show Labels</string>
    </property>
   </action>
   <action name="actionNew_Point">
@@ -589,10 +582,10 @@
     <string>New Point</string>
    </property>
    <property name="toolTip">
-    <string>New Point (Z)</string>
+    <string>Add Point (O)</string>
    </property>
    <property name="shortcut">
-    <string>Z</string>
+    <string>O</string>
    </property>
   </action>
   <action name="actionAdd_New_Line">
@@ -604,10 +597,10 @@
     <string>Add New Line</string>
    </property>
    <property name="toolTip">
-    <string>New Line (Q)</string>
+    <string>Add Line (L)</string>
    </property>
    <property name="shortcut">
-    <string>Q</string>
+    <string>L</string>
    </property>
   </action>
   <action name="actionNext">
@@ -649,10 +642,10 @@
     <string>Add New Polygon</string>
    </property>
    <property name="toolTip">
-    <string>New Polygon (W)</string>
+    <string>Add Polygon (P)</string>
    </property>
    <property name="shortcut">
-    <string>W</string>
+    <string>P</string>
    </property>
   </action>
   <action name="actionzoom100">
@@ -670,10 +663,6 @@
   <action name="actionGrid">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="resource.qrc">
-     <normaloff>:/icons/icons/grid-rectangular.svg</normaloff>:/icons/icons/grid-rectangular.svg</iconset>
    </property>
    <property name="text">
     <string>Grid</string>
@@ -719,10 +708,10 @@
     <string>Add New LineStrip</string>
    </property>
    <property name="toolTip">
-    <string>New LineStrip (X)</string>
+    <string>New Line Strip (S)</string>
    </property>
    <property name="shortcut">
-    <string>X</string>
+    <string>S</string>
    </property>
   </action>
   <action name="actionAdd_Circle_Item">
@@ -732,6 +721,9 @@
    </property>
    <property name="text">
     <string>Add New Circle</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Circle (C)</string>
    </property>
    <property name="shortcut">
     <string>C</string>

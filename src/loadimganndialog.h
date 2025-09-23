@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QSettings>
 
+#include "recentprojects.h"
 namespace Ui {
 class LoadImgAnnDialog;
 }
@@ -14,9 +15,8 @@ class LoadImgAnnDialog : public QDialog {
  public:
   explicit LoadImgAnnDialog(QWidget *parent = nullptr);
   ~LoadImgAnnDialog();
-  void setImgAndAnnFolders(
-      const QString &imgf, const QString &annf,
-      const QList<std::tuple<QString, QString, qint64>> &recents);
+  void setImgAndAnnFolders(const QString &imgf, const QString &annf,
+                           const QList<RecentProjects::RecentEntry> &recents);
   QString annFolder() const;
   QString imgFolder() const;
 
@@ -29,7 +29,6 @@ class LoadImgAnnDialog : public QDialog {
  private:
   Ui::LoadImgAnnDialog *ui;
   QString GetParentDir(const QString &dir_path) const;
-  QSettings m_settings;
   QList<QPair<QString, QString>> m_recents;
 };
 
