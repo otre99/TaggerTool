@@ -1,5 +1,7 @@
 # CVTaggerTool
 
+![plot](./assets/Screenshot01.jpg)
+
 CVTaggerTool is a simple, lightweight **computer vision annotation tool** built with Qt 6.  
 It supports the most common annotation types used in CV datasets:
 
