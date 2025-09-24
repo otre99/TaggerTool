@@ -67,7 +67,7 @@ void EditDialog::accept() {
   if (lb.trimmed().isEmpty()) {
     QMessageBox::warning(
         this, "Non valid label",
-        "You need to specify a valid label");
+        "You must set a valid label or simply delete the item");
     return;
   }
 
@@ -75,6 +75,16 @@ void EditDialog::accept() {
     Helper::labelTreeModel->addNewLabel(m_annType, label());
   }
   QDialog::accept();
+}
+
+void EditDialog::reject()  {
+  if (m_oldLabel.isEmpty()) {
+    QMessageBox::warning(
+        this, "Non valid label",
+        "You must set a valid label or simply delete the item");
+      return;
+    }
+    QDialog::reject();
 }
 
 void EditDialog::on_toolButtonRemoveItem_clicked() {

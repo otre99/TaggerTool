@@ -24,6 +24,7 @@ class EditDialog : public QDialog {
   bool getTruncated() const;
   bool getCrowded() const;
   void accept() override;
+  void reject() override;
 
  private slots:
   void on_toolButtonRemoveItem_clicked();
