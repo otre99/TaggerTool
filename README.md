@@ -11,7 +11,20 @@ It supports the most common annotation types used in CV datasets:
 
 The goal of this project is to provide an **easy-to-use, dependency-light alternative** to existing heavy annotation tools. Because it is a pure Qt app, it integrates well into Linux/Window/Mac  without requiring complex runtime environments.
 
----
+
+
+## Usage
+
+- **Open a project**: set the *image* and *annotation* folders, then click the **Open Project** button.  
+- **Add annotations**: use the corresponding icons in the toolbar.  
+- **Handy shortcuts**:
+  - **Lock / Unlock item** → `Shift + Right Click`
+  - **Open edit dialog** → `Left Click` on an unlocked item
+  - **Zoom in/out** → `Mouse Scroll`
+  - **Pan image** → `Ctrl + Right Mouse Drag`
+  - **Cycle selection** (when items overlap) → `Ctrl + Shift + Right Click`
+
+
 
 ## Features
 
@@ -24,16 +37,13 @@ The goal of this project is to provide an **easy-to-use, dependency-light altern
 - Undo/redo with `QUndoStack`  
 - Cross-platform (Linux, Windows, macOS [not tested])
 - Ready to use executables here for [Window 11](link here) and Linux (link here)
----
+
+
 
 ## License
 
-This project is released under the **GNU General Public License v3 (GPL-3.0)**.  
-See [LICENSE](LICENSE) for the full text.
-
-This ensures the tool can be packaged and redistributed in Linux repositories.
-
----
+This project is released under the [MIT License](https://opensource.org/licenses/MIT).  
+See the [LICENSE](LICENSE) file for the full text.
 
 ## Requirements
 
@@ -41,7 +51,7 @@ This ensures the tool can be packaged and redistributed in Linux repositories.
 - CMake 3.16+  
 - A C++17 (or later) compiler (GCC, Clang, MSVC all supported)
 
----
+
 
 ## Building
 
@@ -63,6 +73,7 @@ This produces the `TaggerTool` binary inside the build folder.
 
 Contributions are welcome!
 Please open issues or pull requests on the GitHub repository.
+
 
 ## Acknowledgements
  - Built with Qt

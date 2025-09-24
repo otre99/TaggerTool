@@ -538,7 +538,7 @@
     <string>New BBox</string>
    </property>
    <property name="toolTip">
-    <string>Add Bounding Box (A)</string>
+    <string>Add bounding box (A) — click+drag from first corner to opposite corner</string>
    </property>
    <property name="shortcut">
     <string>A</string>
@@ -582,7 +582,7 @@
     <string>New Point</string>
    </property>
    <property name="toolTip">
-    <string>Add Point (O)</string>
+    <string>Add point (O) — right-click at desired position</string>
    </property>
    <property name="shortcut">
     <string>O</string>
@@ -597,7 +597,7 @@
     <string>Add New Line</string>
    </property>
    <property name="toolTip">
-    <string>Add Line (L)</string>
+    <string>Add line (L) — right-click for start point, release for end point</string>
    </property>
    <property name="shortcut">
     <string>L</string>
@@ -642,7 +642,7 @@
     <string>Add New Polygon</string>
    </property>
    <property name="toolTip">
-    <string>Add Polygon (P)</string>
+    <string>Add polygon (P) — right-click to add nodes, left-click to finish</string>
    </property>
    <property name="shortcut">
     <string>P</string>
@@ -708,7 +708,7 @@
     <string>Add New LineStrip</string>
    </property>
    <property name="toolTip">
-    <string>New Line Strip (S)</string>
+    <string>Add line strip (S) — right-click to add nodes, left-click to finish</string>
    </property>
    <property name="shortcut">
     <string>S</string>
@@ -723,7 +723,7 @@
     <string>Add New Circle</string>
    </property>
    <property name="toolTip">
-    <string>Add Circle (C)</string>
+    <string>Add circle (C) — right-click for center, drag and release to set radius</string>
    </property>
    <property name="shortcut">
     <string>C</string>
