@@ -20,11 +20,13 @@ The goal of this project is to provide an **easy-to-use, dependency-light altern
 - **Open a project**: set the *image* and *annotation* folders, then click the **Open Project** button.  
 - **Add annotations**: use the corresponding icons in the toolbar.  
 - **Handy shortcuts**:
+  - **Next/previous image** → `Left/Right arrows` 
   - **Lock / Unlock item** → `Shift + Right Click`
   - **Open edit dialog** → `Left Click` on an unlocked item
   - **Zoom in/out** → `Mouse Scroll`
   - **Pan image** → `Ctrl + Right Mouse Drag`
   - **Cycle selection** (when items overlap) → `Ctrl + Shift + Right Click`
+  
 
 
 
@@ -58,9 +60,10 @@ See the [LICENSE](LICENSE) file for the full text.
 ## Building
 
 ```bash
-git clone https://github.com/yourname/cvtaggertool.git
+
+git clone https://github.com/otre99/TaggerTool
 ```
-Open `cvtaggertool/src/CMakeLists.txt` with QtCreator and compile it.
+Open `TaggerTool/src/CMakeLists.txt` with QtCreator and compile it.
 
 This produces the `TaggerTool` binary inside the build folder.
 
