@@ -5,21 +5,15 @@ export CMAKE_PREFIX_PATH=/home/programs/QtSDK/${QT_VERSION}/gcc_64
 export PATH=/home/programs/QtSDK/${QT_VERSION}/gcc_64/bin/:$PATH
 
 CURR_DIR=`pwd`
-LINUX_DEPLOY=${CURR_DIR}/AppBinaries/linux64
 
-mkdir -p ${LINUX_DEPLOY} 
 mkdir -p ${CURR_DIR}/AppBinaries/build_linux && cd ${CURR_DIR}/AppBinaries/build_linux 
 
 qt-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LINUX_DEPLOY} ${CURR_DIR}/src
-make -j6 && make install 
+make -j6 #&& make install 
 
-cd ${CURR_DIR} 
 
-## CREATE THE RUN script
-printf "#!/bin/sh\n" > ${LINUX_DEPLOY}/CVTaggerTool.sh 
-printf 'execname=$PWD/bin/TaggerTool\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
-printf 'LD_LIBRARY_PATH=${PWD}:${PWD}/lib\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
-printf 'export LD_LIBRARY_PATH\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
-printf '${execname} "$@"\n' >> ${LINUX_DEPLOY}/CVTaggerTool.sh 
+cd ${CURR_DIR}
 
-chmod a+x ${LINUX_DEPLOY}/CVTaggerTool.sh
+/home/programs/APPS/linuxdeploy-x86_64.AppImage --appdir appDir -e ${CURR_DIR}/AppBinaries/build_linux/TaggerTool -d src/resources/TaggerTool.desktop -i src/resources/TaggerTool.png --plugin qt --output appimage
+
+
