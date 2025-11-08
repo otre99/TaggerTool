@@ -155,12 +155,14 @@ void MainWindow::on_pbLoadImgAnn_clicked() {
     return;
   }
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   bool ok = loadImagesAndAnnotations(dlg.imgFolder(), dlg.annFolder());
   ui->listViewImgNames->setEnabled(ok);
 
   if (ok) {
     m_recentProjectsManager.updateEntry(dlg.imgFolder(), dlg.annFolder());
   }
+  QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::on_saveLocalChanges_triggered() {
