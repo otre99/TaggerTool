@@ -44,6 +44,108 @@ The goal of this project is to provide an **easy-to-use, dependency-light altern
 - Cross-platform (Linux, Windows, macOS [not tested])
 - Ready to use executables here for [Window 11](link here) and Linux (link here)
 
+## Tagger Tool Internal JSON format 
+
+The native annotation export stores **one JSON file per image** inside the annotation folder.  
+For an image named `frame_001.png`, the annotation file name is:
+
+```text
+frame_001_png.json
+```
+
+The root object contains image metadata plus one array per supported annotation type:
+
+- `image_name`: original image file name
+- `image_w`, `image_h`: image width and height in pixels
+- `label`: optional image-level label
+- `description`: optional image-level description
+- `lines`: array of line annotations
+- `bboxes`: array of bounding boxes
+- `circles`: array of circles
+- `points`: array of points
+- `polygons`: array of closed polygons
+- `line_strips`: array of open polyline annotations
+
+All annotation objects include:
+
+- `label`: class/tag name
+- `description`: free-text description
+
+Per-shape fields:
+
+- `lines`: `x1`, `y1`, `x2`, `y2`
+- `bboxes`: `x1`, `y1`, `x2`, `y2`, `occluded`, `truncated`, `crowded`
+- `circles`: `x`, `y`, `radius`
+- `points`: `x`, `y`
+- `polygons` and `line_strips`: `x_coords`, `y_coords` as matching coordinate arrays
+
+Example:
+
+```json
+{
+  "image_name": "frame_001.png",
+  "image_w": 1920,
+  "image_h": 1080,
+  "label": "",
+  "description": "",
+  "lines": [
+    {
+      "label": "lane_marking",
+      "description": "",
+      "x1": 120.0,
+      "y1": 300.0,
+      "x2": 640.0,
+      "y2": 820.0
+    }
+  ],
+  "bboxes": [
+    {
+      "label": "car",
+      "description": "sedan",
+      "x1": 420.0,
+      "y1": 280.0,
+      "x2": 710.0,
+      "y2": 640.0,
+      "occluded": false,
+      "truncated": false,
+      "crowded": false
+    }
+  ],
+  "circles": [
+    {
+      "label": "wheel",
+      "description": "",
+      "x": 560.0,
+      "y": 700.0,
+      "radius": 42.0
+    }
+  ],
+  "points": [
+    {
+      "label": "keypoint",
+      "description": "",
+      "x": 960.0,
+      "y": 540.0
+    }
+  ],
+  "polygons": [
+    {
+      "label": "road_sign",
+      "description": "",
+      "x_coords": [100.0, 160.0, 140.0],
+      "y_coords": [100.0, 110.0, 180.0]
+    }
+  ],
+  "line_strips": [
+    {
+      "label": "boundary",
+      "description": "",
+      "x_coords": [50.0, 70.0, 120.0],
+      "y_coords": [400.0, 420.0, 460.0]
+    }
+  ]
+}
+```
 
 
 ## License
