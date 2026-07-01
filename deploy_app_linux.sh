@@ -1,4 +1,4 @@
-QT_VERSION=6.9.2
+QT_VERSION=6.10.3
 export QT_QMAKE_EXECUTABLE=/home/programs/QtSDK/${QT_VERSION}/gcc_64/bin/qmake
 export QT_DIR=/home/programs/QtSDK/${QT_VERSION}/gcc_64/lib/cmake/Qt6
 export CMAKE_PREFIX_PATH=/home/programs/QtSDK/${QT_VERSION}/gcc_64
