@@ -271,6 +271,8 @@ void AnnImgManager::reset(const QString &images_folder_path,
   } else {
     m_imageIdsList = image_ids;
   }
+  // Sort to ensure the order is always the same.
+  m_imageIdsList.sort();
 
   m_annCache.clear();
   m_annCache.setMaxCost(m_imageIdsList.size());
