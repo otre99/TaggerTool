@@ -3,10 +3,9 @@
 #include <QProgressDialog>
 
 #include "annimgmanager.h"
+#include "export_options.h"
 
-bool exportProjectToYOLO(AnnImgManager& mgr, const QString& outputDirPath,
-                         QProgressDialog& progressDialog,
-                         bool includeBBoxes = true,
-                         bool includePolygons = true);
+bool exportProjectToYOLO(AnnImgManager& mgr, const ExportOptions& opt,
+                         QProgressDialog& progressDialog);
 
 #endif  // YOLO_H

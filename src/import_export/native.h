@@ -3,8 +3,9 @@
 #include <QProgressDialog>
 
 #include "annimgmanager.h"
+#include "export_options.h"
 
-bool exportProjectToJSON(AnnImgManager& mgr, const QString& outputFilePath,
+bool exportProjectToJSON(AnnImgManager& mgr, const ExportOptions& opt,
                          QProgressDialog& progressDialog);
 
 #endif  // NATIVE_H

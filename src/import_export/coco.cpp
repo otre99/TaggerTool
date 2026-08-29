@@ -1,171 +1,130 @@
 #include "coco.h"
 
 #include <QJsonArray>
-#include <QThread>
 #include <QJsonDocument>
 
 #include "utils.h"
 
-bool exportCOCOAnnotationsTask(AnnImgManager& mgr,
-                               const QString& outputFilePath,
-                               QProgressDialog& progressDialog,
-                               bool includeBBoxes, bool includePolygons) {
-  struct CocoIds {
-    // integer IDs required by COCO
-    int next_image_id = 1;
-    int next_ann_id = 1;
-    int next_cat_id = 1;
-  } ids;
+namespace {
 
-  struct CocoCategoryIndex {
-    // label -> category_id
-    QHash<QString, int> map;
-    int idForLabel(const QString& label, CocoIds& ids) {
-      if (label.isEmpty()) return -1;
-      auto it = map.constFind(label);
-      if (it != map.constEnd()) return it.value();
-      int id = ids.next_cat_id++;
-      map.insert(label, id);
-      return id;
+/// Assigns stable, 1 based COCO ids to exported class names.
+class CategoryIndex {
+ public:
+  int idFor(const QString &name) {
+    if (name.isEmpty()) return -1;
+    auto it = m_map.constFind(name);
+    if (it != m_map.constEnd()) return it.value();
+    const int id = m_next++;
+    m_map.insert(name, id);
+    m_order.append(name);
+    return id;
+  }
+
+  QJsonArray toJson() const {
+    QJsonArray arr;
+    for (const QString &name : m_order) {
+      arr.append(QJsonObject{{"id", m_map.value(name)},
+                             {"name", name},
+                             {"supercategory", QStringLiteral("object")}});
     }
-  } catIndex;
+    return arr;
+  }
 
+ private:
+  QHash<QString, int> m_map;
+  QStringList m_order;
+  int m_next{1};
+};
+
+}  // namespace
+
+bool exportCOCOAnnotationsTask(AnnImgManager &mgr, const ExportOptions &opt,
+                               QProgressDialog &progressDialog) {
+  int next_image_id = 1;
+  int next_ann_id = 1;
+
+  CategoryIndex categories;
   QJsonArray images;
   QJsonArray annotations;
-  QJsonArray categories;  // filled at the end from catIndex
-
-  // We’ll collect categories first while we walk
-  struct PendingCategory {
-    int id;
-    QString name;
-    QString supercategory;
-  };
-  QHash<int, PendingCategory> catDefs;
 
   const QStringList imageIds = mgr.imageIds();
+  ProgressValue pVal(qMax(1, static_cast<int>(imageIds.size())));
 
-  ProgressValue pVal(imageIds.size());
-
-  // --- Build images + annotations
-  for (const QString& imgId : imageIds) {
+  for (const QString &imgId : imageIds) {
     if (progressDialog.wasCanceled()) {
       return false;
     }
 
     bool _;
-    const Annotations& ann = mgr.annotations(imgId, &_);
+    const Annotations raw = mgr.annotations(imgId, &_);
 
-    int W = ann.img_w;
-    int H = ann.img_h;
+    int W = raw.img_w;
+    int H = raw.img_h;
     if (W <= 1 || H <= 1) {
-      auto imageReader = mgr.imageReader(imgId);
-      W = imageReader.size().width();
-      H = imageReader.size().height();
+      const QSize size = mgr.imageSize(imgId);
+      W = size.width();
+      H = size.height();
     }
 
-    // images[]
-    const int image_id = ids.next_image_id++;
-    QJsonObject imgObj{
-        {"id", image_id}, {"file_name", imgId}, {"width", W}, {"height", H}};
-    images.append(imgObj);
+    const Annotations ann = applyExportOptions(raw, opt, W, H);
+    const bool empty = (annotationCount(ann) == 0);
+    if (empty && (opt.skipEmptyImages || !opt.cocoIncludeEmptyImages)) {
+      const int skipped = pVal.value();
+      if (skipped > 0) progressDialog.setValue(skipped);
+      continue;
+    }
 
-    // annotations[] from bboxes
-    if (includeBBoxes) {
-      for (const auto& b : ann.bboxes) {
-        const QString label = b.getLabel();
-        const int cat_id = catIndex.idForLabel(label, ids);
-        if (cat_id > 0 && !catDefs.contains(cat_id)) {
-          catDefs.insert(
-              cat_id, PendingCategory{cat_id, label, QStringLiteral("object")});
-        }
+    const int image_id = next_image_id++;
+    images.append(QJsonObject{
+        {"id", image_id}, {"file_name", imgId}, {"width", W}, {"height", H}});
 
-        const QPointF p1 = b.pt1();
-        const QPointF p2 = b.pt2();
+    // ---- detections ------------------------------------------------------
+    for (const auto &b : ann.bboxes) {
+      const int cat_id = categories.idFor(b.getLabel());
+      if (cat_id < 0) continue;
 
-        // COCO bbox: [x, y, width, height], top-left origin
-        const double w = p2.x() - p1.x();
-        const double h = p2.y() - p1.y();
-        const double ar = w * h;
+      const QRectF r = QRectF(b.pt1(), b.pt2()).normalized();
+      annotations.append(QJsonObject{
+          {"id", next_ann_id++},
+          {"image_id", image_id},
+          {"category_id", cat_id},
+          {"iscrowd", (opt.cocoIscrowdFromFlag && b.getCrowded()) ? 1 : 0},
+          {"bbox", QJsonArray{r.x(), r.y(), r.width(), r.height()}},
+          {"area", r.width() * r.height()}});
+    }
 
-        QJsonObject a{{"id", ids.next_ann_id++},
+    // ---- segmentations ---------------------------------------------------
+    for (const auto &p : ann.polygons) {
+      const int cat_id = categories.idFor(p.getLabel());
+      if (cat_id < 0) continue;
+
+      const QPolygonF poly = p.getPolygon();
+      if (poly.size() < 3) continue;
+
+      QJsonArray flat;
+      for (const QPointF &pt : poly) {
+        flat.append(pt.x());
+        flat.append(pt.y());
+      }
+
+      // COCO stores the enclosing box alongside the segmentation.
+      const QRectF br = poly.boundingRect();
+      annotations.append(
+          QJsonObject{{"id", next_ann_id++},
                       {"image_id", image_id},
-                      {"category_id", cat_id > 0 ? cat_id : 0},
-                      {"iscrowd", b.getCrowded() ? 1 : 0},
-                      {"bbox", QJsonArray{p1.x(), p1.y(), w, h}},
-                      {"area", ar}};
-        annotations.append(a);
-      }
+                      {"category_id", cat_id},
+                      {"iscrowd", 0},
+                      {"segmentation", QJsonArray{flat}},
+                      {"area", Helper::polygonArea(poly)},
+                      {"bbox", QJsonArray{br.x(), br.y(), br.width(),
+                                          br.height()}}});
     }
 
-    // annotations[] from polygons (as segmentations)
-    if (includePolygons) {
-      for (const auto& p : ann.polygons) {
-        const QString label = p.getLabel();
-        const int cat_id = catIndex.idForLabel(label, ids);
-        if (cat_id > 0 && !catDefs.contains(cat_id)) {
-          catDefs.insert(
-              cat_id, PendingCategory{cat_id, label, QStringLiteral("object")});
-        }
-
-        // COCO expects segmentation as a list of polygons (each is a flat
-        // [x1,y1,...]) Ensure lengths match and >= 3 points
-        const QPolygonF poly = p.getPolygon();
-        const int n = poly.size();
-        if (n >= 3) {
-          QJsonArray flat;
-          for (auto&& coord : poly) {
-            flat.append(coord.x());
-            flat.append(coord.y());
-          }
-
-          const double ar = Helper::polygonArea(poly);
-
-          auto&& [l, r] = std::minmax_element(
-              poly.begin(), poly.end(),
-              [](auto& p1, auto& p2) { return p1.x() < p2.x(); });
-
-          auto&& [t, b] = std::minmax_element(
-              poly.begin(), poly.end(),
-              [](auto& p1, auto& p2) { return p1.y() < p2.y(); });
-
-          const double x = l->x();
-          const double y = t->x();
-          const double w = r->x() - x;
-          const double h = b->x() - y;
-
-          QJsonArray segm;
-          segm.append(flat);
-          QJsonObject a{{"id", ids.next_ann_id++},
-                        {"image_id", image_id},
-                        {"category_id", cat_id > 0 ? cat_id : 0},
-                        {"iscrowd", 0},
-                        {"segmentation", segm},
-                        {"area", ar},
-                        {"bbox", QJsonArray{x, y, w, h}}};
-
-          annotations.append(a);
-        }
-      }
-    }
-
-    int pv;
-    if ((pv = pVal.value()) > 0) {
-      progressDialog.setValue(pv);
-    }
+    const int pv = pVal.value();
+    if (pv > 0) progressDialog.setValue(pv);
   }
 
-  // categories[] from collected catDefs
-  for (auto it = catDefs.cbegin(); it != catDefs.cend(); ++it) {
-    const auto& c = it.value();
-    categories.append(QJsonObject{
-        {"id", c.id}, {"name", c.name}, {"supercategory", c.supercategory}});
-  }
-
-  // root COCO object
   QJsonObject root;
-
-
-
   root.insert(
       "info",
       QJsonObject{{"year", QDate::currentDate().year()},
@@ -173,19 +132,19 @@ bool exportCOCOAnnotationsTask(AnnImgManager& mgr,
                   {"description", "Exported by CVTaggerTool"},
                   {"date_created",
                    QDateTime::currentDateTimeUtc().toString(Qt::ISODate)}});
-  root.insert("licenses", QJsonArray{});  // optional
+  root.insert("licenses", QJsonArray{});
   root.insert("images", images);
   root.insert("annotations", annotations);
-  root.insert("categories", categories);
+  root.insert("categories", categories.toJson());
 
-  // Write file
-  QFile f(outputFilePath);
+  QFile f(opt.outputPath);
   if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    qWarning() << "Failed to open for write:" << outputFilePath
+    qWarning() << "Failed to open for write:" << opt.outputPath
                << f.errorString();
     return false;
   }
-  f.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+  f.write(QJsonDocument(root).toJson(opt.prettyJson ? QJsonDocument::Indented
+                                                    : QJsonDocument::Compact));
   f.close();
   return true;
 }

@@ -3,11 +3,9 @@
 #include <QProgressDialog>
 
 #include "annimgmanager.h"
+#include "export_options.h"
 
-bool exportCOCOAnnotationsTask(AnnImgManager &mgr,
-                               const QString &outputFilePath,
-                               QProgressDialog &progressDialog,
-                               bool includeBBoxes = true,
-                               bool includePolygons = true);
+bool exportCOCOAnnotationsTask(AnnImgManager &mgr, const ExportOptions &opt,
+                               QProgressDialog &progressDialog);
 
 #endif  // COCO_H
