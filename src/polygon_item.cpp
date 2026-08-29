@@ -143,9 +143,10 @@ void PolygonItem::paint(QPainter *painter,
 }
 
 void PolygonItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
+  // A locked item is neither movable nor node-editable.
   if (m_currentCorner == kCenter && m_editEnable)
     QGraphicsItem::mouseMoveEvent(event);
-  else if (m_currentCorner == kNode) {
+  else if (m_currentCorner == kNode && m_editEnable) {
     QPointF cpos = event->pos();
     QPolygonF poly = polygon();
     poly[m_currentNodeIndx_] = cpos;
@@ -155,8 +156,15 @@ void PolygonItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 void PolygonItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = positionInside(event->pos());
-  m_oldPolygon = polygon();
-  m_oldPos = pos();
+  // Only the press that starts the gesture may set the baseline. A second
+  // button pressed mid-drag (e.g. right-click to open the edit dialog while
+  // still dragging) would otherwise rebase it to the already-modified geometry
+  // and the change in flight would never reach the undo stack.
+  if (!m_gestureActive) {
+    m_oldPolygon = polygon();
+    m_oldPos = pos();
+    m_gestureActive = true;
+  }
 
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
@@ -215,16 +223,30 @@ void PolygonItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsPolygonItem::mouseReleaseEvent(event);
 
+  // Without an in-flight gesture there is no valid baseline to compare against.
+  if (!m_gestureActive) {
+    m_currentCorner = kInvalid;
+    m_currentNodeIndx_ = -1;
+    update();
+    return;
+  }
+  m_gestureActive = false;
+
+  // Shape and position are recorded independently: a gesture that changed both
+  // must push both commands, otherwise the undo stack cannot restore the
+  // original state.
   if (m_currentCorner != kInvalid) {
-    if (m_currentCorner == kNode && m_oldPolygon != polygon()) {
+    if (m_oldPolygon != polygon()) {
       // this happens when a node is update
       Helper::imageCanvas()->undoStack()->push(
           makeChangeCommand(m_oldPolygon, polygon()));
+      m_oldPolygon = polygon();
     }
 
-    if (m_currentCorner == kCenter && m_oldPos != pos()) {
+    if (m_oldPos != pos()) {
       Helper::imageCanvas()->undoStack()->push(
           new MoveItemCommand(m_oldPos, pos(), this));
+      m_oldPos = pos();
     }
   }
   m_currentCorner = kInvalid;

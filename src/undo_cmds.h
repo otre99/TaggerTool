@@ -172,7 +172,6 @@ class ChangeLineStripCommand : public QUndoCommand {
 
  private:
   QPolygonF m_oldPoly, m_newPoly;
-  ;
   PolygonItem *m_item;
   QString m_label;
 };

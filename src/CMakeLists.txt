@@ -36,6 +36,8 @@ set(PROJECT_SOURCES
     dialoglabels.cpp dialoglabels.h dialoglabels.ui
     undo_cmds.h  undo_cmds.cpp
     labeltreemodel.cpp labeltreemodel.h
+    exportdialog.cpp exportdialog.h exportdialog.ui
+    import_export/export_options.cpp import_export/export_options.h
     import_export/yolo.cpp     import_export/yolo.h
     import_export/coco.h import_export/coco.cpp
     import_export/native.h import_export/native.cpp

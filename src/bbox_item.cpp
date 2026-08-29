@@ -163,7 +163,9 @@ void BoundingBoxItem::paint(QPainter *painter,
 }
 
 void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-  if (m_currentCorner == kCenter && m_editEnable) {
+  if (m_currentCorner == kCenter || !m_editEnable) {
+    // A locked item is neither movable nor resizable; the base class ignores
+    // the move because ItemIsMovable is cleared.
     QGraphicsRectItem::mouseMoveEvent(event);
   } else {
     QPointF cpos = event->pos();
@@ -242,8 +244,11 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
       default:
         break;
     }
-    m_currentCorner = new_corner;
     if (newrect.isValid()) {
+      // Commit the flipped corner only together with the geometry and the new
+      // reference point: updating it while rejecting the rect would leave the
+      // corner and m_lastPt out of sync and make the delta accumulate.
+      m_currentCorner = new_corner;
       setRect(newrect);
       m_lastPt = cpos;
     }
@@ -252,8 +257,15 @@ void BoundingBoxItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 void BoundingBoxItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = positionInside(event->pos());
-  m_oldCoords = rect();
-  m_oldPos = pos();
+  // Only the press that starts the gesture may set the baseline. A second
+  // button pressed mid-drag (e.g. right-click to open the edit dialog while
+  // still dragging) would otherwise rebase it to the already-modified geometry
+  // and the change in flight would never reach the undo stack.
+  if (!m_gestureActive) {
+    m_oldCoords = rect();
+    m_oldPos = pos();
+    m_gestureActive = true;
+  }
   // qDebug() << "AA" << m_editEnable << m_currentCorner;
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
@@ -279,14 +291,28 @@ void BoundingBoxItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsRectItem::mouseReleaseEvent(event);
 
-  auto newCoords = rect();
+  // Without an in-flight gesture there is no valid baseline to compare against.
+  if (!m_gestureActive) {
+    m_currentCorner = kInvalid;
+    update();
+    return;
+  }
+  m_gestureActive = false;
 
-  if (m_currentCorner == kCenter && m_oldPos != pos()) {
-    auto cmd = new MoveItemCommand(m_oldPos, pos(), this);
-    Helper::imageCanvas()->undoStack()->push(cmd);
-  } else if (m_currentCorner != kInvalid && m_oldCoords != rect()) {
-    auto cmd = new SizeChangeBBoxCommand(m_oldCoords, newCoords, this);
-    Helper::imageCanvas()->undoStack()->push(cmd);
+  const QRectF newCoords = rect();
+
+  // Position and size are recorded independently: a gesture that changed both
+  // must push both commands, otherwise the undo stack cannot restore the
+  // original state.
+  if (m_oldPos != pos()) {
+    Helper::imageCanvas()->undoStack()->push(
+        new MoveItemCommand(m_oldPos, pos(), this));
+    m_oldPos = pos();
+  }
+  if (m_oldCoords != newCoords) {
+    Helper::imageCanvas()->undoStack()->push(
+        new SizeChangeBBoxCommand(m_oldCoords, newCoords, this));
+    m_oldCoords = newCoords;
   }
   m_currentCorner = kInvalid;
   update();
@@ -353,42 +379,34 @@ QRectF BoundingBoxItem::buildRectFromTwoPoints(const QPointF &p1,
 }
 
 BoundingBoxItem::CORNER BoundingBoxItem::positionInside(const QPointF &pos) {
-  CORNER result = kCenter;
   const QRectF brect = rect();  // boundingRect();
 
-  qreal w2 = brect.left() + brect.width() / 2;
-  qreal h2 = brect.top() + brect.height() / 2;
-  qreal w = pen().widthF();
+  const qreal w2 = brect.left() + brect.width() / 2;
+  const qreal h2 = brect.top() + brect.height() / 2;
+  const qreal w = pen().widthF();
 
-  if (Helper::pointLen(brect.topLeft() - pos) < w) {
-    result = kTopLeft;
-  }
-  if (Helper::pointLen(QPointF{w2, brect.top()} - pos) < w) {
-    result = kTopCenter;
-  }
+  const QPair<QPointF, CORNER> nodes[] = {
+      {brect.topLeft(), kTopLeft},
+      {{w2, brect.top()}, kTopCenter},
+      {brect.topRight(), kTopRight},
+      {{brect.right(), h2}, kRightCenter},
+      {brect.bottomLeft(), kBottomLeft},
+      {{w2, brect.bottom()}, kBottomCenter},
+      {brect.bottomRight(), kBottomRight},
+      {{brect.left(), h2}, kLeftCenter}};
 
-  if (Helper::pointLen(brect.topRight() - pos) < w) {
-    result = kTopRight;
-  }
-
-  if (Helper::pointLen(QPointF{brect.right(), h2} - pos) < w) {
-    result = kRightCenter;
-  }
-
-  if (Helper::pointLen(brect.bottomLeft() - pos) < w) {
-    result = kBottomLeft;
-  }
-
-  if (Helper::pointLen(QPointF{w2, brect.bottom()} - pos) < w) {
-    result = kBottomCenter;
-  }
-
-  if (Helper::pointLen(brect.bottomRight() - pos) < w) {
-    result = kBottomRight;
-  }
-
-  if (Helper::pointLen(QPointF{brect.left(), h2} - pos) < w) {
-    result = kLeftCenter;
+  // Pick the *nearest* handle within the threshold. Testing each handle
+  // independently and letting the last match win means that on a box smaller
+  // than the handle threshold every test passes and the box can only ever be
+  // resized from kLeftCenter, never moved.
+  CORNER result = kCenter;
+  qreal best = w;
+  for (auto &&[pt, corner] : nodes) {
+    const qreal d = Helper::pointLen(pt - pos);
+    if (d < best) {
+      best = d;
+      result = corner;
+    }
   }
   return result;
 }

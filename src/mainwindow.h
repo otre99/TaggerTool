@@ -7,6 +7,7 @@
 
 #include "annimgmanager.h"
 #include "imagecanvas.h"
+#include "import_export/export_options.h"
 #include "imgstringlistmodel.h"
 #include "recentprojects.h"
 class QLabel;
@@ -87,6 +88,7 @@ class MainWindow : public QMainWindow {
  private:
   bool loadImagesAndAnnotations(const QString &annImg,
                                 const QString &annFolder);
+  void runExport(ExportOptions::Format format);
   void setUp();
   void addNewUniqueItem(QComboBox *cbox, const QString &label, bool selected);
   QStringList getLabelsFromComboBox(QComboBox *cbox);
@@ -97,7 +99,7 @@ class MainWindow : public QMainWindow {
   ImageCanvas m_imageCanvas;
   ImgStringListModel m_imageListModel;
   QModelIndex m_current_index{};
-  bool m_needToSaveNotUndo;
+  bool m_needToSaveNotUndo{false};
   QLabel *m_displayLabel;
   RecentProjects m_recentProjectsManager;
 };

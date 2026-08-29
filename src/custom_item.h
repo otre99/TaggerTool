@@ -19,10 +19,24 @@ class CustomItem {
   virtual bool isLocked() const { return !m_editEnable; }
   virtual void showEditDialog(QGraphicsItem *item, const QPoint screenPos);
 
+  /**
+   * @brief Abandon an in-flight mouse gesture.
+   *
+   * Removing an item from the scene ungrabs the mouse, so its
+   * mouseReleaseEvent() never arrives and m_gestureActive would stay set,
+   * leaving a stale old-state baseline for the next gesture. Every path that
+   * takes an item out of the scene must call this.
+   */
+  void endGesture() { m_gestureActive = false; }
+
  protected:
   QString m_label;
   QString m_description;
   bool m_editEnable{false};
+  // True between the press that starts a gesture and the release that ends it.
+  // Guards against a second button press rebasing the old-state baseline
+  // (m_oldPos and friends) while a drag is still in flight.
+  bool m_gestureActive{false};
   int m_labelLen;
   int m_labelHeight;
   ImageCanvas *m_canvas;

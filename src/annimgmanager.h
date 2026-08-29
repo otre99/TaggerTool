@@ -151,7 +151,10 @@ class AnnImgManager {
   QString annFolder() const { return m_annotationsDir.absolutePath(); }
   QString imgFolder() const { return m_imagesDir.absolutePath(); }
 
-  const Annotations &annotations(const QString &image_id, bool *fromCache);
+  // Returned by value on purpose: the QCache owns the object and destroys it
+  // on eviction or on the next saveAnnotations(), which would leave any handed
+  // out reference dangling.
+  Annotations annotations(const QString &image_id, bool *fromCache);
   QSize imageSize(const QString &image_id);
   QImage image(const QString &image_id);
   QImageReader imageReader(const QString &image_id);

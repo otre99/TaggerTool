@@ -196,6 +196,8 @@ void LabelTreeModel::clear() {
   }
   m_roots.clear();
   m_currentLabels.clear();
+  // Otherwise labels() keeps prepending a label from the previous project.
+  m_recentLabels.clear();
   endResetModel();
 }
 

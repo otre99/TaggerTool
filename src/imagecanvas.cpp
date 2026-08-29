@@ -207,8 +207,8 @@ void ImageCanvas::addAnnotations(const Annotations &ann) {
   // LneStrips
   for (auto &lst : ann.line_strips) {
     auto cmd =
-        new AddLineStripCommand(this, lst.getPolygon(), lst.getDescription(),
-                                lst.getLabel(), false, nullptr);
+        new AddLineStripCommand(this, lst.getPolygon(), lst.getLabel(),
+                                lst.getDescription(), false, nullptr);
     m_undoStack.push(cmd);
     if (!Helper::labelTreeModel->isEnable(Helper::kLineStrip, lst.getLabel())) {
       cmd->item()->setVisible(false);
@@ -225,6 +225,7 @@ void ImageCanvas::clear() {
   for (auto *item : all_items) {
     auto *to_del = dynamic_cast<CustomItem *>(item);
     if (to_del) {
+      to_del->endGesture();
       removeItem(item);
     }
   }

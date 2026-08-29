@@ -14,6 +14,7 @@
 #include <QWheelEvent>
 
 #include "dialoglabels.h"
+#include "exportdialog.h"
 #include "import_export/coco.h"
 #include "import_export/native.h"
 #include "import_export/yolo.h"
@@ -263,14 +264,16 @@ void MainWindow::on_actionAdd_New_Line_triggered() {
 }
 
 void MainWindow::on_actionNext_triggered() {
-  int N = m_imageListModel.rowCount();
+  const int N = m_imageListModel.rowCount();
+  if (N == 0) return;
   const int row = (m_current_index.row() + 1) % N;
   const QModelIndex next_index = m_imageListModel.indexAtRow(row);
   on_listViewImgNames_clicked(next_index);
 }
 
 void MainWindow::on_actionPrevious_triggered() {
-  int N = m_imageListModel.rowCount();
+  const int N = m_imageListModel.rowCount();
+  if (N == 0) return;
   int row = N - 1;
   if (m_current_index.row() != 0) {
     row = (m_current_index.row() - 1) % N;
@@ -409,14 +412,7 @@ void MainWindow::on_actionAdd_Circle_Item_triggered() {
 }
 
 void MainWindow::on_actionExportCoco_triggered() {
-  const QString fileName = QFileDialog::getSaveFileName(this, "Coco JSON file");
-  if (fileName.isEmpty()) return;
-
-  QProgressDialog progress("Exporting to COCO format...", "Cancel", 0, 100,
-                           this);
-  progress.setMinimumDuration(0);
-  progress.setWindowModality(Qt::WindowModal);
-  exportCOCOAnnotationsTask(m_annImgManager, fileName, progress, true, true);
+  runExport(ExportOptions::Format::Coco);
 }
 
 // void MainWindow::on_actionEdit_historial_triggered(bool checked) {
@@ -440,23 +436,59 @@ void MainWindow::on_actionShow_Hide_Labels_triggered(bool checked) {
 }
 
 void MainWindow::on_actionExportYolo_triggered() {
-  const QString outDir = QFileDialog::getExistingDirectory(
-      this, "Select folder for YOLO annotations");
-  if (outDir.isEmpty()) return;
-
-  QProgressDialog progress("Exporting to YOLO format...", "Cancel", 0, 100,
-                           this);
-  progress.setWindowModality(Qt::WindowModal);
-  exportProjectToYOLO(m_annImgManager, outDir, progress, true, true);
+  runExport(ExportOptions::Format::Yolo);
 }
 
 void MainWindow::on_actionNative_triggered() {
-  const QString fileName =
-      QFileDialog::getSaveFileName(this, "Native JSON file");
-  if (fileName.isEmpty()) return;
+  runExport(ExportOptions::Format::Native);
+}
 
-  QProgressDialog progress("Exporting to a single JSON file...", "Cancel", 0,
+/**
+ * @brief Ask for the export settings, then run the matching exporter.
+ */
+void MainWindow::runExport(ExportOptions::Format format) {
+  if (m_annImgManager.annotationsCount() == 0) {
+    QMessageBox::information(this, tr("Nothing to export"),
+                             tr("Load a project first."));
+    return;
+  }
+
+  ExportDialog dlg(format, &m_annImgManager, this);
+  if (dlg.exec() != QDialog::Accepted) return;
+
+  const ExportOptions opt = dlg.options();
+  if (opt.outputPath.isEmpty()) return;
+  // Remember the choices so the next export of this format starts here.
+  opt.save(ExportDialog::settingsGroup(format));
+
+  const QString name = ExportDialog::formatName(format);
+  QProgressDialog progress(tr("Exporting to %1...").arg(name), tr("Cancel"), 0,
                            100, this);
+  progress.setMinimumDuration(0);
   progress.setWindowModality(Qt::WindowModal);
-  exportProjectToJSON(m_annImgManager, fileName, progress);
+
+  bool ok = false;
+  switch (format) {
+    case ExportOptions::Format::Native:
+      ok = exportProjectToJSON(m_annImgManager, opt, progress);
+      break;
+    case ExportOptions::Format::Coco:
+      ok = exportCOCOAnnotationsTask(m_annImgManager, opt, progress);
+      break;
+    case ExportOptions::Format::Yolo:
+      ok = exportProjectToYOLO(m_annImgManager, opt, progress);
+      break;
+  }
+  progress.close();
+
+  if (ok) {
+    ui->statusBar->showMessage(
+        tr("Export to %1 finished: %2").arg(name, opt.outputPath), 8000);
+  } else if (!progress.wasCanceled()) {
+    QMessageBox::warning(
+        this, tr("Export failed"),
+        tr("The %1 export could not be completed. Check that the destination "
+           "is writable.")
+            .arg(name));
+  }
 }

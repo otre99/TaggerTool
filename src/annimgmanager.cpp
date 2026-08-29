@@ -278,15 +278,20 @@ void AnnImgManager::reset(const QString &images_folder_path,
   m_annCache.setMaxCost(m_imageIdsList.size());
 }
 
-const Annotations &AnnImgManager::annotations(const QString &image_id,
-                                              bool *fromCache) {
+Annotations AnnImgManager::annotations(const QString &image_id,
+                                       bool *fromCache) {
   const QString ann_file_path = annFilePath(image_id);
 
   bool cached_used = true;
   if (!m_annCache.contains(image_id)) {
-    const Annotations ann = _loadAnnotation(ann_file_path);
+    Annotations ann = _loadAnnotation(ann_file_path);
+    if (fromCache) {
+      *fromCache = false;
+    }
+    // insert() may refuse the entry (cost above maxCost) and delete it, so the
+    // loaded value is returned directly instead of reading the cache back.
     m_annCache.insert(image_id, new Annotations(ann));
-    cached_used = false;
+    return ann;
   }
   if (fromCache) {
     *fromCache = cached_used;

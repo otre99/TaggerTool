@@ -83,16 +83,27 @@ void PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     // setCursor(Qt::DragMoveCursor);
     QGraphicsEllipseItem::mousePressEvent(event);
   }
-  m_oldPos = pos();
+  // Only the press that starts the gesture may set the baseline. A second
+  // button pressed mid-drag would otherwise rebase it to the already-moved
+  // position and the move in flight would never reach the undo stack.
+  if (!m_gestureActive) {
+    m_oldPos = pos();
+    m_gestureActive = true;
+  }
   update();
 }
 
 void PointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   QGraphicsEllipseItem::mouseReleaseEvent(event);
-  auto newPos = pos();
+  // Without an in-flight gesture there is no valid baseline to compare against.
+  if (!m_gestureActive) return;
+  m_gestureActive = false;
+
+  const QPointF newPos = pos();
   if (newPos != m_oldPos) {
     Helper::imageCanvas()->undoStack()->push(
         new MoveItemCommand(m_oldPos, newPos, this, nullptr));
+    m_oldPos = newPos;
   }
 }
 

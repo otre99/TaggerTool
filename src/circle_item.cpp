@@ -122,6 +122,17 @@ void CircleItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void CircleItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+  // Capture the old-state baseline for every press, before any branching: the
+  // release handler compares against it unconditionally, so a branch that skips
+  // the capture (edit dialog, lock toggle) would leave it holding a default
+  // constructed QRectF/QPointF and push bogus undo commands on release.
+  // Only the press that starts the gesture may set it, so that a second button
+  // pressed mid-drag cannot rebase it and swallow the change in flight.
+  if (!m_gestureActive) {
+    m_oldPos = pos();
+    m_oldRect = rect();
+    m_gestureActive = true;
+  }
   m_currentCorner = kInvalid;
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
@@ -133,8 +144,6 @@ void CircleItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     showEditDialog(this, event->screenPos());
   } else {
     m_currentCorner = positionInside(event->pos());
-    m_oldPos = pos();
-    m_oldRect = rect();
     if (m_currentCorner == kCenter && m_editEnable) {
       setCursor(Qt::DragMoveCursor);
       QGraphicsEllipseItem::mousePressEvent(event);
@@ -154,17 +163,25 @@ void CircleItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsEllipseItem::mouseReleaseEvent(event);
 
-  bool cond1 = m_oldRect != rect();
-  bool cond2 = m_oldPos != pos();
+  // Without an in-flight gesture there is no valid baseline to compare against.
+  if (!m_gestureActive) {
+    m_currentCorner = kInvalid;
+    update();
+    return;
+  }
+  m_gestureActive = false;
+
+  const bool sizeChanged = m_oldRect != rect();
+  const bool moved = m_oldPos != pos();
   m_currentCorner = kInvalid;
-  if (cond1 || cond2) {
+  if (sizeChanged || moved) {
     auto canvas = dynamic_cast<ImageCanvas *>(this->scene());
-    if (cond1) {
+    if (sizeChanged) {
       canvas->undoStack()->push(
           new RadiusChangeCircleCommand(m_oldRect, rect(), this));
       m_oldRect = rect();
     }
-    if (cond2) {
+    if (moved) {
       canvas->undoStack()->push(new MoveItemCommand(m_oldPos, pos(), this));
       m_oldPos = pos();
     }

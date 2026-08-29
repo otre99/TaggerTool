@@ -55,14 +55,17 @@ void RecentProjects::updateEntry(const QString &imgFolder,
         RecentEntry{imgFolder, annFolder, Helper::seconsToYear5000(dt)};
   } else {
     m_recents[key].secondsToYear5000 = Helper::seconsToYear5000(dt);
-    sortKeys();
   }
+  // Both paths change the ordering, so m_sortedKeys must be rebuilt either way.
+  sortKeys();
 }
 
 // aux functions
 void RecentProjects::sortKeys() {
   std::sort(m_sortedKeys.begin(), m_sortedKeys.end(),
-            [this](auto &a, auto &b) { return m_recents[a] <= m_recents[b]; });
+            [this](const QString &a, const QString &b) {
+              return m_recents[a] < m_recents[b];
+            });
 }
 
 inline QString RecentProjects::makeProjectKey(const QString &image,

@@ -36,7 +36,10 @@ AddBBoxCommand::~AddBBoxCommand() {
   }
 }
 
-void AddBBoxCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+void AddBBoxCommand::undo() {
+  m_item->endGesture();
+  Helper::imageCanvas()->removeItem(m_item);
+}
 
 void AddBBoxCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
@@ -136,7 +139,10 @@ AddCircleCommand::~AddCircleCommand() {
   }
 }
 
-void AddCircleCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+void AddCircleCommand::undo() {
+  m_item->endGesture();
+  Helper::imageCanvas()->removeItem(m_item);
+}
 
 void AddCircleCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
@@ -174,7 +180,10 @@ AddPolygonCommand::~AddPolygonCommand() {
   }
 }
 
-void AddPolygonCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+void AddPolygonCommand::undo() {
+  m_item->endGesture();
+  Helper::imageCanvas()->removeItem(m_item);
+}
 
 void AddPolygonCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
@@ -186,8 +195,8 @@ ChangePolygonCommand::ChangePolygonCommand(const QPolygonF &oldPoly,
                                            PolygonItem *item,
                                            QUndoCommand *parent)
     : QUndoCommand("ChangePolygon", parent),
-      m_newPoly(newPoly),
       m_oldPoly(oldPoly),
+      m_newPoly(newPoly),
       m_item(item) {}
 
 void ChangePolygonCommand::undo() { m_item->setPolygon(m_oldPoly); }
@@ -207,7 +216,10 @@ AddLineStripCommand::AddLineStripCommand(ImageCanvas *canvas,
   m_item = new PolygonItem(canvas, poly, label, dsc, nullptr, ready, false);
 }
 
-void AddLineStripCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+void AddLineStripCommand::undo() {
+  m_item->endGesture();
+  Helper::imageCanvas()->removeItem(m_item);
+}
 
 void AddLineStripCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
@@ -226,8 +238,8 @@ ChangeLineStripCommand::ChangeLineStripCommand(const QPolygonF &oldPoly,
                                                PolygonItem *item,
                                                QUndoCommand *parent)
     : QUndoCommand("ChangeLineStrip", parent),
-      m_newPoly(newPoly),
       m_oldPoly(oldPoly),
+      m_newPoly(newPoly),
       m_item(item) {}
 
 void ChangeLineStripCommand::undo() { m_item->setPolygon(m_oldPoly); }
@@ -253,7 +265,10 @@ AddPointCommand::~AddPointCommand() {
   }
 }
 
-void AddPointCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+void AddPointCommand::undo() {
+  m_item->endGesture();
+  Helper::imageCanvas()->removeItem(m_item);
+}
 
 void AddPointCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
@@ -278,7 +293,10 @@ AddLineCommand::~AddLineCommand() {
   }
 }
 
-void AddLineCommand::undo() { Helper::imageCanvas()->removeItem(m_item); }
+void AddLineCommand::undo() {
+  m_item->endGesture();
+  Helper::imageCanvas()->removeItem(m_item);
+}
 
 void AddLineCommand::redo() { Helper::imageCanvas()->addItem(m_item); }
 
@@ -357,7 +375,12 @@ RemoveItemCommand::RemoveItemCommand(QGraphicsItem *item, QUndoCommand *parent)
 
 void RemoveItemCommand::undo() { Helper::imageCanvas()->addItem(m_item); }
 
-void RemoveItemCommand::redo() { Helper::imageCanvas()->removeItem(m_item); }
+void RemoveItemCommand::redo() {
+  if (auto *citem = dynamic_cast<CustomItem *>(m_item)) {
+    citem->endGesture();
+  }
+  Helper::imageCanvas()->removeItem(m_item);
+}
 
 // ChangeLabelCommand
 ChangeLabelCommand::ChangeLabelCommand(const QString &oldLabel,

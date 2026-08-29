@@ -129,6 +129,15 @@ void LineItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   m_currentCorner = positionInside(event->pos());
+  // Only the press that starts the gesture may set the baseline, and it must be
+  // set before showEditDialog() runs its nested event loop. A second button
+  // pressed mid-drag would otherwise rebase it to the already-modified geometry
+  // and the change in flight would never reach the undo stack.
+  if (!m_gestureActive) {
+    m_oldLine = line();
+    m_oldPos = pos();
+    m_gestureActive = true;
+  }
   if (event->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier) &&
       event->button() == Qt::LeftButton) {
     __swapStackOrder(this, scene()->items(event->scenePos()));
@@ -146,8 +155,6 @@ void LineItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
       update();
     }
   }
-  m_oldLine = line();
-  m_oldPos = pos();
   update();
 }
 
@@ -155,14 +162,24 @@ void LineItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   setCursor(Qt::ArrowCursor);
   QGraphicsLineItem::mouseReleaseEvent(event);
 
+  // Without an in-flight gesture there is no valid baseline to compare against.
+  if (!m_gestureActive) {
+    m_currentCorner = kInvalid;
+    update();
+    return;
+  }
+  m_gestureActive = false;
+
   if (m_oldLine != line()) {
     Helper::imageCanvas()->undoStack()->push(
         new ChangeLineSizeCommand(m_oldLine, line(), this, nullptr));
+    m_oldLine = line();
   }
 
   if (m_oldPos != pos()) {
     Helper::imageCanvas()->undoStack()->push(
         new MoveItemCommand(m_oldPos, pos(), this, nullptr));
+    m_oldPos = pos();
   }
   m_currentCorner = kInvalid;
   update();

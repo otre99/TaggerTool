@@ -9,8 +9,10 @@ class RecentProjects {
     QString imgFolder;
     QString annFolder;
     qint64 secondsToYear5000;
-    bool operator<=(const RecentEntry &other) {
-      return this->secondsToYear5000 <= other.secondsToYear5000;
+    // Must be a strict weak ordering: std::sort has undefined behaviour with a
+    // comparator that returns true for equal elements.
+    bool operator<(const RecentEntry &other) const {
+      return this->secondsToYear5000 < other.secondsToYear5000;
     }
   };
   RecentProjects();
